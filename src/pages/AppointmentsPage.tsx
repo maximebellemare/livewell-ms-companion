@@ -89,7 +89,7 @@ const AppointmentsPage = () => {
             </button>
           }
         />
-        <div className="mx-auto max-w-lg space-y-4 px-4 py-4 animate-fade-in">
+        <div className="mx-auto max-w-lg space-y-4 px-4 py-4 pb-24 animate-fade-in">
           {/* Title */}
           <div className="rounded-xl bg-card p-4 shadow-soft space-y-3">
             <label className="block text-sm font-medium text-foreground">Appointment title</label>
@@ -180,13 +180,15 @@ const AppointmentsPage = () => {
             />
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={!editing.title || !editing.date}
-            className="w-full rounded-full bg-primary py-3.5 text-base font-semibold text-primary-foreground shadow-card transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
-          >
-            {editing.id ? "Save Changes" : "Add Appointment"}
-          </button>
+          <div className="pb-4">
+            <button
+              onClick={handleSave}
+              disabled={!editing.title || !editing.date}
+              className="w-full rounded-full bg-primary py-3.5 text-base font-semibold text-primary-foreground shadow-card transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+            >
+              {editing.id ? "Save Changes" : "Add Appointment"}
+            </button>
+          </div>
         </div>
       </>
     );
