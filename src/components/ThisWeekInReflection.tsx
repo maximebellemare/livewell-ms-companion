@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { format, startOfWeek, addDays, isToday, isFuture } from "date-fns";
 import { getPromptForDate } from "@/lib/dailyPrompts";
 import { DailyEntry } from "@/hooks/useEntries";
-import { PenLine, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
+import { PenLine, ChevronDown, ChevronUp, CheckCircle2, Circle, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 /* ── Per-day row with expand/collapse ─────────────────────── */
@@ -16,12 +16,22 @@ const NOTE_THRESHOLD = 160; // characters before we show expand
 
 const DayRow = ({ day, entriesByDate, navigate }: DayRowProps) => {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const key = format(day, "yyyy-MM-dd");
   const entry = entriesByDate[key];
   const prompt = getPromptForDate(day);
   const note = entry?.notes?.trim() ?? null;
   const dayIsToday = isToday(day);
   const isLong = !!note && note.length > NOTE_THRESHOLD;
+
+  const handleCopy = () => {
+    if (!note) return;
+    const text = `${format(day, "EEEE, MMMM d")}\n💭 ${prompt}\n\n${note}`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <div className="px-4 py-3 space-y-1">
@@ -37,15 +47,30 @@ const DayRow = ({ day, entriesByDate, navigate }: DayRowProps) => {
             {dayIsToday ? "Today" : format(day, "EEE, MMM d")}
           </p>
         </div>
-        {dayIsToday && !note && (
-          <button
-            onClick={() => navigate("/journal")}
-            className="flex items-center gap-1 text-[10px] font-medium text-primary hover:opacity-80 transition-opacity"
-          >
-            <PenLine className="h-2.5 w-2.5" />
-            Write now
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {note && (
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              title="Copy to clipboard"
+            >
+              {copied ? (
+                <><Check className="h-2.5 w-2.5 text-emerald-500" /><span className="text-emerald-500">Copied!</span></>
+              ) : (
+                <><Copy className="h-2.5 w-2.5" />Copy</>
+              )}
+            </button>
+          )}
+          {dayIsToday && !note && (
+            <button
+              onClick={() => navigate("/journal")}
+              className="flex items-center gap-1 text-[10px] font-medium text-primary hover:opacity-80 transition-opacity"
+            >
+              <PenLine className="h-2.5 w-2.5" />
+              Write now
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Prompt */}
