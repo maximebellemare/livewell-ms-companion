@@ -9,6 +9,17 @@ import { useTheme } from "next-themes";
 import NotificationToggle from "@/components/NotificationToggle";
 import { toast } from "sonner";
 
+function getNextMonday(): string {
+  const today = new Date();
+  const day = today.getDay();
+  const daysUntil = (8 - day) % 7 || 7;
+  const next = new Date(today);
+  next.setDate(today.getDate() + daysUntil);
+  const weekday = next.toLocaleDateString("en-US", { weekday: "long" });
+  const monthDay = next.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return `${weekday} ${monthDay}`;
+}
+
 const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
@@ -167,6 +178,9 @@ const ProfilePage = () => {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">Weekly Email Digest</p>
               <p className="text-xs text-muted-foreground">Symptom summary every Monday morning</p>
+              {profile?.weekly_digest_enabled && (
+                <p className="text-xs text-primary mt-0.5">Next digest: {getNextMonday()}</p>
+              )}
             </div>
             <div className={`relative h-5 w-9 rounded-full transition-colors flex-shrink-0 ${profile?.weekly_digest_enabled ? "bg-primary" : "bg-muted"}`}>
               <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${profile?.weekly_digest_enabled ? "translate-x-4" : "translate-x-0.5"}`} />
