@@ -193,6 +193,7 @@ export type Database = {
           symptoms: string[] | null
           updated_at: string
           user_id: string
+          weekly_digest_enabled: boolean
           year_diagnosed: string | null
         }
         Insert: {
@@ -206,6 +207,7 @@ export type Database = {
           symptoms?: string[] | null
           updated_at?: string
           user_id: string
+          weekly_digest_enabled?: boolean
           year_diagnosed?: string | null
         }
         Update: {
@@ -219,6 +221,7 @@ export type Database = {
           symptoms?: string[] | null
           updated_at?: string
           user_id?: string
+          weekly_digest_enabled?: boolean
           year_diagnosed?: string | null
         }
         Relationships: []
