@@ -5,6 +5,7 @@ import { useEntries, useSaveEntry, DailyEntry } from "@/hooks/useEntries";
 import { PenLine, ChevronDown, ChevronUp, CheckCircle2, X } from "lucide-react";
 import { toast } from "sonner";
 import JournalPromptSuggestions from "@/components/JournalPromptSuggestions";
+import DailyPromptCard from "@/components/DailyPromptCard";
 
 
 /* ── Parse a yyyy-MM-dd string as local date (avoids UTC midnight shift) ── */
@@ -62,6 +63,15 @@ const EditorCard = ({ date, entry, recentEntries = [] }: EditorCardProps) => {
         <p className="text-sm font-semibold text-foreground">{dateLabel(date)}</p>
         <p className="text-xs text-muted-foreground">{format(parseLocalDate(date), "MMM d, yyyy")}</p>
       </div>
+
+      {/* Daily rotating prompt */}
+      <DailyPromptCard
+        onUsePrompt={(prompt) => {
+          const prefix = text.trim() ? text + "\n\n" : "";
+          setText(prefix + prompt + " ");
+          setSaved(false);
+        }}
+      />
 
       {/* AI prompt suggestions */}
       <JournalPromptSuggestions
