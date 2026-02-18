@@ -2,3 +2,7 @@ project_id = "fpjfoadvytpvrhligdye"
 
 [functions.weekly-insight]
 verify_jwt = false
+
+[functions.journal-prompt]
+verify_jwt = false
+
