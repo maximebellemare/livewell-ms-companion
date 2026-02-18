@@ -4,6 +4,8 @@ import PageHeader from "@/components/PageHeader";
 import { useEntries, useSaveEntry, DailyEntry } from "@/hooks/useEntries";
 import { PenLine, ChevronDown, ChevronUp, CheckCircle2, X } from "lucide-react";
 import { toast } from "sonner";
+import JournalPromptSuggestions from "@/components/JournalPromptSuggestions";
+
 
 /* ── Parse a yyyy-MM-dd string as local date (avoids UTC midnight shift) ── */
 function parseLocalDate(dateStr: string): Date {
@@ -59,6 +61,17 @@ const EditorCard = ({ date, entry }: EditorCardProps) => {
         <p className="text-sm font-semibold text-foreground">{dateLabel(date)}</p>
         <p className="text-xs text-muted-foreground">{format(parseLocalDate(date), "MMM d, yyyy")}</p>
       </div>
+
+      {/* AI prompt suggestions */}
+      <JournalPromptSuggestions
+        entry={entry}
+        onSelectPrompt={(prompt) => {
+          const prefix = text.trim() ? text + "\n\n" : "";
+          setText(prefix + prompt + " ");
+          setSaved(false);
+        }}
+      />
+
       <textarea
         value={text}
         onChange={(e) => { setText(e.target.value); setSaved(false); }}
@@ -90,6 +103,7 @@ const EditorCard = ({ date, entry }: EditorCardProps) => {
     </div>
   );
 };
+
 
 /* ── Past entry row (with inline editor) ──────────────────── */
 interface PastEntryProps {
