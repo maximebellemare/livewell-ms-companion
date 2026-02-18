@@ -12,6 +12,7 @@ export interface Profile {
   goals: string[];
   medications: string[];
   neurologist_email: string | null;
+  weekly_digest_enabled: boolean;
 }
 
 export const useProfile = () => {

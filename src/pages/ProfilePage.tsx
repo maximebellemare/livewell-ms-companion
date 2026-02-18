@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import { Link } from "react-router-dom";
-import { ChevronRight, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check } from "lucide-react";
+import { ChevronRight, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check, Mails } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
@@ -20,12 +20,27 @@ const ProfilePage = () => {
   const [neuroEmail, setNeuroEmail] = useState<string>("");
   const [neuroEmailInit, setNeuroEmailInit] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
+  const [togglingDigest, setTogglingDigest] = useState(false);
 
   // Initialise local state from loaded profile (once)
   if (profile && !neuroEmailInit) {
     setNeuroEmail(profile.neurologist_email ?? "");
     setNeuroEmailInit(true);
   }
+
+  const handleToggleDigest = async () => {
+    if (!profile) return;
+    const next = !profile.weekly_digest_enabled;
+    setTogglingDigest(true);
+    try {
+      await updateProfile.mutateAsync({ weekly_digest_enabled: next } as any);
+      toast.success(next ? "Weekly digest enabled — you'll get it every Monday." : "Weekly digest disabled.");
+    } catch {
+      toast.error("Failed to update preference.");
+    } finally {
+      setTogglingDigest(false);
+    }
+  };
 
   const handleSaveNeuroEmail = async () => {
     const trimmed = neuroEmail.trim();
@@ -143,6 +158,20 @@ const ProfilePage = () => {
             </div>
           </button>
           <NotificationToggle />
+          <button
+            onClick={handleToggleDigest}
+            disabled={togglingDigest || !profile}
+            className="tap-highlight-none flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-secondary text-foreground disabled:opacity-60"
+          >
+            <Mails className="h-4 w-4 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">Weekly Email Digest</p>
+              <p className="text-xs text-muted-foreground">Symptom summary every Monday morning</p>
+            </div>
+            <div className={`relative h-5 w-9 rounded-full transition-colors flex-shrink-0 ${profile?.weekly_digest_enabled ? "bg-primary" : "bg-muted"}`}>
+              <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${profile?.weekly_digest_enabled ? "translate-x-4" : "translate-x-0.5"}`} />
+            </div>
+          </button>
           {[
             { icon: Shield, label: "Privacy & Consent", desc: "Manage your data preferences" },
             { icon: Download, label: "Export Data", desc: "Download your health data" },
