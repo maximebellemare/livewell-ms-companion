@@ -117,6 +117,17 @@ const ThisWeekInReflection = ({ entries }: Props) => {
   const allDone = reflectedCount === total;
   const badgeEmoji = allDone ? "🔥" : reflectedCount >= Math.ceil(total / 2) ? "⚡" : "💭";
 
+  const motivationalMessage =
+    allDone
+      ? "Perfect week — every day reflected! 🎉"
+      : reflectedCount >= total - 1
+      ? "Almost there — one more to go!"
+      : reflectedCount >= Math.ceil(total / 2)
+      ? "Keep it up — you're on a roll!"
+      : reflectedCount === 2
+      ? "Good start — build the habit!"
+      : "Great start — keep writing!";
+
   return (
     <section className="space-y-2 animate-fade-in">
       <div className="px-1 flex items-center justify-between">
@@ -133,6 +144,7 @@ const ThisWeekInReflection = ({ entries }: Props) => {
           {badgeEmoji} {reflectedCount} of {total} day{total !== 1 ? "s" : ""} reflected
         </span>
       </div>
+      <p className="px-1 text-[11px] text-muted-foreground -mt-1">{motivationalMessage}</p>
       <div className="rounded-2xl bg-card border border-border shadow-soft overflow-hidden divide-y divide-border">
         {weekDays.map((day) => (
           <DayRow
