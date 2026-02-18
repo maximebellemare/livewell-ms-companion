@@ -24,10 +24,10 @@ function getNextMonday(): string {
 
 function getWeeklyMotivation(daysLogged: number): string {
   if (daysLogged === 0) return "Log today to start your week strong 💪";
-  if (daysLogged === 1) return "1 day logged this week — keep it up!";
+  if (daysLogged === 1) return "1 day logged — keep it going!";
   if (daysLogged <= 3) return `${daysLogged} days logged this week ⚡`;
   if (daysLogged <= 6) return `${daysLogged} days logged this week 🎉`;
-  return "7 days logged — perfect week! 🔥";
+  return "Perfect week — 7/7 days logged! 🔥";
 }
 
 const ProfilePage = () => {
@@ -167,15 +167,13 @@ const ProfilePage = () => {
         {/* Settings */}
         <div className="space-y-1">
           <p className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Settings</p>
+
+          {/* Dark mode */}
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
             className="tap-highlight-none flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-secondary text-foreground"
           >
-            {isDark ? (
-              <Sun className="h-4 w-4 flex-shrink-0" />
-            ) : (
-              <Moon className="h-4 w-4 flex-shrink-0" />
-            )}
+            {isDark ? <Sun className="h-4 w-4 flex-shrink-0" /> : <Moon className="h-4 w-4 flex-shrink-0" />}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">{isDark ? "Light Mode" : "Dark Mode"}</p>
               <p className="text-xs text-muted-foreground">{isDark ? "Switch to light theme" : "Switch to dark theme"}</p>
@@ -184,27 +182,46 @@ const ProfilePage = () => {
               <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${isDark ? "translate-x-4" : "translate-x-0.5"}`} />
             </div>
           </button>
+
           <NotificationToggle />
+
+          {/* Weekly digest toggle */}
           <button
             onClick={handleToggleDigest}
             disabled={togglingDigest || !profile}
             className="tap-highlight-none flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-secondary text-foreground disabled:opacity-60"
           >
-            <Mails className="h-4 w-4 flex-shrink-0" />
+            <Mails className="h-4 w-4 flex-shrink-0 mt-0.5 self-start" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">Weekly Email Digest</p>
               <p className="text-xs text-muted-foreground">Symptom summary every Monday morning</p>
-              {profile?.weekly_digest_enabled ? (
-                <div className="mt-0.5 flex flex-col gap-0.5">
-                  <p className="text-xs text-primary">Next digest: {getNextMonday()}</p>
-                  <p className="text-xs text-muted-foreground">{getWeeklyMotivation(daysLoggedThisWeek)}</p>
+
+              {profile?.weekly_digest_enabled && (
+                <div className="mt-2 space-y-1.5">
+                  {/* Progress bar */}
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-500"
+                        style={{ width: `${Math.min((daysLoggedThisWeek / 7) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-[11px] font-semibold tabular-nums text-foreground shrink-0">
+                      {daysLoggedThisWeek}/7
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[11px] text-muted-foreground leading-tight">{getWeeklyMotivation(daysLoggedThisWeek)}</p>
+                    <p className="text-[11px] text-primary shrink-0">Next: {getNextMonday()}</p>
+                  </div>
                 </div>
-              ) : null}
+              )}
             </div>
-            <div className={`relative h-5 w-9 rounded-full transition-colors flex-shrink-0 ${profile?.weekly_digest_enabled ? "bg-primary" : "bg-muted"}`}>
+            <div className={`relative h-5 w-9 rounded-full transition-colors flex-shrink-0 mt-0.5 self-start ${profile?.weekly_digest_enabled ? "bg-primary" : "bg-muted"}`}>
               <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${profile?.weekly_digest_enabled ? "translate-x-4" : "translate-x-0.5"}`} />
             </div>
           </button>
+
           {[
             { icon: Shield, label: "Privacy & Consent", desc: "Manage your data preferences" },
             { icon: Download, label: "Export Data", desc: "Download your health data" },
@@ -217,6 +234,7 @@ const ProfilePage = () => {
               </div>
             </button>
           ))}
+
           <button
             onClick={handleSignOut}
             className="tap-highlight-none flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-secondary text-foreground"
