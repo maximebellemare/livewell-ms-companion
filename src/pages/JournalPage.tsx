@@ -6,6 +6,7 @@ import { PenLine, ChevronDown, ChevronUp, CheckCircle2, X } from "lucide-react";
 import { toast } from "sonner";
 import JournalPromptSuggestions from "@/components/JournalPromptSuggestions";
 import DailyPromptCard from "@/components/DailyPromptCard";
+import ThisWeekInReflection from "@/components/ThisWeekInReflection";
 
 
 /* ── Parse a yyyy-MM-dd string as local date (avoids UTC midnight shift) ── */
@@ -256,6 +257,9 @@ const JournalPage = () => {
             <EditorCard date={today} entry={todayEntry} recentEntries={entries} />
           )}
         </section>
+
+        {/* This week in reflection */}
+        <ThisWeekInReflection entries={entries} />
 
         {/* Past entries */}
         {pastEntries.length > 0 && (
