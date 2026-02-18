@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import BottomNav from "./BottomNav";
+import InstallPrompt from "./InstallPrompt";
 
 interface AppShellProps {
   children: ReactNode;
@@ -14,8 +15,10 @@ const AppShell = ({ children }: AppShellProps) => {
     <div className="min-h-screen bg-background">
       <main className={showNav ? "pb-20" : ""}>{children}</main>
       <BottomNav />
+      <InstallPrompt />
     </div>
   );
 };
 
 export default AppShell;
+
