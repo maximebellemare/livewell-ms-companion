@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { format, isToday, isYesterday } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import { useEntries, useSaveEntry, DailyEntry } from "@/hooks/useEntries";
-import { PenLine, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import { PenLine, ChevronDown, ChevronUp, CheckCircle2, X } from "lucide-react";
 import { toast } from "sonner";
 
 /* ── Parse a yyyy-MM-dd string as local date (avoids UTC midnight shift) ── */
@@ -91,37 +91,106 @@ const EditorCard = ({ date, entry }: EditorCardProps) => {
   );
 };
 
-/* ── Past entry row ────────────────────────────────────────── */
+/* ── Past entry row (with inline editor) ──────────────────── */
 interface PastEntryProps {
   entry: DailyEntry;
 }
 
 const PastEntry = ({ entry }: PastEntryProps) => {
-  const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(entry.notes ?? "");
+  const [saved, setSaved] = useState(false);
+  const saveEntry = useSaveEntry();
 
-  if (!entry.notes) return null;
+  const isDirty = text !== (entry.notes ?? "");
+  const preview = text.length > 120 ? text.slice(0, 120) + "…" : text;
 
-  const preview = entry.notes.length > 100 ? entry.notes.slice(0, 100) + "…" : entry.notes;
+  const handleSave = async () => {
+    if (text.length > 2000) {
+      toast.error("Note is too long (max 2000 characters).");
+      return;
+    }
+    await saveEntry.mutateAsync({
+      date: entry.date,
+      notes: text.trim() || null,
+      fatigue: entry.fatigue ?? null,
+      pain: entry.pain ?? null,
+      brain_fog: entry.brain_fog ?? null,
+      mood: entry.mood ?? null,
+      mobility: entry.mobility ?? null,
+      sleep_hours: entry.sleep_hours ?? null,
+      mood_tags: entry.mood_tags ?? [],
+    });
+    setSaved(true);
+    setTimeout(() => { setSaved(false); setEditing(false); }, 1500);
+    toast.success("Entry updated 🧡");
+  };
 
   return (
-    <button
-      onClick={() => setExpanded((e) => !e)}
-      className="w-full text-left rounded-xl bg-card border border-border shadow-soft px-4 py-3 hover:bg-secondary/40 transition-colors"
-    >
-      <div className="flex items-start justify-between gap-2">
+    <div className="rounded-xl bg-card border border-border shadow-soft overflow-hidden transition-all">
+      {/* Header row — always visible, click to toggle editor */}
+      <button
+        onClick={() => setEditing((e) => !e)}
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
+      >
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-muted-foreground mb-1">
+          <p className="text-xs font-medium text-muted-foreground mb-0.5">
             {format(parseLocalDate(entry.date), "EEEE, MMMM d")}
           </p>
-          <p className="text-sm text-foreground italic leading-relaxed">
-            "{expanded ? entry.notes : preview}"
-          </p>
+          {!editing && text && (
+            <p className="text-sm text-foreground italic leading-relaxed truncate">
+              "{preview}"
+            </p>
+          )}
         </div>
-        <div className="flex-shrink-0 mt-0.5 text-muted-foreground">
-          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        <div className="flex items-center gap-1.5 flex-shrink-0 text-muted-foreground">
+          {!editing && <PenLine className="h-3.5 w-3.5" />}
+          {editing ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>
-      </div>
-    </button>
+      </button>
+
+      {/* Inline editor — shown when editing */}
+      {editing && (
+        <div className="px-4 pb-4 space-y-3 border-t border-border animate-fade-in">
+          <textarea
+            value={text}
+            onChange={(e) => { setText(e.target.value); setSaved(false); }}
+            maxLength={2000}
+            rows={4}
+            autoFocus
+            className="mt-3 w-full resize-none rounded-xl bg-secondary/60 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-muted-foreground">{text.length}/2000</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setText(entry.notes ?? ""); setEditing(false); }}
+                className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors"
+              >
+                <X className="h-3 w-3" /> Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={!isDirty || saveEntry.isPending}
+                className={`flex items-center gap-1.5 rounded-xl px-4 py-1.5 text-xs font-semibold transition-all
+                  ${saved
+                    ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+                    : isDirty
+                      ? "bg-primary text-primary-foreground hover:opacity-90 active:scale-95"
+                      : "bg-secondary text-muted-foreground cursor-not-allowed"
+                  }`}
+              >
+                {saved ? (
+                  <><CheckCircle2 className="h-3.5 w-3.5" /> Saved</>
+                ) : (
+                  <><PenLine className="h-3.5 w-3.5" /> {saveEntry.isPending ? "Saving…" : "Save"}</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -137,9 +206,9 @@ const JournalPage = () => {
 
   const todayEntry = entriesByDate[today] ?? null;
 
-  // Past entries that have notes (excluding today)
-  const pastWithNotes = useMemo(
-    () => entries.filter((e) => e.date !== today && e.notes && e.notes.trim() !== ""),
+  // All past entries (so users can add notes to days that had none too)
+  const pastEntries = useMemo(
+    () => entries.filter((e) => e.date !== today),
     [entries, today]
   );
 
@@ -163,20 +232,20 @@ const JournalPage = () => {
         </section>
 
         {/* Past entries */}
-        {pastWithNotes.length > 0 && (
+        {pastEntries.length > 0 && (
           <section className="space-y-2">
             <p className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Past entries
             </p>
             <div className="space-y-2">
-              {pastWithNotes.map((entry) => (
+              {pastEntries.map((entry) => (
                 <PastEntry key={entry.id} entry={entry} />
               ))}
             </div>
           </section>
         )}
 
-        {!isLoading && pastWithNotes.length === 0 && (
+        {!isLoading && pastEntries.length === 0 && (
           <div className="rounded-xl bg-secondary/40 border border-border px-4 py-8 text-center">
             <span className="text-3xl">📖</span>
             <p className="mt-2 text-sm text-muted-foreground">
