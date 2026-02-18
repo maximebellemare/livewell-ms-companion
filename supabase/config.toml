@@ -6,3 +6,6 @@ verify_jwt = false
 [functions.journal-prompt]
 verify_jwt = false
 
+[functions.send-report]
+verify_jwt = false
+

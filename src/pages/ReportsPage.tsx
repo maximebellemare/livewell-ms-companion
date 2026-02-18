@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, subDays } from "date-fns";
 import PageHeader from "@/components/PageHeader";
-import { FileText, Download, Calendar as CalendarIcon, ArrowLeft, Share2 } from "lucide-react";
+import { FileText, Download, Calendar as CalendarIcon, ArrowLeft, Share2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,12 +14,20 @@ import { generateReportFromData } from "@/lib/report-generator-db";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-
 const PRESETS = [
   { label: "Last 7 days", days: 7 },
   { label: "Last 30 days", days: 30 },
   { label: "Last 90 days", days: 90 },
 ];
+
+/** Convert a Blob to a base64 string (strips the data-URI prefix) */
+const blobToBase64 = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 
 const ReportsPage = () => {
   const today = new Date();
@@ -32,6 +40,7 @@ const ReportsPage = () => {
   const [includeNotes, setIncludeNotes] = useState(true);
   const [includeAiInsight, setIncludeAiInsight] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [sending, setSending] = useState(false);
   const [reportBlob, setReportBlob] = useState<Blob | null>(null);
   const reportFileName = `LiveWithMS-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
 
@@ -44,45 +53,35 @@ const ReportsPage = () => {
   const { data: medLogs = [] } = useDbMedicationLogs(startStr, endStr);
   const { data: appointments = [] } = useDbAppointments();
 
+  /** Build the report blob (shared by generate + send flows) */
+  const buildBlob = async (): Promise<Blob> => {
+    let aiInsight: string | null = null;
+    if (includeAiInsight && entries.length > 0) {
+      try {
+        const { data, error } = await supabase.functions.invoke("weekly-insight", {
+          body: { entries, range: entries.length },
+        });
+        if (!error && data?.insight) aiInsight = data.insight;
+      } catch { /* non-fatal */ }
+    }
+    const filteredAppts = appointments.filter((a) => a.date >= startStr && a.date <= endStr);
+    return generateReportFromData({
+      startDate: startStr, endDate: endStr,
+      includeSymptoms, includeMedications, includeAppointments,
+      includeProfile, includeNotes, aiInsight,
+      entries, profile: profile || null,
+      medications, medLogs, appointments: filteredAppts,
+    });
+  };
+
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      let aiInsight: string | null = null;
-
-      if (includeAiInsight && entries.length > 0) {
-        try {
-          const { data, error } = await supabase.functions.invoke("weekly-insight", {
-            body: { entries, range: entries.length },
-          });
-          if (!error && data?.insight) aiInsight = data.insight;
-        } catch {
-          // Non-fatal — generate without insight if it fails
-        }
-      }
-
-      const filteredAppts = appointments.filter((a) => a.date >= startStr && a.date <= endStr);
-      const blob = generateReportFromData({
-        startDate: startStr,
-        endDate: endStr,
-        includeSymptoms,
-        includeMedications,
-        includeAppointments,
-        includeProfile,
-        includeNotes,
-        aiInsight,
-        entries,
-        profile: profile || null,
-        medications,
-        medLogs,
-        appointments: filteredAppts,
-      });
+      const blob = await buildBlob();
       setReportBlob(blob);
-      // Auto-download
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = reportFileName;
-      a.click();
+      a.href = url; a.download = reportFileName; a.click();
       URL.revokeObjectURL(url);
     } catch (err: any) {
       toast.error("Failed to generate report: " + err.message);
@@ -91,11 +90,60 @@ const ReportsPage = () => {
     }
   };
 
+  const handleSendToNeurologist = async () => {
+    if (!profile?.neurologist_email) {
+      toast.error("No neurologist email saved — add one in your Profile settings.");
+      return;
+    }
+
+    setSending(true);
+    try {
+      // Reuse existing blob or generate a fresh one
+      const blob = reportBlob ?? await buildBlob();
+      if (!reportBlob) setReportBlob(blob);
+
+      const pdfBase64 = await blobToBase64(blob);
+      const period = `${format(startDate, "MMM d")}–${format(endDate, "MMM d, yyyy")}`;
+
+      const { data, error } = await supabase.functions.invoke("send-report", {
+        body: {
+          recipientEmail: profile.neurologist_email,
+          pdfBase64,
+          fileName: reportFileName,
+          reportPeriod: period,
+        },
+      });
+
+      if (error || data?.error) {
+        // Graceful fallback: download + open mailto
+        console.error("send-report error:", error ?? data?.error);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = reportFileName; a.click();
+        URL.revokeObjectURL(url);
+        const to = encodeURIComponent(profile.neurologist_email);
+        const subject = encodeURIComponent(`MS Health Report – ${period}`);
+        const body = encodeURIComponent(
+          `Hi,\n\nPlease find my LiveWithMS health report for ${period} attached.\n\nThe PDF was saved to my device — I'll attach it to this email.\n\nThank you.`
+        );
+        window.open(`mailto:${to}?subject=${subject}&body=${body}`);
+        toast.info(`Email draft opened for ${profile.neurologist_email} — please attach the downloaded PDF.`);
+      } else {
+        toast.success(`Report sent to ${profile.neurologist_email} ✓`);
+      }
+    } catch (err: any) {
+      toast.error("Failed to send: " + err.message);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const applyPreset = (days: number) => {
     setStartDate(subDays(today, days));
     setEndDate(today);
   };
+
+  const neuroEmail = profile?.neurologist_email;
 
   return (
     <>
@@ -109,6 +157,11 @@ const ReportsPage = () => {
           </div>
           <h2 className="font-display text-lg font-semibold text-foreground">Doctor-Ready Report</h2>
           <p className="mt-1 text-xs text-muted-foreground">Generate a professional PDF summary of your health data to share with your neurologist.</p>
+          {neuroEmail && (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              📧 Will send to <span className="font-medium text-foreground">{neuroEmail}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -172,13 +225,42 @@ const ReportsPage = () => {
               </div>
             </button>
           ))}
-
         </div>
 
         <div className="space-y-3">
-          <button onClick={handleGenerate} disabled={generating} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-base font-semibold text-primary-foreground shadow-card transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60">
-            {generating ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />{includeAiInsight ? "Generating AI insight…" : "Generating…"}</>) : (<><Download className="h-5 w-5" />Generate PDF Report</>)}
+          {/* Primary generate button */}
+          <button
+            onClick={handleGenerate}
+            disabled={generating || sending}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-base font-semibold text-primary-foreground shadow-card transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+          >
+            {generating
+              ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />{includeAiInsight ? "Generating AI insight…" : "Generating…"}</>
+              : <><Download className="h-5 w-5" />Generate PDF Report</>
+            }
           </button>
+
+          {/* Send to neurologist — always visible if email is saved */}
+          {neuroEmail && (
+            <button
+              onClick={handleSendToNeurologist}
+              disabled={generating || sending}
+              className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-primary bg-background py-3.5 text-base font-semibold text-primary transition-all hover:bg-primary/5 active:scale-[0.98] disabled:opacity-60"
+            >
+              {sending
+                ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />Sending…</>
+                : <><Send className="h-5 w-5" />Send to Neurologist</>
+              }
+            </button>
+          )}
+
+          {!neuroEmail && (
+            <p className="text-center text-xs text-muted-foreground">
+              💡 <Link to="/profile" className="underline underline-offset-2 hover:text-foreground">Add your neurologist's email</Link> to enable direct sending.
+            </p>
+          )}
+
+          {/* Post-generate actions */}
           {reportBlob && (
             <div className="rounded-xl bg-accent p-4 animate-fade-in space-y-3">
               <div className="text-center">
@@ -190,9 +272,7 @@ const ReportsPage = () => {
                   onClick={() => {
                     const url = URL.createObjectURL(reportBlob);
                     const a = document.createElement("a");
-                    a.href = url;
-                    a.download = reportFileName;
-                    a.click();
+                    a.href = url; a.download = reportFileName; a.click();
                     URL.revokeObjectURL(url);
                   }}
                   className="flex flex-1 items-center justify-center gap-2 rounded-full border border-primary/40 bg-background py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/10 active:scale-[0.98]"
@@ -203,22 +283,14 @@ const ReportsPage = () => {
                 <button
                   onClick={async () => {
                     const file = new File([reportBlob], reportFileName, { type: "application/pdf" });
-                    const neuroEmail = profile?.neurologist_email ?? "";
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                       try {
-                        await navigator.share({
-                          files: [file],
-                          title: "My MS Health Report",
-                          text: "Please find my LiveWithMS health report attached for our upcoming appointment.",
-                        });
-                      } catch {
-                        // User cancelled — no-op
-                      }
+                        await navigator.share({ files: [file], title: "My MS Health Report", text: "Please find my LiveWithMS health report attached." });
+                      } catch { /* cancelled */ }
                     } else {
-                      // Fallback: mailto with pre-filled recipient if saved
                       const to = neuroEmail ? encodeURIComponent(neuroEmail) : "";
                       const subject = encodeURIComponent("My MS Health Report");
-                      const body = encodeURIComponent("Hi,\n\nPlease find my LiveWithMS health report attached.\n\nThe PDF was downloaded to your device — please attach it to this email before sending.\n\nThank you.");
+                      const body = encodeURIComponent("Hi,\n\nPlease find my LiveWithMS health report attached.\n\nThe PDF was downloaded — please attach it before sending.\n\nThank you.");
                       window.open(`mailto:${to}?subject=${subject}&body=${body}`);
                       toast.info(neuroEmail ? `Email draft opened for ${neuroEmail} — attach the PDF before sending.` : "PDF saved — attach it to the email that opened.");
                     }
@@ -226,11 +298,12 @@ const ReportsPage = () => {
                   className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98]"
                 >
                   <Share2 className="h-4 w-4" />
-                  {profile?.neurologist_email ? "Email Neurologist" : "Share"}
+                  {neuroEmail ? "Share" : "Share"}
                 </button>
               </div>
             </div>
           )}
+
           <p className="text-center text-[10px] text-muted-foreground">⚕️ This report is for informational purposes only. Always consult your neurologist for medical decisions.</p>
         </div>
       </div>
