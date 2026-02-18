@@ -4,6 +4,7 @@ import PageHeader from "@/components/PageHeader";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip, Area, AreaChart, ReferenceLine,
+  ScatterChart, Scatter, ZAxis,
 } from "recharts";
 import { useEntries } from "@/hooks/useEntries";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +41,19 @@ function trend(recent: (number | null)[], older: (number | null)[]): "up" | "dow
   if (r - o > 0.5) return "up";
   if (o - r > 0.5) return "down";
   return "flat";
+}
+
+/** Pearson r between two equal-length number arrays. Returns null if not enough data. */
+function pearson(xs: number[], ys: number[]): number | null {
+  if (xs.length < 3) return null;
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const num = xs.reduce((s, x, i) => s + (x - mx) * (ys[i] - my), 0);
+  const den = Math.sqrt(
+    xs.reduce((s, x) => s + (x - mx) ** 2, 0) *
+    ys.reduce((s, y) => s + (y - my) ** 2, 0)
+  );
+  return den === 0 ? null : num / den;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -107,6 +121,34 @@ const InsightsPage = () => {
 
   /* Average sleep */
   const avgSleep = avg(windowEntries.map((e) => e.sleep_hours));
+
+  /* Sleep → next-day fatigue correlation */
+  const sleepFatiguePairs = useMemo(() => {
+    const sorted = [...allEntries].sort((a, b) => a.date.localeCompare(b.date));
+    const pairs: { sleep: number; fatigue: number }[] = [];
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const tonight = sorted[i];
+      const tomorrow = sorted[i + 1];
+      if (tonight.sleep_hours !== null && tomorrow.fatigue !== null) {
+        pairs.push({ sleep: tonight.sleep_hours, fatigue: tomorrow.fatigue });
+      }
+    }
+    return pairs;
+  }, [allEntries]);
+
+  const correlationR = useMemo(
+    () => pearson(sleepFatiguePairs.map((p) => p.sleep), sleepFatiguePairs.map((p) => p.fatigue)),
+    [sleepFatiguePairs],
+  );
+
+  const corrLabel = correlationR !== null ? (() => {
+    const abs = Math.abs(correlationR);
+    const negative = correlationR < 0;
+    const strength = abs >= 0.6 ? "Strong" : abs >= 0.3 ? "Moderate" : "Weak";
+    if (negative && abs >= 0.3) return { text: `${strength} link — less sleep → more fatigue`, emoji: "⚠️", positive: false };
+    if (!negative && abs >= 0.3) return { text: `${strength} positive link — more sleep, more fatigue`, emoji: "🤔", positive: null };
+    return { text: "No clear link found yet", emoji: "➖", positive: null };
+  })() : null;
 
   return (
     <>
@@ -361,6 +403,92 @@ const InsightsPage = () => {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
+              </div>
+            )}
+
+            {/* ── Sleep vs Fatigue Correlation ── */}
+            {sleepFatiguePairs.length >= 3 && (
+              <div className="rounded-xl bg-card p-4 shadow-soft">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔗</span>
+                    <span className="text-sm font-semibold text-foreground">Sleep → Next-Day Fatigue</span>
+                  </div>
+                  {correlationR !== null && (
+                    <span className="text-xs font-mono font-bold text-muted-foreground">
+                      r = {correlationR.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Each dot = one night's sleep paired with the following day's fatigue score.
+                </p>
+
+                {/* Scatter plot */}
+                <div className="h-44">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart margin={{ top: 4, right: 8, left: -16, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis
+                        type="number"
+                        dataKey="sleep"
+                        name="Sleep"
+                        domain={[0, 12]}
+                        ticks={[0, 2, 4, 6, 8, 10, 12]}
+                        tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                        tickLine={false}
+                        axisLine={false}
+                        label={{ value: "Sleep hrs", position: "insideBottom", offset: -2, fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                      />
+                      <YAxis
+                        type="number"
+                        dataKey="fatigue"
+                        name="Fatigue"
+                        domain={[0, 10]}
+                        ticks={[0, 2, 4, 6, 8, 10]}
+                        tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                        tickLine={false}
+                        axisLine={false}
+                        label={{ value: "Fatigue", angle: -90, position: "insideLeft", offset: 12, fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                      />
+                      <ZAxis range={[28, 28]} />
+                      <Tooltip
+                        cursor={{ strokeDasharray: "3 3" }}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          return (
+                            <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-card text-xs">
+                              <p className="text-foreground">💤 <strong>{payload[0]?.value}</strong> hrs sleep</p>
+                              <p className="text-foreground">🔋 <strong>{payload[1]?.value}</strong> fatigue next day</p>
+                            </div>
+                          );
+                        }}
+                      />
+                      <Scatter
+                        data={sleepFatiguePairs}
+                        fill={COLORS.fatigue.stroke}
+                        fillOpacity={0.75}
+                      />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Summary pill */}
+                {corrLabel && (
+                  <div className={`mt-3 flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs ${
+                    corrLabel.positive === false
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    <span className="text-base leading-none">{corrLabel.emoji}</span>
+                    <div>
+                      <p className="font-medium text-foreground">{corrLabel.text}</p>
+                      <p className="mt-0.5 text-muted-foreground">
+                        Based on {sleepFatiguePairs.length} consecutive day pairs
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
