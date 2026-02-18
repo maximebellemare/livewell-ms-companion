@@ -53,9 +53,8 @@ const SYMPTOMS = [
 
 /* ── component ───────────────────────────────────────────── */
 const MondayRecapCard = () => {
-  // Only render on Mondays (temporarily Wednesday for preview)
-  const day = new Date().getDay();
-  const isMonday = day === 1 || day === 3;
+  // Only render on Mondays
+  const isMonday = new Date().getDay() === 1;
 
   // Dismissal — keyed to this Monday so it reappears next Monday
   const thisMonday = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
