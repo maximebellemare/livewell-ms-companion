@@ -60,18 +60,44 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch all opted-in profiles
-    const { data: profiles, error: profErr } = await supabase
-      .from("profiles")
-      .select("user_id")
-      .eq("weekly_digest_enabled", true);
+    // Support optional test_email override in request body
+    let testEmail: string | null = null;
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        testEmail = body?.test_email ?? null;
+      } catch { /* no body */ }
+    }
 
-    if (profErr) throw profErr;
-    if (!profiles || profiles.length === 0) {
-      return new Response(
-        JSON.stringify({ message: "No opted-in users found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    let profiles: { user_id: string }[];
+
+    if (testEmail) {
+      // Find the user by email via admin API
+      const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
+      if (listErr) throw listErr;
+      const match = listData?.users?.find((u) => u.email === testEmail);
+      if (!match) {
+        return new Response(
+          JSON.stringify({ error: `No user found with email ${testEmail}` }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      profiles = [{ user_id: match.id }];
+    } else {
+      // Fetch all opted-in profiles
+      const { data, error: profErr } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("weekly_digest_enabled", true);
+
+      if (profErr) throw profErr;
+      if (!data || data.length === 0) {
+        return new Response(
+          JSON.stringify({ message: "No opted-in users found" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      profiles = data;
     }
 
     const now = new Date();
