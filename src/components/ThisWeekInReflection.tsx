@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { format, startOfWeek, addDays, isToday, isFuture } from "date-fns";
 import { getPromptForDate } from "@/lib/dailyPrompts";
 import { DailyEntry } from "@/hooks/useEntries";
-import { PenLine, ChevronDown, ChevronUp, CheckCircle2, Circle, Copy, Check } from "lucide-react";
+import { PenLine, ChevronDown, ChevronUp, CheckCircle2, Circle, Copy, Check, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 /* ── Per-day row with expand/collapse ─────────────────────── */
@@ -12,7 +12,8 @@ interface DayRowProps {
   navigate: ReturnType<typeof useNavigate>;
 }
 
-const NOTE_THRESHOLD = 160; // characters before we show expand
+const NOTE_THRESHOLD = 160;
+const canShare = typeof navigator !== "undefined" && !!navigator.share;
 
 const DayRow = ({ day, entriesByDate, navigate }: DayRowProps) => {
   const [expanded, setExpanded] = useState(false);
@@ -24,9 +25,17 @@ const DayRow = ({ day, entriesByDate, navigate }: DayRowProps) => {
   const dayIsToday = isToday(day);
   const isLong = !!note && note.length > NOTE_THRESHOLD;
 
-  const handleCopy = () => {
+  const handleShare = async () => {
     if (!note) return;
     const text = `${format(day, "EEEE, MMMM d")}\n💭 ${prompt}\n\n${note}`;
+    if (canShare) {
+      try {
+        await navigator.share({ title: "My reflection", text });
+        return;
+      } catch {
+        // User cancelled — fall through to clipboard
+      }
+    }
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -50,12 +59,14 @@ const DayRow = ({ day, entriesByDate, navigate }: DayRowProps) => {
         <div className="flex items-center gap-2">
           {note && (
             <button
-              onClick={handleCopy}
+              onClick={handleShare}
               className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-              title="Copy to clipboard"
+              title={canShare ? "Share" : "Copy to clipboard"}
             >
               {copied ? (
                 <><Check className="h-2.5 w-2.5 text-emerald-500" /><span className="text-emerald-500">Copied!</span></>
+              ) : canShare ? (
+                <><Share2 className="h-2.5 w-2.5" />Share</>
               ) : (
                 <><Copy className="h-2.5 w-2.5" />Copy</>
               )}
@@ -154,7 +165,7 @@ const ThisWeekInReflection = ({ entries }: Props) => {
       ? "Good start — build the habit!"
       : "Great start — keep writing!";
 
-  const handleCopyWeek = () => {
+  const buildWeekText = () => {
     const weekStart = format(startOfWeek(today, { weekStartsOn: 1 }), "MMMM d");
     const weekEnd = format(today, "MMMM d, yyyy");
     const lines = weekDays.map((day) => {
@@ -166,7 +177,19 @@ const ThisWeekInReflection = ({ entries }: Props) => {
         ? `${dayLabel}\n💭 ${prompt}\n${note}`
         : `${dayLabel}\n💭 ${prompt}\n(no reflection written)`;
     });
-    const text = `My week in reflection — ${weekStart}–${weekEnd}\n${"─".repeat(40)}\n\n${lines.join("\n\n")}`;
+    return `My week in reflection — ${weekStart}–${weekEnd}\n${"─".repeat(40)}\n\n${lines.join("\n\n")}`;
+  };
+
+  const handleShareWeek = async () => {
+    const text = buildWeekText();
+    if (canShare) {
+      try {
+        await navigator.share({ title: "My week in reflection", text });
+        return;
+      } catch {
+        // User cancelled — fall through to clipboard
+      }
+    }
     navigator.clipboard.writeText(text).then(() => {
       setWeekCopied(true);
       setTimeout(() => setWeekCopied(false), 2500);
@@ -181,12 +204,14 @@ const ThisWeekInReflection = ({ entries }: Props) => {
         </p>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleCopyWeek}
+            onClick={handleShareWeek}
             className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-            title="Copy whole week to clipboard"
+            title={canShare ? "Share whole week" : "Copy whole week to clipboard"}
           >
             {weekCopied ? (
               <><Check className="h-2.5 w-2.5 text-emerald-500" /><span className="text-emerald-500">Copied!</span></>
+            ) : canShare ? (
+              <><Share2 className="h-2.5 w-2.5" />Share week</>
             ) : (
               <><Copy className="h-2.5 w-2.5" />Copy week</>
             )}
