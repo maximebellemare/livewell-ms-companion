@@ -69,7 +69,7 @@ function checkPageBreak(doc: jsPDF, y: number, needed: number): number {
   return y;
 }
 
-export function generateReportFromData(data: ReportData): void {
+export function generateReportFromData(data: ReportData): Blob {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const { entries, profile, medications, medLogs, appointments } = data;
 
@@ -264,5 +264,5 @@ export function generateReportFromData(data: ReportData): void {
     doc.text(`Page ${i} of ${pageCount}`, 196, 292, { align: "right" });
   }
 
-  doc.save(`LiveWithMS-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  return doc.output("blob") as Blob;
 }

@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { format, subDays } from "date-fns";
 import PageHeader from "@/components/PageHeader";
-import { FileText, Download, Calendar as CalendarIcon, ArrowLeft, Sparkles } from "lucide-react";
+import { FileText, Download, Calendar as CalendarIcon, ArrowLeft, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useEntriesInRange } from "@/hooks/useEntries";
 import { useProfile } from "@/hooks/useProfile";
@@ -33,7 +32,8 @@ const ReportsPage = () => {
   const [includeNotes, setIncludeNotes] = useState(true);
   const [includeAiInsight, setIncludeAiInsight] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [generated, setGenerated] = useState(false);
+  const [reportBlob, setReportBlob] = useState<Blob | null>(null);
+  const reportFileName = `LiveWithMS-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
 
   const startStr = format(startDate, "yyyy-MM-dd");
   const endStr = format(endDate, "yyyy-MM-dd");
@@ -61,7 +61,7 @@ const ReportsPage = () => {
       }
 
       const filteredAppts = appointments.filter((a) => a.date >= startStr && a.date <= endStr);
-      generateReportFromData({
+      const blob = generateReportFromData({
         startDate: startStr,
         endDate: endStr,
         includeSymptoms,
@@ -76,7 +76,14 @@ const ReportsPage = () => {
         medLogs,
         appointments: filteredAppts,
       });
-      setGenerated(true);
+      setReportBlob(blob);
+      // Auto-download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = reportFileName;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err: any) {
       toast.error("Failed to generate report: " + err.message);
     } finally {
@@ -172,10 +179,54 @@ const ReportsPage = () => {
           <button onClick={handleGenerate} disabled={generating} className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-base font-semibold text-primary-foreground shadow-card transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60">
             {generating ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />{includeAiInsight ? "Generating AI insight…" : "Generating…"}</>) : (<><Download className="h-5 w-5" />Generate PDF Report</>)}
           </button>
-          {generated && (
-            <div className="rounded-xl bg-accent p-4 text-center animate-fade-in">
-              <p className="text-sm font-medium text-accent-foreground">✅ Report downloaded!</p>
-              <p className="mt-1 text-xs text-muted-foreground">Share this PDF with your neurologist at your next appointment.</p>
+          {reportBlob && (
+            <div className="rounded-xl bg-accent p-4 animate-fade-in space-y-3">
+              <div className="text-center">
+                <p className="text-sm font-medium text-accent-foreground">✅ Report ready!</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Download or share directly with your neurologist.</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const url = URL.createObjectURL(reportBlob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = reportFileName;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-primary/40 bg-background py-2.5 text-sm font-medium text-primary transition-all hover:bg-primary/10 active:scale-[0.98]"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </button>
+                <button
+                  onClick={async () => {
+                    const file = new File([reportBlob], reportFileName, { type: "application/pdf" });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                      try {
+                        await navigator.share({
+                          files: [file],
+                          title: "My MS Health Report",
+                          text: "Please find my LiveWithMS health report attached for our upcoming appointment.",
+                        });
+                      } catch {
+                        // User cancelled — no-op
+                      }
+                    } else {
+                      // Fallback: open email with instructions
+                      const subject = encodeURIComponent("My MS Health Report");
+                      const body = encodeURIComponent("Hi,\n\nPlease find my LiveWithMS health report attached.\n\nThe PDF was downloaded to your device — please attach it to this email before sending.\n\nThank you.");
+                      window.open(`mailto:?subject=${subject}&body=${body}`);
+                      toast.info("PDF saved to your device — attach it to the email that opened.");
+                    }
+                  }}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98]"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </button>
+              </div>
             </div>
           )}
           <p className="text-center text-[10px] text-muted-foreground">⚕️ This report is for informational purposes only. Always consult your neurologist for medical decisions.</p>
