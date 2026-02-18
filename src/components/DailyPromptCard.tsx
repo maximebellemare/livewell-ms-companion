@@ -1,38 +1,6 @@
 import { useState } from "react";
 import { PenLine, RefreshCw } from "lucide-react";
-
-/* A pool of gentle, open-ended reflection questions */
-const PROMPTS = [
-  "What helped you most today?",
-  "What's one small thing you're grateful for right now?",
-  "How did your body feel when you first woke up this morning?",
-  "What did you do today to be kind to yourself?",
-  "What's one moment from today you'd like to remember?",
-  "What drained your energy most today, and what restored it?",
-  "Did anything surprise you about how you felt today?",
-  "What would make tomorrow feel a little easier?",
-  "What are you holding on to that you could let go of today?",
-  "Who or what gave you comfort today?",
-  "What does your body need most right now?",
-  "What's one thing you managed today despite how you were feeling?",
-  "If you could tell your future self something about today, what would it be?",
-  "What felt hard today — and how did you handle it?",
-  "What are you proud of doing for yourself this week?",
-  "Is there anything you've been avoiding thinking about?",
-  "What small joy showed up unexpectedly today?",
-  "How did you connect with others today, or did you need solitude?",
-  "What does 'a good day' look like for you right now?",
-  "What's one thing you want to do more of this week?",
-];
-
-/** Pick a consistent prompt for the day (changes daily, cycles through pool) */
-function getDailyPrompt(): { prompt: string; index: number } {
-  const dayOfYear = Math.floor(
-    (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86_400_000
-  );
-  const index = dayOfYear % PROMPTS.length;
-  return { prompt: PROMPTS[index], index };
-}
+import { PROMPTS, getDailyPrompt } from "@/lib/dailyPrompts";
 
 interface DailyPromptCardProps {
   onUsePrompt: (prompt: string) => void;
