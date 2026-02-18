@@ -8,6 +8,7 @@ import QuickCard from "@/components/QuickCard";
 import WeeklySummaryBanner from "@/components/WeeklySummaryBanner";
 import StreakBadge, { useStreak } from "@/components/StreakBadge";
 import WeekStreakBadge from "@/components/WeekStreakBadge";
+import MondayRecapCard from "@/components/MondayRecapCard";
 import StreakMilestoneBanner from "@/components/StreakMilestoneBanner";
 import { Link } from "react-router-dom";
 import { Settings, CheckCircle2 } from "lucide-react";
@@ -230,6 +231,9 @@ const TodayPage = () => {
             </div>
           </div>
         )}
+
+        {/* Monday weekly recap card */}
+        <MondayRecapCard />
 
         {/* Weekly summary banner */}
         <WeeklySummaryBanner />
