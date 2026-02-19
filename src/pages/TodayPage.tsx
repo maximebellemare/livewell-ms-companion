@@ -245,10 +245,11 @@ const TodayPage = () => {
         <StreakBadge />
         <WeekStreakBadge />
 
-        {/* 7-day sparklines — mood & fatigue at a glance */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* 7-day sparklines — mood, fatigue & pain at a glance */}
+        <div className="grid grid-cols-3 gap-2">
           <SymptomSparkline entries={weekEntries} metric="mood" label="Mood" emoji="😊" higherIsBetter />
           <SymptomSparkline entries={weekEntries} metric="fatigue" label="Fatigue" emoji="🔋" />
+          <SymptomSparkline entries={weekEntries} metric="pain" label="Pain" emoji="⚡" />
         </div>
 
         {/* Quick symptom logging */}
