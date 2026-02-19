@@ -5,6 +5,7 @@ import { useLearnArticles, useLearnBookmarkIds, useToggleLearnBookmark, useLearn
 import { Skeleton } from "@/components/ui/skeleton";
 import ArticleBody from "@/components/learn/ArticleBody";
 import RecommendedArticles from "@/components/learn/RecommendedArticles";
+import { useLearnProgress } from "@/hooks/useLearnProgress";
 
 const LearnPage = () => {
   const [filter, setFilter] = useState("All");
@@ -18,7 +19,7 @@ const LearnPage = () => {
   const toggleBookmark = useToggleLearnBookmark();
   const { data: recentReads = [] } = useLearnReads();
   const markRead = useMarkArticleRead();
-
+  const { data: progressMap = {} } = useLearnProgress();
   const categories = ["All", ...Array.from(new Set(articles.map((a) => a.category)))];
 
   const readArticleIds = useMemo(() => new Set(recentReads.map((r) => r.article_id)), [recentReads]);
@@ -207,7 +208,7 @@ const LearnPage = () => {
                 </button>
 
                 {/* Expanded body */}
-                {isExpanded && <ArticleBody body={article.body} />}
+                {isExpanded && <ArticleBody body={article.body} articleId={article.id} initialProgress={progressMap[article.id] ?? 0} />}
               </div>
             );
           })}

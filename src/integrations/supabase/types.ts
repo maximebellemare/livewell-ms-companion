@@ -424,6 +424,38 @@ export type Database = {
           },
         ]
       }
+      learn_progress: {
+        Row: {
+          article_id: string
+          id: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          id?: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          id?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_progress_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "learn_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learn_reads: {
         Row: {
           article_id: string

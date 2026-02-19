@@ -1,12 +1,17 @@
 import { useRef, useState, useCallback, useEffect } from "react";
+import { useSaveLearnProgress } from "@/hooks/useLearnProgress";
 
 interface ArticleBodyProps {
   body: string;
+  articleId: string;
+  initialProgress?: number;
 }
 
-const ArticleBody = ({ body }: ArticleBodyProps) => {
+const ArticleBody = ({ body, articleId, initialProgress = 0 }: ArticleBodyProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(initialProgress);
+  const saveProgress = useSaveLearnProgress();
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -14,14 +19,38 @@ const ArticleBody = ({ body }: ArticleBodyProps) => {
     const { scrollTop, scrollHeight, clientHeight } = el;
     const max = scrollHeight - clientHeight;
     const current = max > 0 ? Math.min(1, scrollTop / max) : 1;
-    setProgress((prev) => Math.max(prev, current));
-  }, []);
+    setProgress((prev) => {
+      const next = Math.max(prev, current);
+      // Debounce save to DB
+      if (next > prev) {
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+          saveProgress.mutate({ articleId, progress: Math.round(next * 100) / 100 });
+        }, 800);
+      }
+      return next;
+    });
+  }, [articleId, saveProgress]);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     // If content fits without scroll, mark as fully read
-    if (el.scrollHeight <= el.clientHeight) setProgress(1);
+    if (el.scrollHeight <= el.clientHeight) {
+      setProgress(1);
+      saveProgress.mutate({ articleId, progress: 1 });
+    } else if (initialProgress > 0 && initialProgress < 1) {
+      // Restore scroll position
+      const max = el.scrollHeight - el.clientHeight;
+      el.scrollTop = max * initialProgress;
+    }
+  }, []);
+
+  // Save on unmount if progress changed
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
   }, []);
 
   return (
