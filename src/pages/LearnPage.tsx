@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import PageHeader from "@/components/PageHeader";
-import { Bookmark, BookmarkCheck, ChevronDown, ChevronUp, Search, X } from "lucide-react";
-import { useLearnArticles, useLearnBookmarkIds, useToggleLearnBookmark } from "@/hooks/useLearnArticles";
+import { Bookmark, BookmarkCheck, ChevronDown, ChevronUp, Search, X, Clock } from "lucide-react";
+import { useLearnArticles, useLearnBookmarkIds, useToggleLearnBookmark, useLearnReads, useMarkArticleRead } from "@/hooks/useLearnArticles";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const LearnPage = () => {
@@ -13,6 +13,8 @@ const LearnPage = () => {
   const { data: articles = [], isLoading } = useLearnArticles();
   const { data: bookmarkIds = new Set<string>() } = useLearnBookmarkIds();
   const toggleBookmark = useToggleLearnBookmark();
+  const { data: recentReads = [] } = useLearnReads();
+  const markRead = useMarkArticleRead();
 
   const categories = ["All", ...Array.from(new Set(articles.map((a) => a.category)))];
 
@@ -75,6 +77,36 @@ const LearnPage = () => {
           Saved
         </button>
 
+        {/* Recently read */}
+        {!isLoading && !search && filter === "All" && !showBookmarked && recentReads.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recently Read</h2>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {recentReads.slice(0, 6).map((read) => {
+                const article = articles.find((a) => a.id === read.article_id);
+                if (!article) return null;
+                return (
+                  <button
+                    key={read.article_id}
+                    onClick={() => {
+                      setExpandedId(article.id);
+                      markRead.mutate(article.id);
+                    }}
+                    className="tap-highlight-none flex-shrink-0 w-36 rounded-xl bg-card p-3 text-left shadow-soft hover:ring-1 hover:ring-primary/30 transition-all"
+                  >
+                    <span className="text-[9px] font-medium uppercase tracking-wider text-primary">{article.category}</span>
+                    <p className="mt-0.5 text-xs font-semibold text-foreground line-clamp-2">{article.title}</p>
+                    <p className="mt-1 text-[10px] text-muted-foreground">{article.read_time}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Loading skeletons */}
         {isLoading && (
           <div className="space-y-3">
@@ -104,7 +136,11 @@ const LearnPage = () => {
               <div key={article.id} className="rounded-xl bg-card shadow-soft overflow-hidden">
                 {/* Header */}
                 <button
-                  onClick={() => setExpandedId(isExpanded ? null : article.id)}
+                  onClick={() => {
+                    const willExpand = !isExpanded;
+                    setExpandedId(willExpand ? article.id : null);
+                    if (willExpand) markRead.mutate(article.id);
+                  }}
                   className="tap-highlight-none w-full p-4 text-left"
                 >
                   <div className="flex items-start justify-between gap-2">

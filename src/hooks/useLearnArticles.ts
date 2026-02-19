@@ -80,3 +80,45 @@ export const useToggleLearnBookmark = () => {
     onSettled: () => qc.invalidateQueries({ queryKey: ["learn-bookmarks", user?.id] }),
   });
 };
+
+export interface LearnRead {
+  article_id: string;
+  read_at: string;
+}
+
+export const useLearnReads = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["learn-reads", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("learn_reads")
+        .select("article_id, read_at")
+        .eq("user_id", user!.id)
+        .order("read_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data as LearnRead[];
+    },
+  });
+};
+
+export const useMarkArticleRead = () => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (articleId: string) => {
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await supabase
+        .from("learn_reads")
+        .upsert(
+          { user_id: user.id, article_id: articleId, read_at: new Date().toISOString() },
+          { onConflict: "user_id,article_id" }
+        );
+      if (error) throw error;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["learn-reads", user?.id] }),
+  });
+};
