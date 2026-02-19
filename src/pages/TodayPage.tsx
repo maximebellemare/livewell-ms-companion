@@ -12,6 +12,7 @@ import MondayRecapCard from "@/components/MondayRecapCard";
 import StreakMilestoneBanner from "@/components/StreakMilestoneBanner";
 import SymptomSparkline from "@/components/SymptomSparkline";
 import InlineQuickLog from "@/components/InlineQuickLog";
+import HoldButton from "@/components/HoldButton";
 import { Link } from "react-router-dom";
 import { Settings, CheckCircle2, PenLine } from "lucide-react";
 import MedicationChecklist from "@/components/MedicationChecklist";
@@ -386,14 +387,12 @@ const TodayPage = () => {
                 className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <span className="text-sm text-muted-foreground">hrs</span>
-              <button
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
+              <HoldButton
+                onHold={async () => {
                   if (!sleepHours) { closePanel(); return; }
                   try {
                     await saveEntry.mutateAsync({ ...entryPayload, sleep_hours: Number(sleepHours) });
-                    flashSaved("sleep"); // blockGrid fires here
+                    flashSaved("sleep");
                     closePanel();
                     toast.success("Sleep logged! 🌙");
                   } catch (err: any) {
@@ -401,13 +400,13 @@ const TodayPage = () => {
                   }
                 }}
                 disabled={saveEntry.isPending || !sleepHours}
-                className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50 transition-all hover:opacity-90 active:scale-95"
+                className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50 transition-all hover:opacity-90"
               >
-                Save
-              </button>
+                {saveEntry.isPending ? "Saving…" : "Save"}
+              </HoldButton>
             </div>
             <p className="mt-1.5 text-[10px] text-muted-foreground">
-              Tap <strong>Save</strong> to log instantly, or update below with the full form.
+              Hold <strong>Save</strong> to log instantly, or update below with the full form.
             </p>
           </div>
         )}
