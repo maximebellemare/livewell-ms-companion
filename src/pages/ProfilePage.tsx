@@ -110,6 +110,7 @@ const ProfilePage = () => {
       const json = await res.json();
       const result = json?.results?.[0];
       if (result?.status === "sent") {
+        await updateProfile.mutateAsync({ last_digest_sent_at: new Date().toISOString() } as any);
         toast.success("Test digest sent! Check your inbox.");
       } else {
         toast.error(result?.error ?? "Failed to send test digest.");
@@ -297,22 +298,35 @@ const ProfilePage = () => {
                   </div>
 
                   {/* Send test digest */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSendTestDigest();
-                    }}
-                    disabled={sendingTestDigest}
-                    className="mt-1 flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-primary/50 hover:text-primary disabled:opacity-50"
-                  >
-                    {sendingTestDigest ? (
-                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    ) : (
-                      <Mails className="h-3 w-3" />
+                  <div className="mt-1 flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSendTestDigest();
+                      }}
+                      disabled={sendingTestDigest}
+                      className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-primary/50 hover:text-primary disabled:opacity-50"
+                    >
+                      {sendingTestDigest ? (
+                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      ) : (
+                        <Mails className="h-3 w-3" />
+                      )}
+                      {sendingTestDigest ? "Sending…" : "Send test digest now"}
+                    </button>
+                    {profile?.last_digest_sent_at && (
+                      <p className="text-[10px] text-muted-foreground pl-0.5">
+                        Last sent:{" "}
+                        {new Date(profile.last_digest_sent_at).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
                     )}
-                    {sendingTestDigest ? "Sending…" : "Send test digest now"}
-                  </button>
+                  </div>
                 </div>
               )}
             </div>

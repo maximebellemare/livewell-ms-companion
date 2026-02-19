@@ -187,6 +187,7 @@ export type Database = {
           created_at: string
           goals: string[] | null
           id: string
+          last_digest_sent_at: string | null
           last_report_sent_at: string | null
           medications: string[] | null
           ms_type: string | null
@@ -204,6 +205,7 @@ export type Database = {
           created_at?: string
           goals?: string[] | null
           id?: string
+          last_digest_sent_at?: string | null
           last_report_sent_at?: string | null
           medications?: string[] | null
           ms_type?: string | null
@@ -221,6 +223,7 @@ export type Database = {
           created_at?: string
           goals?: string[] | null
           id?: string
+          last_digest_sent_at?: string | null
           last_report_sent_at?: string | null
           medications?: string[] | null
           ms_type?: string | null
