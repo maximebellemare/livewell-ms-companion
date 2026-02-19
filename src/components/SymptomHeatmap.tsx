@@ -109,45 +109,57 @@ export default function SymptomHeatmap({ entries, days }: SymptomHeatmapProps) {
         ))}
       </div>
 
-      {/* Day-of-week labels */}
-      <div className="grid grid-cols-7 gap-1 mb-1">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="text-center text-[9px] text-muted-foreground font-medium">
-            {d}
-          </div>
-        ))}
+      {/* Day-of-week labels — left gutter + 7 columns */}
+      <div className="flex items-center gap-1 mb-1">
+        <div className="w-7 shrink-0" /> {/* gutter spacer */}
+        <div className="grid grid-cols-7 gap-1 flex-1">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+            <div key={d} className="text-center text-[9px] text-muted-foreground font-medium">
+              {d}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Heatmap grid */}
       <div className="space-y-1">
-        {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 gap-1">
-            {week.map((date, di) => {
-              if (date === null) {
-                // padding cell — empty placeholder
-                return <div key={`pad-${wi}-${di}`} className="aspect-square" />;
-              }
-              const entry = byDate[date];
-              const value = entry ? (entry[activeMetric as keyof DayEntry] as number | null) : null;
-              const isToday = date === format(new Date(), "yyyy-MM-dd");
-              const isActive = tooltip?.date === date;
+        {weeks.map((week, wi) => {
+          const firstDate = week.find((d): d is string => d !== null);
+          const weekLabel = firstDate ? format(parseISO(firstDate), "MMM d") : "";
 
-              return (
-                <button
-                  key={date}
-                  onClick={() =>
-                    setTooltip(isActive ? null : { date, value })
+          return (
+            <div key={wi} className="flex items-center gap-1">
+              {/* Week label */}
+              <div className="w-7 shrink-0 text-right text-[8px] font-medium text-muted-foreground leading-none pr-0.5">
+                {weekLabel}
+              </div>
+              {/* 7-cell row */}
+              <div className="grid grid-cols-7 gap-1 flex-1">
+                {week.map((date, di) => {
+                  if (date === null) {
+                    return <div key={`pad-${wi}-${di}`} className="aspect-square" />;
                   }
-                  title={`${format(parseISO(date), "MMM d")}: ${value !== null ? value + "/10" : "No data"}`}
-                  className={`aspect-square rounded-md transition-all duration-150 ${
-                    isActive ? "ring-2 ring-primary ring-offset-1 ring-offset-card scale-105" : ""
-                  } ${isToday ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-card" : ""}`}
-                  style={{ backgroundColor: cellColor(value, metric.higherIsBetter) }}
-                />
-              );
-            })}
-          </div>
-        ))}
+                  const entry = byDate[date];
+                  const value = entry ? (entry[activeMetric as keyof DayEntry] as number | null) : null;
+                  const isToday = date === format(new Date(), "yyyy-MM-dd");
+                  const isActive = tooltip?.date === date;
+
+                  return (
+                    <button
+                      key={date}
+                      onClick={() => setTooltip(isActive ? null : { date, value })}
+                      title={`${format(parseISO(date), "MMM d")}: ${value !== null ? value + "/10" : "No data"}`}
+                      className={`aspect-square rounded-md transition-all duration-150 ${
+                        isActive ? "ring-2 ring-primary ring-offset-1 ring-offset-card scale-105" : ""
+                      } ${isToday ? "ring-2 ring-primary/50 ring-offset-1 ring-offset-card" : ""}`}
+                      style={{ backgroundColor: cellColor(value, metric.higherIsBetter) }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Tooltip detail */}
