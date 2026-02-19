@@ -21,6 +21,7 @@ interface SymptomSparklineProps {
   label: string;
   emoji: string;
   higherIsBetter?: boolean;
+  onClick?: () => void;
 }
 
 function metricColor(value: number, higherIsBetter: boolean): string {
@@ -38,6 +39,7 @@ export default function SymptomSparkline({
   label,
   emoji,
   higherIsBetter = false,
+  onClick,
 }: SymptomSparklineProps) {
   const days = useMemo(() => {
     const today = new Date();
@@ -94,8 +96,13 @@ export default function SymptomSparkline({
 
   const lineColor = avg !== null ? metricColor(avg, higherIsBetter) : "hsl(145 45% 45%)";
 
+  const Tag = onClick ? "button" : "div";
+
   return (
-    <div className="rounded-xl bg-card shadow-soft px-3 py-3 flex flex-col gap-1.5">
+    <Tag
+      onClick={onClick}
+      className={`rounded-xl bg-card shadow-soft px-3 py-3 flex flex-col gap-1.5 text-left w-full${onClick ? " cursor-pointer hover:bg-secondary/70 active:scale-95 transition-all duration-150" : ""}`}
+    >
       {/* Header row */}
       <div className="flex items-center justify-between">
         <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -183,6 +190,6 @@ export default function SymptomSparkline({
           );
         })}
       </div>
-    </div>
+    </Tag>
   );
 }

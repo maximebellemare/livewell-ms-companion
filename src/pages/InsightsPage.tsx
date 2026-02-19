@@ -11,7 +11,7 @@ import {
   ScatterChart, Scatter, ZAxis,
 } from "recharts";
 import { useEntries } from "@/hooks/useEntries";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 const MOOD_TAG_META: Record<string, string> = {
@@ -91,6 +91,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const InsightsPage = () => {
   const { data: allEntries = [], isLoading } = useEntries();
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialHeatmapMetric = (location.state as { heatmapMetric?: string } | null)?.heatmapMetric;
   const [range, setRange] = useState<7 | 30>(30);
   const [activeSymptom, setActiveSymptom] = useState<SymptomKey | "all">("all");
   const [showPeaks, setShowPeaks] = useState(false);
@@ -275,7 +277,7 @@ const InsightsPage = () => {
             </p>
 
             {/* ── 30-Day Heatmap ── */}
-            <HeatmapWithSummary entries={dedupedEntries} days={heatmapDays} />
+            <HeatmapWithSummary entries={dedupedEntries} days={heatmapDays} initialMetric={initialHeatmapMetric} />
 
             {/* ── Weekly Progress Summary ── */}
             {(() => {
