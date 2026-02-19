@@ -356,6 +356,74 @@ export type Database = {
         }
         Relationships: []
       }
+      learn_articles: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          id: string
+          published: boolean
+          read_time: string
+          sort_order: number
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          category: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          read_time?: string
+          sort_order?: number
+          summary: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          published?: boolean
+          read_time?: string
+          sort_order?: number
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learn_bookmarks: {
+        Row: {
+          article_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_bookmarks_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "learn_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_logs: {
         Row: {
           created_at: string
