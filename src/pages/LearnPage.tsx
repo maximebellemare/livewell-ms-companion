@@ -1,42 +1,30 @@
 import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import { Bookmark, BookmarkCheck } from "lucide-react";
-
-const articles = [
-  { id: "1", category: "Understanding MS", title: "What is Multiple Sclerosis?", summary: "A clear overview of MS, how it affects the nervous system, and the different types.", readTime: "5 min" },
-  { id: "2", category: "Symptoms", title: "Managing Fatigue in MS", summary: "Practical strategies for conserving energy and managing MS-related fatigue.", readTime: "4 min" },
-  { id: "3", category: "Medications", title: "Understanding DMTs", summary: "An overview of disease-modifying therapies and how they work.", readTime: "6 min" },
-  { id: "4", category: "Lifestyle", title: "Sleep & MS", summary: "Why sleep matters and tips for improving your sleep quality with MS.", readTime: "3 min" },
-  { id: "5", category: "Exercise", title: "Safe Exercise with MS", summary: "Low-impact exercises that can help with mobility, strength, and mood.", readTime: "4 min" },
-  { id: "6", category: "Lifestyle", title: "Heat Sensitivity Tips", summary: "How to manage heat sensitivity and stay cool during warm months.", readTime: "3 min" },
-  { id: "7", category: "Supplements", title: "Vitamin D & MS", summary: "What the research says about vitamin D and its role in MS management.", readTime: "5 min" },
-  { id: "8", category: "Symptoms", title: "Coping with Brain Fog", summary: "Cognitive strategies and tools to help manage brain fog.", readTime: "4 min" },
-];
-
-const categories = ["All", ...Array.from(new Set(articles.map((a) => a.category)))];
+import { Bookmark, BookmarkCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { useLearnArticles, useLearnBookmarkIds, useToggleLearnBookmark } from "@/hooks/useLearnArticles";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const LearnPage = () => {
   const [filter, setFilter] = useState("All");
-  const [bookmarks, setBookmarks] = useState<string[]>(() =>
-    JSON.parse(localStorage.getItem("ms-bookmarks") || "[]")
-  );
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showBookmarked, setShowBookmarked] = useState(false);
 
-  const toggleBookmark = (id: string) => {
-    const updated = bookmarks.includes(id)
-      ? bookmarks.filter((b) => b !== id)
-      : [...bookmarks, id];
-    setBookmarks(updated);
-    localStorage.setItem("ms-bookmarks", JSON.stringify(updated));
-  };
+  const { data: articles = [], isLoading } = useLearnArticles();
+  const { data: bookmarkIds = new Set<string>() } = useLearnBookmarkIds();
+  const toggleBookmark = useToggleLearnBookmark();
 
-  const filtered = filter === "All" ? articles : articles.filter((a) => a.category === filter);
+  const categories = ["All", ...Array.from(new Set(articles.map((a) => a.category)))];
+
+  const filtered = articles
+    .filter((a) => filter === "All" || a.category === filter)
+    .filter((a) => !showBookmarked || bookmarkIds.has(a.id));
 
   return (
     <>
       <PageHeader title="Learn" subtitle="Evidence-based MS education" />
       <div className="mx-auto max-w-lg px-4 py-4">
         {/* Category filters */}
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="mb-3 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -52,32 +40,124 @@ const LearnPage = () => {
           ))}
         </div>
 
+        {/* Saved toggle */}
+        <button
+          onClick={() => setShowBookmarked((v) => !v)}
+          className={`mb-4 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+            showBookmarked
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary text-secondary-foreground"
+          }`}
+        >
+          <BookmarkCheck className="h-3.5 w-3.5" />
+          Saved
+        </button>
+
+        {/* Loading skeletons */}
+        {isLoading && (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && filtered.length === 0 && (
+          <div className="py-12 text-center">
+            <Bookmark className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">
+              {showBookmarked ? "No saved articles yet" : "No articles in this category"}
+            </p>
+          </div>
+        )}
+
         {/* Articles */}
         <div className="space-y-3 animate-fade-in">
-          {filtered.map((article) => (
-            <div key={article.id} className="rounded-xl bg-card p-4 shadow-soft">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-primary">
-                    {article.category}
-                  </span>
-                  <h3 className="mt-0.5 text-sm font-semibold text-foreground">{article.title}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{article.summary}</p>
-                  <p className="mt-2 text-[10px] text-muted-foreground">{article.readTime} read</p>
-                </div>
+          {filtered.map((article) => {
+            const isExpanded = expandedId === article.id;
+            const isBookmarked = bookmarkIds.has(article.id);
+
+            return (
+              <div key={article.id} className="rounded-xl bg-card shadow-soft overflow-hidden">
+                {/* Header */}
                 <button
-                  onClick={() => toggleBookmark(article.id)}
-                  className="tap-highlight-none flex-shrink-0 p-1 text-muted-foreground transition-colors hover:text-primary"
+                  onClick={() => setExpandedId(isExpanded ? null : article.id)}
+                  className="tap-highlight-none w-full p-4 text-left"
                 >
-                  {bookmarks.includes(article.id) ? (
-                    <BookmarkCheck className="h-4 w-4 text-primary" />
-                  ) : (
-                    <Bookmark className="h-4 w-4" />
-                  )}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-primary">
+                        {article.category}
+                      </span>
+                      <h3 className="mt-0.5 text-sm font-semibold text-foreground">{article.title}</h3>
+                      <p className="mt-1 text-xs text-muted-foreground">{article.summary}</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground">{article.read_time} read</span>
+                        {isExpanded ? (
+                          <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleBookmark.mutate({ articleId: article.id, isBookmarked });
+                      }}
+                      className="tap-highlight-none flex-shrink-0 p-1 text-muted-foreground transition-colors hover:text-primary"
+                    >
+                      {isBookmarked ? (
+                        <BookmarkCheck className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Bookmark className="h-4 w-4" />
+                      )}
+                    </div>
+                  </div>
                 </button>
+
+                {/* Expanded body */}
+                {isExpanded && (
+                  <div className="border-t border-border px-4 py-4">
+                    <article className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground">
+                      {article.body.split("\n\n").map((block, i) => {
+                        if (block.startsWith("## "))
+                          return <h2 key={i} className="mt-4 mb-2 text-sm font-semibold text-foreground">{block.slice(3)}</h2>;
+                        if (block.startsWith("**") && block.endsWith("**"))
+                          return <p key={i} className="font-semibold text-xs text-foreground">{block.slice(2, -2)}</p>;
+                        // Handle lists
+                        if (block.startsWith("- ") || block.startsWith("1. ")) {
+                          const items = block.split("\n").filter(Boolean);
+                          return (
+                            <ul key={i} className="my-2 space-y-1 text-xs text-muted-foreground">
+                              {items.map((item, j) => (
+                                <li key={j} className="ml-4 list-disc">{item.replace(/^[-\d]+[.)]\s*/, "")}</li>
+                              ))}
+                            </ul>
+                          );
+                        }
+                        // Bold inline
+                        const parts = block.split(/(\*\*[^*]+\*\*)/g);
+                        return (
+                          <p key={i} className="my-2 text-xs leading-relaxed text-muted-foreground">
+                            {parts.map((part, j) =>
+                              part.startsWith("**") && part.endsWith("**") ? (
+                                <strong key={j} className="text-foreground">{part.slice(2, -2)}</strong>
+                              ) : (
+                                <span key={j}>{part}</span>
+                              )
+                            )}
+                          </p>
+                        );
+                      })}
+                    </article>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </>
