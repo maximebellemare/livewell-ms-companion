@@ -1,0 +1,377 @@
+import { useState } from "react";
+import { Navigate } from "react-router-dom";
+import { Shield, FileText, Users, Flag, Plus, Pencil, Trash2, EyeOff, Eye, CheckCircle2, XCircle } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import {
+  useIsAdmin,
+  useAdminArticles,
+  useUpsertArticle,
+  useDeleteArticle,
+  useAdminUsers,
+  useAdminReports,
+} from "@/hooks/useAdmin";
+import { useResolveReport, useHidePost, useHideComment } from "@/hooks/useCommunity";
+
+/* ─── Article Form ─────────────────────────────────────── */
+const emptyArticle = {
+  title: "",
+  summary: "",
+  body: "",
+  category: "Basics",
+  read_time: "3 min",
+  published: true,
+  sort_order: 0,
+};
+
+const ArticleForm = ({
+  initial,
+  onClose,
+}: {
+  initial?: any;
+  onClose: () => void;
+}) => {
+  const [form, setForm] = useState(initial ?? emptyArticle);
+  const upsert = useUpsertArticle();
+
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.summary.trim()) {
+      toast.error("Title and summary are required");
+      return;
+    }
+    await upsert.mutateAsync(form);
+    toast.success(initial?.id ? "Article updated" : "Article created");
+    onClose();
+  };
+
+  return (
+    <div className="space-y-3">
+      <Input
+        placeholder="Title"
+        value={form.title}
+        onChange={(e) => setForm({ ...form, title: e.target.value })}
+      />
+      <Input
+        placeholder="Category (e.g. Basics, Treatment, Lifestyle)"
+        value={form.category}
+        onChange={(e) => setForm({ ...form, category: e.target.value })}
+      />
+      <div className="flex gap-2">
+        <Input
+          placeholder="Read time"
+          value={form.read_time}
+          onChange={(e) => setForm({ ...form, read_time: e.target.value })}
+          className="w-28"
+        />
+        <Input
+          placeholder="Sort order"
+          type="number"
+          value={form.sort_order}
+          onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })}
+          className="w-28"
+        />
+      </div>
+      <Textarea
+        placeholder="Summary"
+        value={form.summary}
+        onChange={(e) => setForm({ ...form, summary: e.target.value })}
+        rows={2}
+      />
+      <Textarea
+        placeholder="Article body (Markdown supported)"
+        value={form.body}
+        onChange={(e) => setForm({ ...form, body: e.target.value })}
+        rows={10}
+      />
+      <div className="flex items-center gap-2">
+        <Switch
+          checked={form.published}
+          onCheckedChange={(v) => setForm({ ...form, published: v })}
+        />
+        <span className="text-sm text-muted-foreground">Published</span>
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={handleSave} disabled={upsert.isPending}>
+          {initial?.id ? "Update" : "Create"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Articles Tab ─────────────────────────────────────── */
+const ArticlesTab = () => {
+  const { data: articles = [], isLoading } = useAdminArticles();
+  const deleteArticle = useDeleteArticle();
+  const [editing, setEditing] = useState<any>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  if (isLoading) return <div className="space-y-2">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}</div>;
+
+  return (
+    <>
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-xs text-muted-foreground">{articles.length} articles</span>
+        <Button size="sm" onClick={() => { setEditing(null); setShowForm(true); }}>
+          <Plus className="h-3.5 w-3.5 mr-1" /> New Article
+        </Button>
+      </div>
+
+      <div className="space-y-2">
+        {articles.map((a: any) => (
+          <Card key={a.id} className={`${!a.published ? "opacity-60" : ""}`}>
+            <CardContent className="p-3 flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-medium truncate">{a.title}</span>
+                  {!a.published && <Badge variant="secondary" className="text-[10px]">Draft</Badge>}
+                </div>
+                <div className="flex gap-2 text-[10px] text-muted-foreground">
+                  <span>{a.category}</span>
+                  <span>·</span>
+                  <span>{a.read_time}</span>
+                  <span>·</span>
+                  <span>Order: {a.sort_order}</span>
+                </div>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditing(a); setShowForm(true); }}>
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-destructive"
+                  onClick={async () => {
+                    await deleteArticle.mutateAsync(a.id);
+                    toast.success("Article deleted");
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing?.id ? "Edit Article" : "New Article"}</DialogTitle>
+          </DialogHeader>
+          <ArticleForm
+            initial={editing}
+            onClose={() => setShowForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+/* ─── Users Tab ────────────────────────────────────────── */
+const UsersTab = () => {
+  const { data: users = [], isLoading } = useAdminUsers();
+  const [search, setSearch] = useState("");
+
+  const filtered = users.filter(
+    (u: any) =>
+      (u.display_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      u.user_id.includes(search)
+  );
+
+  if (isLoading) return <div className="space-y-2">{[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}</div>;
+
+  return (
+    <>
+      <div className="mb-3 flex items-center gap-2">
+        <Input
+          placeholder="Search by name or ID…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="text-sm"
+        />
+        <span className="text-xs text-muted-foreground whitespace-nowrap">{filtered.length} users</span>
+      </div>
+      <div className="space-y-2">
+        {filtered.map((u: any) => (
+          <Card key={u.user_id}>
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                {(u.display_name ?? "?")[0].toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{u.display_name || "Anonymous"}</p>
+                <div className="flex gap-2 text-[10px] text-muted-foreground">
+                  <span>{u.ms_type || "—"}</span>
+                  <span>·</span>
+                  <span>Joined {formatDistanceToNow(new Date(u.created_at), { addSuffix: true })}</span>
+                </div>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                {u.roles.map((r: string) => (
+                  <Badge key={r} variant={r === "admin" ? "default" : "secondary"} className="text-[10px]">
+                    {r}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
+  );
+};
+
+/* ─── Moderation Tab ───────────────────────────────────── */
+const ModerationTab = () => {
+  const { data: reports = [], isLoading } = useAdminReports();
+  const resolveReport = useResolveReport();
+  const hidePost = useHidePost();
+  const hideComment = useHideComment();
+  const [tab, setTab] = useState<"pending" | "all">("pending");
+
+  const pending = reports.filter((r: any) => r.status === "pending");
+  const display = tab === "pending" ? pending : reports;
+
+  if (isLoading) return <div className="space-y-2">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}</div>;
+
+  return (
+    <>
+      <div className="flex gap-2 mb-3">
+        <Button
+          variant={tab === "pending" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setTab("pending")}
+        >
+          Pending ({pending.length})
+        </Button>
+        <Button
+          variant={tab === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setTab("all")}
+        >
+          All ({reports.length})
+        </Button>
+      </div>
+
+      {display.length === 0 ? (
+        <div className="text-center py-8">
+          <CheckCircle2 className="h-8 w-8 text-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No {tab} reports</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {display.map((r: any) => (
+            <Card key={r.id}>
+              <CardContent className="p-3 space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm">{r.reason}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {r.post_id ? `Post ${r.post_id.slice(0, 8)}…` : `Comment ${r.comment_id?.slice(0, 8)}…`}
+                      {" · "}
+                      {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={r.status === "pending" ? "destructive" : r.status === "resolved" ? "default" : "secondary"}
+                    className="text-[10px]"
+                  >
+                    {r.status}
+                  </Badge>
+                </div>
+                {r.status === "pending" && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={async () => {
+                        if (r.post_id) await hidePost.mutateAsync({ postId: r.post_id, hidden: true });
+                        if (r.comment_id) await hideComment.mutateAsync({ commentId: r.comment_id, hidden: true });
+                        await resolveReport.mutateAsync({ reportId: r.id, status: "resolved" });
+                        toast.success("Content hidden & report resolved");
+                      }}
+                    >
+                      <EyeOff className="h-3 w-3 mr-1" /> Hide
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        await resolveReport.mutateAsync({ reportId: r.id, status: "dismissed" });
+                        toast.success("Report dismissed");
+                      }}
+                    >
+                      <XCircle className="h-3 w-3 mr-1" /> Dismiss
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
+
+/* ─── Main Page ────────────────────────────────────────── */
+const AdminPage = () => {
+  const { data: isAdmin, isLoading } = useIsAdmin();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <span className="text-2xl">🧡</span>
+      </div>
+    );
+  }
+
+  if (!isAdmin) return <Navigate to="/today" replace />;
+
+  return (
+    <>
+      <PageHeader title="Admin Dashboard" subtitle="Manage your platform" />
+      <div className="mx-auto max-w-2xl px-4 py-4">
+        <Tabs defaultValue="articles">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="articles" className="gap-1.5 text-xs">
+              <FileText className="h-3.5 w-3.5" /> Articles
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-1.5 text-xs">
+              <Users className="h-3.5 w-3.5" /> Users
+            </TabsTrigger>
+            <TabsTrigger value="moderation" className="gap-1.5 text-xs">
+              <Flag className="h-3.5 w-3.5" /> Reports
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="articles">
+            <ArticlesTab />
+          </TabsContent>
+          <TabsContent value="users">
+            <UsersTab />
+          </TabsContent>
+          <TabsContent value="moderation">
+            <ModerationTab />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </>
+  );
+};
+
+export default AdminPage;
