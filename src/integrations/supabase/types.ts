@@ -508,6 +508,9 @@ export type Database = {
           ms_type: string | null
           neurologist_email: string | null
           neurologist_name: string | null
+          notify_post_comments: boolean
+          notify_push_enabled: boolean
+          notify_thread_replies: boolean
           symptoms: string[] | null
           updated_at: string
           user_id: string
@@ -529,6 +532,9 @@ export type Database = {
           ms_type?: string | null
           neurologist_email?: string | null
           neurologist_name?: string | null
+          notify_post_comments?: boolean
+          notify_push_enabled?: boolean
+          notify_thread_replies?: boolean
           symptoms?: string[] | null
           updated_at?: string
           user_id: string
@@ -550,6 +556,9 @@ export type Database = {
           ms_type?: string | null
           neurologist_email?: string | null
           neurologist_name?: string | null
+          notify_post_comments?: boolean
+          notify_push_enabled?: boolean
+          notify_thread_replies?: boolean
           symptoms?: string[] | null
           updated_at?: string
           user_id?: string
