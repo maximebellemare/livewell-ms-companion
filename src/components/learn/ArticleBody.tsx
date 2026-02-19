@@ -26,12 +26,17 @@ const ArticleBody = ({ body }: ArticleBodyProps) => {
 
   return (
     <div className="border-t border-border">
-      {/* Progress bar */}
-      <div className="h-1 w-full bg-muted">
-        <div
-          className="h-full bg-primary transition-all duration-150 ease-out rounded-r-full"
-          style={{ width: `${Math.round(progress * 100)}%` }}
-        />
+      {/* Progress bar with label */}
+      <div className="flex items-center gap-2 px-4 pt-2">
+        <div className="h-1 flex-1 bg-muted rounded-full">
+          <div
+            className="h-full bg-primary transition-all duration-150 ease-out rounded-full"
+            style={{ width: `${Math.round(progress * 100)}%` }}
+          />
+        </div>
+        <span className="text-[10px] font-medium text-muted-foreground tabular-nums">
+          {Math.round(progress * 100)}%
+        </span>
       </div>
 
       <div
