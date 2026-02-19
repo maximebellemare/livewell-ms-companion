@@ -102,6 +102,15 @@ const InsightsPage = () => {
     );
   }, []);
 
+  /* Deduplicated entries by date (keep last entry per date) for heatmap */
+  const dedupedEntries = useMemo(() => {
+    const byDate = new Map<string, typeof allEntries[number]>();
+    for (const entry of allEntries) {
+      byDate.set(entry.date, entry); // later entries overwrite earlier ones
+    }
+    return Array.from(byDate.values());
+  }, [allEntries]);
+
   /* Build a complete day-by-day series (fills gaps with null) */
   const chartData = useMemo(() => {
     const today = new Date();
@@ -265,7 +274,7 @@ const InsightsPage = () => {
             </p>
 
             {/* ── 30-Day Heatmap ── */}
-            <SymptomHeatmap entries={allEntries} days={heatmapDays} />
+            <SymptomHeatmap entries={dedupedEntries} days={heatmapDays} />
 
             {/* ── Weekly Progress Summary ── */}
             {(() => {
