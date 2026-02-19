@@ -240,14 +240,14 @@ const InsightsPage = () => {
 
             {/* ── Stat cards ── */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {SYMPTOMS.slice(0, 4).map(({ key, label, emoji }) => {
-                const higherIsBetter = key === "mood";
+              {SYMPTOMS.slice(0, 5).map(({ key, label, emoji }) => {
+                const higherIsBetter = key === "mood" || key === "mobility" || key === "sleep_hours";
+                const isSleep = key === "sleep_hours";
                 const cur = avg(windowEntries.map((e) => e[key as keyof typeof e] as number | null));
                 const t = trend(
                   windowEntries.map((e) => e[key as keyof typeof e] as number | null),
                   prevWindowEntries.map((e) => e[key as keyof typeof e] as number | null),
                 );
-                // "good" trend: down for pain/fatigue/brain_fog, up for mood
                 const isGood = higherIsBetter ? t === "up" : t === "down";
                 const isBad  = higherIsBetter ? t === "down" : t === "up";
                 return (
@@ -263,6 +263,9 @@ const InsightsPage = () => {
                     <span className="text-xl">{emoji}</span>
                     <p className="mt-1 text-2xl font-bold text-foreground">
                       {cur !== null ? cur.toFixed(1) : "—"}
+                      {isSleep && cur !== null && (
+                        <span className="text-sm font-normal text-muted-foreground ml-0.5">hrs</span>
+                      )}
                     </p>
                     <p className="text-[10px] text-muted-foreground mb-1">{label}</p>
                     <span
