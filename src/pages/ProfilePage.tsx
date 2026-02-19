@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import DigestPreviewCard from "@/components/DigestPreviewCard";
 import PageHeader from "@/components/PageHeader";
 import { Link } from "react-router-dom";
-import { ChevronRight, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check, Mails, Sparkles, Users, BellRing, Bell, Trash2, AlertTriangle } from "lucide-react";
+import { ChevronRight, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check, Mails, Sparkles, Users, BellRing, Bell, Trash2, AlertTriangle, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
@@ -60,6 +60,9 @@ const ProfilePage = () => {
   const [displayName, setDisplayName] = useState("");
   const [displayNameInit, setDisplayNameInit] = useState(false);
   const [savingDisplayName, setSavingDisplayName] = useState(false);
+  const [country, setCountry] = useState("");
+  const [countryInit, setCountryInit] = useState(false);
+  const [savingCountry, setSavingCountry] = useState(false);
   const [sendingTestDigest, setSendingTestDigest] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -149,6 +152,11 @@ const ProfilePage = () => {
     setDisplayNameInit(true);
   }
 
+  if (profile && !countryInit) {
+    setCountry((profile as any).country ?? "");
+    setCountryInit(true);
+  }
+
   const handleSaveDisplayName = async () => {
     const trimmed = displayName.trim();
     if (trimmed.length > 30) { toast.error("Display name must be under 30 characters"); return; }
@@ -160,6 +168,18 @@ const ProfilePage = () => {
       toast.error("Failed to save display name");
     } finally {
       setSavingDisplayName(false);
+    }
+  };
+
+  const handleSaveCountry = async () => {
+    setSavingCountry(true);
+    try {
+      await updateProfile.mutateAsync({ country: country.trim() || null } as any);
+      toast.success("Country saved!");
+    } catch {
+      toast.error("Failed to save country");
+    } finally {
+      setSavingCountry(false);
     }
   };
 
@@ -292,6 +312,42 @@ const ProfilePage = () => {
               className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-60"
             >
               {savingDisplayName ? (
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+              ) : (
+                <Check className="h-3.5 w-3.5" />
+              )}
+              Save
+            </button>
+          </div>
+        </div>
+
+        {/* Country */}
+        <div className="rounded-xl bg-card p-4 shadow-soft space-y-3">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            <p className="text-sm font-medium text-foreground">Country</p>
+          </div>
+          <p className="text-xs text-muted-foreground">Helps connect you with local resources and community members.</p>
+          <div className="flex gap-2">
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              <option value="">Select a country</option>
+              {["United States", "United Kingdom", "Canada", "Australia", "Germany", "France",
+                "Netherlands", "Spain", "Italy", "Sweden", "Norway", "Denmark", "Finland",
+                "Belgium", "Switzerland", "Austria", "Ireland", "New Zealand", "Brazil",
+                "Mexico", "India", "Japan", "South Korea", "South Africa", "Other"].map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleSaveCountry}
+              disabled={savingCountry}
+              className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 disabled:opacity-60"
+            >
+              {savingCountry ? (
                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
               ) : (
                 <Check className="h-3.5 w-3.5" />
