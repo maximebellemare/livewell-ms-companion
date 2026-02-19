@@ -99,8 +99,14 @@ export const PostCard = ({
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Post</DialogTitle></DialogHeader>
-          <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} maxLength={200} />
-          <Textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} rows={4} maxLength={5000} />
+          <div>
+            <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} maxLength={200} />
+            <p className={`text-[10px] mt-1 text-right ${editTitle.length > 180 ? "text-destructive" : "text-muted-foreground"}`}>{editTitle.length}/200</p>
+          </div>
+          <div>
+            <Textarea value={editBody} onChange={(e) => setEditBody(e.target.value)} rows={4} maxLength={5000} />
+            <p className={`text-[10px] mt-1 text-right ${editBody.length > 4500 ? "text-destructive" : "text-muted-foreground"}`}>{editBody.length}/5000</p>
+          </div>
           <DialogFooter>
             <Button
               disabled={!editTitle.trim() || !editBody.trim() || editPost.isPending}
