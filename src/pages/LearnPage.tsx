@@ -35,10 +35,30 @@ const LearnPage = () => {
       .filter((a) => !q || a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
   }, [articles, filter, showBookmarked, showUnread, showCompleted, bookmarkIds, readArticleIds, progressMap, search]);
 
+  const completedCount = useMemo(() => articles.filter((a) => (progressMap[a.id] ?? 0) >= 1).length, [articles, progressMap]);
+  const totalCount = articles.length;
+  const completionPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
   return (
     <>
       <PageHeader title="Learn" subtitle="Evidence-based MS education" />
       <div className="mx-auto max-w-lg px-4 py-4">
+        {/* Learning progress summary */}
+        {!isLoading && totalCount > 0 && (
+          <div className="mb-4 rounded-xl bg-card p-4 shadow-soft">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your Progress</span>
+              <span className="text-xs font-semibold text-primary">{completedCount}/{totalCount} completed</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-500 rounded-full"
+                style={{ width: `${completionPercent}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Search bar */}
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
