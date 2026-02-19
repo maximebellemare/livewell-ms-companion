@@ -3,6 +3,7 @@ import PageHeader from "@/components/PageHeader";
 import { Bookmark, BookmarkCheck, ChevronDown, ChevronUp, Search, X, Clock } from "lucide-react";
 import { useLearnArticles, useLearnBookmarkIds, useToggleLearnBookmark, useLearnReads, useMarkArticleRead } from "@/hooks/useLearnArticles";
 import { Skeleton } from "@/components/ui/skeleton";
+import ArticleBody from "@/components/learn/ArticleBody";
 
 const LearnPage = () => {
   const [filter, setFilter] = useState("All");
@@ -177,42 +178,7 @@ const LearnPage = () => {
                 </button>
 
                 {/* Expanded body */}
-                {isExpanded && (
-                  <div className="border-t border-border px-4 py-4">
-                    <article className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground">
-                      {article.body.split("\n\n").map((block, i) => {
-                        if (block.startsWith("## "))
-                          return <h2 key={i} className="mt-4 mb-2 text-sm font-semibold text-foreground">{block.slice(3)}</h2>;
-                        if (block.startsWith("**") && block.endsWith("**"))
-                          return <p key={i} className="font-semibold text-xs text-foreground">{block.slice(2, -2)}</p>;
-                        // Handle lists
-                        if (block.startsWith("- ") || block.startsWith("1. ")) {
-                          const items = block.split("\n").filter(Boolean);
-                          return (
-                            <ul key={i} className="my-2 space-y-1 text-xs text-muted-foreground">
-                              {items.map((item, j) => (
-                                <li key={j} className="ml-4 list-disc">{item.replace(/^[-\d]+[.)]\s*/, "")}</li>
-                              ))}
-                            </ul>
-                          );
-                        }
-                        // Bold inline
-                        const parts = block.split(/(\*\*[^*]+\*\*)/g);
-                        return (
-                          <p key={i} className="my-2 text-xs leading-relaxed text-muted-foreground">
-                            {parts.map((part, j) =>
-                              part.startsWith("**") && part.endsWith("**") ? (
-                                <strong key={j} className="text-foreground">{part.slice(2, -2)}</strong>
-                              ) : (
-                                <span key={j}>{part}</span>
-                              )
-                            )}
-                          </p>
-                        );
-                      })}
-                    </article>
-                  </div>
-                )}
+                {isExpanded && <ArticleBody body={article.body} />}
               </div>
             );
           })}
