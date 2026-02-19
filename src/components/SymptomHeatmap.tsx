@@ -58,13 +58,24 @@ export default function SymptomHeatmap({ entries, days }: SymptomHeatmapProps) {
     [entries],
   );
 
-  // Split days into weeks (rows of 7)
-  const weeks = useMemo(() => {
-    const rows: string[][] = [];
-    for (let i = 0; i < days.length; i += 7) {
-      rows.push(days.slice(i, i + 7));
+  // Build a calendar grid aligned to Monday–Sunday weeks
+  // Pad the start with nulls so the first day lands in the correct column
+  const { weeks, startDow } = useMemo(() => {
+    if (days.length === 0) return { weeks: [], startDow: 0 };
+    // day-of-week for the first day: 0=Mon … 6=Sun (ISO)
+    const firstDate = parseISO(days[0]);
+    // getDay() returns 0=Sun…6=Sat; convert to 0=Mon…6=Sun
+    const jsDay = firstDate.getDay(); // 0=Sun, 1=Mon … 6=Sat
+    const dow = jsDay === 0 ? 6 : jsDay - 1; // 0=Mon … 6=Sun
+
+    // Prefix nulls to align with Mon column
+    const padded: (string | null)[] = [...Array(dow).fill(null), ...days];
+    // Chunk into rows of 7
+    const rows: (string | null)[][] = [];
+    for (let i = 0; i < padded.length; i += 7) {
+      rows.push(padded.slice(i, i + 7));
     }
-    return rows;
+    return { weeks: rows, startDow: dow };
   }, [days]);
 
   const [tooltip, setTooltip] = useState<{ date: string; value: number | null } | null>(null);
@@ -111,7 +122,11 @@ export default function SymptomHeatmap({ entries, days }: SymptomHeatmapProps) {
       <div className="space-y-1">
         {weeks.map((week, wi) => (
           <div key={wi} className="grid grid-cols-7 gap-1">
-            {week.map((date) => {
+            {week.map((date, di) => {
+              if (date === null) {
+                // padding cell — empty placeholder
+                return <div key={`pad-${wi}-${di}`} className="aspect-square" />;
+              }
               const entry = byDate[date];
               const value = entry ? (entry[activeMetric as keyof DayEntry] as number | null) : null;
               const isToday = date === format(new Date(), "yyyy-MM-dd");
