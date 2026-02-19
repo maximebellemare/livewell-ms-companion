@@ -28,19 +28,21 @@ const MOOD_TAG_SENTIMENT: Record<string, "positive" | "negative" | "neutral"> = 
 
 /* ── colour palette (matches design tokens) ───────────────── */
 const COLORS = {
-  fatigue:  { stroke: "hsl(25 85% 50%)",  fill: "hsl(25 85% 50% / 0.12)"  },
-  pain:     { stroke: "hsl(0 72% 51%)",   fill: "hsl(0 72% 51% / 0.10)"   },
-  brain_fog:{ stroke: "hsl(210 60% 50%)", fill: "hsl(210 60% 50% / 0.10)" },
-  mood:     { stroke: "hsl(145 45% 45%)", fill: "hsl(145 45% 45% / 0.10)" },
-  mobility: { stroke: "hsl(270 50% 55%)", fill: "hsl(270 50% 55% / 0.10)" },
+  fatigue:     { stroke: "hsl(25 85% 50%)",  fill: "hsl(25 85% 50% / 0.12)"  },
+  pain:        { stroke: "hsl(0 72% 51%)",   fill: "hsl(0 72% 51% / 0.10)"   },
+  brain_fog:   { stroke: "hsl(210 60% 50%)", fill: "hsl(210 60% 50% / 0.10)" },
+  mood:        { stroke: "hsl(145 45% 45%)", fill: "hsl(145 45% 45% / 0.10)" },
+  mobility:    { stroke: "hsl(270 50% 55%)", fill: "hsl(270 50% 55% / 0.10)" },
+  sleep_hours: { stroke: "hsl(220 70% 60%)", fill: "hsl(220 70% 60% / 0.10)" },
 };
 
 const SYMPTOMS = [
-  { key: "fatigue",   label: "Fatigue",    emoji: "🔋" },
-  { key: "pain",      label: "Pain",       emoji: "⚡" },
-  { key: "brain_fog", label: "Brain Fog",  emoji: "🌫️" },
-  { key: "mood",      label: "Mood",       emoji: "😊" },
-  { key: "mobility",  label: "Mobility",   emoji: "🚶" },
+  { key: "fatigue",     label: "Fatigue",    emoji: "🔋" },
+  { key: "pain",        label: "Pain",       emoji: "⚡" },
+  { key: "brain_fog",   label: "Brain Fog",  emoji: "🌫️" },
+  { key: "mood",        label: "Mood",       emoji: "😊" },
+  { key: "mobility",    label: "Mobility",   emoji: "🚶" },
+  { key: "sleep_hours", label: "Sleep",      emoji: "🌙" },
 ] as const;
 
 type SymptomKey = typeof SYMPTOMS[number]["key"];
@@ -77,12 +79,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return (
     <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-card text-xs">
       <p className="mb-1 font-semibold text-foreground">{label}</p>
-      {payload.map((p: any) => (
-        <p key={p.dataKey} style={{ color: p.stroke }} className="flex items-center gap-1">
-          <span className="font-medium">{p.name}:</span>
-          <span>{p.value != null ? p.value.toFixed(1) : "—"}</span>
-        </p>
-      ))}
+      {payload.map((p: any) => {
+        const isSleep = p.dataKey === "sleep_hours";
+        // Find raw sleep value from the data point
+        const rawSleep = isSleep && p.payload ? p.payload.sleep_hours_raw : null;
+        const displayVal = isSleep
+          ? (rawSleep !== null ? `${rawSleep.toFixed(1)} hrs` : "—")
+          : (p.value != null ? p.value.toFixed(1) : "—");
+        return (
+          <p key={p.dataKey} style={{ color: p.stroke }} className="flex items-center gap-1">
+            <span className="font-medium">{p.name}:</span>
+            <span>{displayVal}</span>
+          </p>
+        );
+      })}
     </div>
   );
 };
@@ -123,15 +133,18 @@ const InsightsPage = () => {
     return days.map((d) => {
       const key = format(d, "yyyy-MM-dd");
       const entry = byDate[key];
+      // Normalize sleep_hours (0–12) to 0–10 scale for the combined chart
+      const rawSleep = entry?.sleep_hours ?? null;
       return {
         date: format(d, range === 7 ? "EEE" : "MMM d"),
         fullDate: key,
-        fatigue:   entry?.fatigue   ?? null,
-        pain:      entry?.pain      ?? null,
-        brain_fog: entry?.brain_fog ?? null,
-        mood:      entry?.mood      ?? null,
-        mobility:  entry?.mobility  ?? null,
-        sleep:     entry?.sleep_hours ?? null,
+        fatigue:     entry?.fatigue   ?? null,
+        pain:        entry?.pain      ?? null,
+        brain_fog:   entry?.brain_fog ?? null,
+        mood:        entry?.mood      ?? null,
+        mobility:    entry?.mobility  ?? null,
+        sleep_hours: rawSleep !== null ? parseFloat(((rawSleep / 12) * 10).toFixed(2)) : null,
+        sleep_hours_raw: rawSleep,
       };
     });
   }, [allEntries, range]);
@@ -582,6 +595,7 @@ const InsightsPage = () => {
                         name={label}
                         stroke={COLORS[key].stroke}
                         strokeWidth={activeSymptom === "all" ? 2 : 2.5}
+                        strokeDasharray={key === "sleep_hours" ? "5 3" : undefined}
                         dot={false}
                         connectNulls={false}
                         activeDot={{ r: 4, strokeWidth: 0 }}
@@ -595,14 +609,32 @@ const InsightsPage = () => {
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
                 {visibleSymptoms.map(({ key, label, emoji }) => (
                   <span key={key} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: COLORS[key].stroke }}
-                    />
-                    {emoji} {label}
+                    {key === "sleep_hours" ? (
+                      <span
+                        className="flex-shrink-0"
+                        style={{
+                          display: "inline-block",
+                          width: 14,
+                          height: 2,
+                          borderTop: `2px dashed ${COLORS[key].stroke}`,
+                          marginBottom: 1,
+                        }}
+                      />
+                    ) : (
+                      <span
+                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: COLORS[key].stroke }}
+                      />
+                    )}
+                    {emoji} {label}{key === "sleep_hours" ? " (÷1.2)" : ""}
                   </span>
                 ))}
               </div>
+              {(activeSymptom === "all" || activeSymptom === "sleep_hours") && (
+                <p className="mt-1.5 text-[9px] text-muted-foreground">
+                  🌙 Sleep scaled to 0–10 (÷1.2) for comparison. Hover to see actual hours.
+                </p>
+              )}
             </div>
 
             {/* ── Per-symptom sparkline cards ── */}
