@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Pin, ArrowLeft, Send, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { MessageCircle, Pin, ArrowLeft, Send, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 import { CommunityAvatar } from "./CommunityAvatar";
+import { ReactionBar } from "./ReactionBar";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  Post, useComments, useCreateComment, usePostLikes, useToggleLike,
+  Post, useComments, useCreateComment,
   useHideComment, useDisplayName, useEditComment, useDeleteComment,
 } from "@/hooks/useCommunity";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,6 @@ export const PostDetail = ({
   const { user } = useAuth();
   const { data: comments = [], isLoading } = useComments(post.id);
   const { data: displayName = "Anonymous" } = useDisplayName();
-  const { data: isLiked = false } = usePostLikes(post.id);
-  const toggleLike = useToggleLike();
   const createComment = useCreateComment();
   const hideComment = useHideComment();
   const editComment = useEditComment();
@@ -72,16 +71,13 @@ export const PostDetail = ({
         </div>
         <h2 className="text-base font-semibold text-foreground mb-2">{post.title}</h2>
         <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{post.body}</p>
-        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-          <button
-            onClick={() => toggleLike.mutate({ postId: post.id, isLiked })}
-            className={`tap-highlight-none flex items-center gap-1 ${isLiked ? "text-primary" : "hover:text-primary"}`}
-          >
-            <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-primary" : ""}`} /> {post.likes_count}
-          </button>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="h-3.5 w-3.5" /> {comments.length}
-          </span>
+        <div className="mt-3 space-y-2">
+          <ReactionBar postId={post.id} />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <MessageCircle className="h-3.5 w-3.5" /> {comments.length}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -164,7 +160,12 @@ export const PostDetail = ({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-foreground whitespace-pre-wrap">{c.body}</p>
+                  <>
+                    <p className="text-xs text-foreground whitespace-pre-wrap">{c.body}</p>
+                    <div className="mt-1.5">
+                      <ReactionBar commentId={c.id} />
+                    </div>
+                  </>
                 )}
               </div>
             );
