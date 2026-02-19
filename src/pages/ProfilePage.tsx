@@ -167,10 +167,17 @@ const ProfilePage = () => {
             </div>
           </div>
           <Link
-            to="/onboarding"
+            to="/my-ms-history"
             className="mt-3 flex items-center justify-between rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-muted"
           >
-            <span>Edit MS Profile</span>
+            <span>My MS History</span>
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/onboarding"
+            className="mt-2 flex items-center justify-between rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-muted"
+          >
+            <span>Re-run Onboarding</span>
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
