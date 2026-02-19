@@ -73,30 +73,20 @@ serve(async (req) => {
       }
     }
 
-    const articleList = articles.map((a: any) =>
-      `ID:${a.id} | Category:${a.category} | Title:${a.title} | Summary:${a.summary} | Read:${readIds.has(a.id) ? "yes" : "no"}`
+    const articleList = articles.map((a: any, i: number) =>
+      `${i}. [${a.id}] ${a.category}: ${a.title}${readIds.has(a.id) ? " (read)" : ""}`
     ).join("\n");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    console.log("API key present:", !!LOVABLE_API_KEY, "key length:", LOVABLE_API_KEY.length);
 
-    const prompt = `You are a health content recommendation engine for a Multiple Sclerosis tracking app.
+    const prompt = `Recommend 3-5 articles for an MS patient. User symptoms: ${symptoms.join(", ") || "none"}. MS type: ${msType}. Recent symptom averages: ${JSON.stringify(avgSymptoms)}.
 
-User profile:
-- MS type: ${msType}
-- Tracked symptoms: ${symptoms.length > 0 ? symptoms.join(", ") : "none specified"}
-- Goals: ${goals.length > 0 ? goals.join(", ") : "none specified"}
-- Recent 7-day average symptom scores (0-10): ${JSON.stringify(avgSymptoms)}
-
-Available articles:
+Articles:
 ${articleList}
 
-Select the top 3-5 most relevant articles for this user. Prioritize:
-1. Articles addressing their most severe current symptoms
-2. Unread articles over already-read ones
-3. Articles matching their MS type and goals
-
-Return ONLY a JSON array of objects with "id" (article UUID) and "reason" (one short sentence why it's recommended). No other text.`;
+Return JSON array: [{"id":"<uuid>","reason":"<short reason>"}]. Only JSON, no markdown.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -106,11 +96,16 @@ Return ONLY a JSON array of objects with "id" (article UUID) and "reason" (one s
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "system", content: "You recommend MS-related articles. Return only a JSON array." },
+          { role: "user", content: prompt },
+        ],
       }),
     });
 
     if (!aiResponse.ok) {
+      const errorBody = await aiResponse.text();
+      console.error("AI gateway error:", aiResponse.status, errorBody);
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later." }), {
           status: 429,
@@ -123,7 +118,10 @@ Return ONLY a JSON array of objects with "id" (article UUID) and "reason" (one s
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error(`AI gateway error: ${aiResponse.status}`);
+      // Return empty recommendations instead of throwing on AI errors
+      return new Response(JSON.stringify({ recommendations: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const aiData = await aiResponse.json();
