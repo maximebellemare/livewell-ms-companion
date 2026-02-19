@@ -16,6 +16,7 @@ export interface Profile {
   weekly_digest_enabled: boolean;
   weekly_log_goal: number;
   last_report_sent_at: string | null;
+  last_digest_sent_at: string | null;
 }
 
 export const useProfile = () => {
