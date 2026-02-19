@@ -207,11 +207,15 @@ const InsightsPage = () => {
             {/* ── Stat cards ── */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {SYMPTOMS.slice(0, 4).map(({ key, label, emoji }) => {
+                const higherIsBetter = key === "mood";
                 const cur = avg(windowEntries.map((e) => e[key as keyof typeof e] as number | null));
                 const t = trend(
                   windowEntries.map((e) => e[key as keyof typeof e] as number | null),
                   prevWindowEntries.map((e) => e[key as keyof typeof e] as number | null),
                 );
+                // "good" trend: down for pain/fatigue/brain_fog, up for mood
+                const isGood = higherIsBetter ? t === "up" : t === "down";
+                const isBad  = higherIsBetter ? t === "down" : t === "up";
                 return (
                   <button
                     key={key}
@@ -230,15 +234,14 @@ const InsightsPage = () => {
                     <span
                       className="inline-flex items-center gap-0.5 text-[10px] font-medium rounded-full px-1.5 py-0.5"
                       style={{
-                        background: t === "up"   ? "hsl(0 72% 51% / 0.1)"   :
-                                    t === "down" ? "hsl(145 45% 45% / 0.12)" :
-                                                   "hsl(var(--muted))",
-                        color:      t === "up"   ? "hsl(0 72% 45%)"          :
-                                    t === "down" ? "hsl(145 45% 35%)"         :
-                                                   "hsl(var(--muted-foreground))",
+                        background: isGood ? "hsl(145 45% 45% / 0.12)" :
+                                    isBad  ? "hsl(0 72% 51% / 0.1)"    :
+                                             "hsl(var(--muted))",
+                        color:      isGood ? "hsl(145 45% 35%)"         :
+                                    isBad  ? "hsl(0 72% 45%)"           :
+                                             "hsl(var(--muted-foreground))",
                       }}
                     >
-
                       {t === "up"   ? <TrendingUp className="h-2.5 w-2.5" /> :
                        t === "down" ? <TrendingDown className="h-2.5 w-2.5" /> :
                                       <Minus className="h-2.5 w-2.5" />}
