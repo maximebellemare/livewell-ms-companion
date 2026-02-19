@@ -247,9 +247,9 @@ const TodayPage = () => {
 
         {/* 7-day sparklines — mood, fatigue & pain at a glance */}
         <div className="grid grid-cols-3 gap-2">
-          <SymptomSparkline entries={weekEntries} metric="mood" label="Mood" emoji="😊" higherIsBetter />
-          <SymptomSparkline entries={weekEntries} metric="fatigue" label="Fatigue" emoji="🔋" />
-          <SymptomSparkline entries={weekEntries} metric="pain" label="Pain" emoji="⚡" />
+          <SymptomSparkline entries={weekEntries} metric="mood" label="Mood" emoji="😊" higherIsBetter onClick={() => navigate("/insights", { state: { heatmapMetric: "mood" } })} />
+          <SymptomSparkline entries={weekEntries} metric="fatigue" label="Fatigue" emoji="🔋" onClick={() => navigate("/insights", { state: { heatmapMetric: "fatigue" } })} />
+          <SymptomSparkline entries={weekEntries} metric="pain" label="Pain" emoji="⚡" onClick={() => navigate("/insights", { state: { heatmapMetric: "pain" } })} />
         </div>
 
         {/* Quick symptom logging */}

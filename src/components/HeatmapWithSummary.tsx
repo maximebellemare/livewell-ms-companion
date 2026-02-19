@@ -14,6 +14,7 @@ interface DayEntry {
 interface Props {
   entries: DayEntry[];
   days: string[];
+  initialMetric?: string;
 }
 
 const METRICS = [
@@ -77,9 +78,9 @@ function bestWorstWeeks(
   return { best, worst };
 }
 
-export default function HeatmapWithSummary({ entries, days }: Props) {
-  // Mirror the active metric state so we can show the right summary
-  const [activeMetric, setActiveMetric] = useState<MetricKey>("fatigue");
+export default function HeatmapWithSummary({ entries, days, initialMetric }: Props) {
+  const validInitial = METRICS.find((m) => m.key === initialMetric)?.key ?? "fatigue";
+  const [activeMetric, setActiveMetric] = useState<MetricKey>(validInitial);
 
   const metric = METRICS.find((m) => m.key === activeMetric)!;
 
