@@ -137,12 +137,15 @@ export const PostDetail = ({
                 </div>
                 {isEditing ? (
                   <div className="space-y-2">
-                    <Textarea
-                      value={editCommentBody}
-                      onChange={(e) => setEditCommentBody(e.target.value)}
-                      rows={2}
-                      maxLength={2000}
-                    />
+                    <div>
+                      <Textarea
+                        value={editCommentBody}
+                        onChange={(e) => setEditCommentBody(e.target.value)}
+                        rows={2}
+                        maxLength={2000}
+                      />
+                      <p className={`text-[10px] mt-1 text-right ${editCommentBody.length > 1800 ? "text-destructive" : "text-muted-foreground"}`}>{editCommentBody.length}/2000</p>
+                    </div>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -196,14 +199,16 @@ export const PostDetail = ({
 
       {/* Add comment */}
       <div className="flex gap-2">
-        <Textarea
-          placeholder="Add a comment…"
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={2}
-          maxLength={2000}
-          className="flex-1"
-        />
+        <div className="flex-1">
+          <Textarea
+            placeholder="Add a comment…"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={2}
+            maxLength={2000}
+          />
+          <p className={`text-[10px] mt-1 text-right ${body.length > 1800 ? "text-destructive" : "text-muted-foreground"}`}>{body.length}/2000</p>
+        </div>
         <Button
           size="icon"
           disabled={!body.trim() || createComment.isPending}
