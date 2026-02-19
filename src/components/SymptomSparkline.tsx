@@ -13,7 +13,7 @@ interface Entry {
   mood_tags?: string[];
 }
 
-type MetricKey = "fatigue" | "pain" | "brain_fog" | "mood" | "mobility";
+type MetricKey = "fatigue" | "pain" | "brain_fog" | "mood" | "mobility" | "sleep_hours";
 
 interface SymptomSparklineProps {
   entries: Entry[];
@@ -21,6 +21,10 @@ interface SymptomSparklineProps {
   label: string;
   emoji: string;
   higherIsBetter?: boolean;
+  /** Max scale value — defaults to 10, use 12 for sleep hours */
+  maxValue?: number;
+  /** Unit shown after the average — defaults to "/10" */
+  unit?: string;
   onClick?: () => void;
 }
 
@@ -39,6 +43,8 @@ export default function SymptomSparkline({
   label,
   emoji,
   higherIsBetter = false,
+  maxValue = 10,
+  unit = "/10",
   onClick,
 }: SymptomSparklineProps) {
   const days = useMemo(() => {
@@ -68,7 +74,7 @@ export default function SymptomSparkline({
     .filter((p): p is { date: string; value: number; x: number } => p.value !== null);
 
   const toSvgX = (i: number) => PAD + (i / 6) * (W - PAD * 2);
-  const toSvgY = (v: number) => PAD + ((10 - v) / 10) * (H - PAD * 2);
+  const toSvgY = (v: number) => PAD + ((maxValue - v) / maxValue) * (H - PAD * 2);
 
   const linePoints = plotPoints
     .map((p) => `${toSvgX(p.x)},${toSvgY(p.value)}`)
@@ -94,7 +100,7 @@ export default function SymptomSparkline({
     ? "hsl(0 65% 42%)"
     : "hsl(var(--muted-foreground))";
 
-  const lineColor = avg !== null ? metricColor(avg, higherIsBetter) : "hsl(145 45% 45%)";
+  const lineColor = avg !== null ? metricColor((avg / maxValue) * 10, higherIsBetter) : "hsl(145 45% 45%)";
 
   const Tag = onClick ? "button" : "div";
 
@@ -111,11 +117,11 @@ export default function SymptomSparkline({
         <div className="flex items-baseline gap-0.5">
           <span
             className="text-base font-bold leading-none"
-            style={{ color: avg !== null ? metricColor(avg, higherIsBetter) : "hsl(var(--muted-foreground))" }}
+            style={{ color: avg !== null ? metricColor(avg / maxValue * 10, higherIsBetter) : "hsl(var(--muted-foreground))" }}
           >
             {avg !== null ? avg.toFixed(1) : "—"}
           </span>
-          <span className="text-[9px] text-muted-foreground">/10</span>
+          <span className="text-[9px] text-muted-foreground">{unit}</span>
           <span className="text-xs font-semibold ml-0.5" style={{ color: trendColor }}>
             {trend}
           </span>
@@ -129,9 +135,9 @@ export default function SymptomSparkline({
         style={{ height: 32 }}
         preserveAspectRatio="none"
       >
-        {/* midline at 5 */}
+        {/* midline at half of maxValue */}
         <line
-          x1={PAD} y1={toSvgY(5)} x2={W - PAD} y2={toSvgY(5)}
+          x1={PAD} y1={toSvgY(maxValue / 2)} x2={W - PAD} y2={toSvgY(maxValue / 2)}
           stroke="hsl(var(--border))" strokeWidth="0.8" strokeDasharray="3 3"
         />
         {/* fill */}
@@ -164,7 +170,7 @@ export default function SymptomSparkline({
             cx={toSvgX(p.x)}
             cy={toSvgY(p.value)}
             r="2.5"
-            fill={metricColor(p.value, higherIsBetter)}
+            fill={metricColor((p.value / maxValue) * 10, higherIsBetter)}
             stroke="hsl(var(--card))"
             strokeWidth="1"
           />

@@ -245,11 +245,12 @@ const TodayPage = () => {
         <StreakBadge />
         <WeekStreakBadge />
 
-        {/* 7-day sparklines — mood, fatigue & pain at a glance */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* 7-day sparklines — mood, fatigue, pain & sleep at a glance */}
+        <div className="grid grid-cols-2 gap-2">
           <SymptomSparkline entries={weekEntries} metric="mood" label="Mood" emoji="😊" higherIsBetter onClick={() => navigate("/insights", { state: { heatmapMetric: "mood" } })} />
           <SymptomSparkline entries={weekEntries} metric="fatigue" label="Fatigue" emoji="🔋" onClick={() => navigate("/insights", { state: { heatmapMetric: "fatigue" } })} />
           <SymptomSparkline entries={weekEntries} metric="pain" label="Pain" emoji="⚡" onClick={() => navigate("/insights", { state: { heatmapMetric: "pain" } })} />
+          <SymptomSparkline entries={weekEntries} metric="sleep_hours" label="Sleep" emoji="🌙" higherIsBetter maxValue={12} unit=" hrs" onClick={() => navigate("/insights")} />
         </div>
         <p className="text-[10px] text-muted-foreground text-center -mt-1">
           Tap a card to see insights →
