@@ -227,22 +227,83 @@ export const useCreateComment = () => {
   });
 };
 
-/* ─── Likes ─────────────────────────────────────────────── */
+/* ─── Reactions (emoji) ──────────────────────────────────── */
+
+/** Returns { heart: 3, thumbsup: 1, _my: ["heart"] } */
+export const useReactions = (postId: string | null, commentId: string | null) => {
+  const { user } = useAuth();
+  const targetKey = postId ? ["post", postId] : ["comment", commentId];
+  return useQuery({
+    queryKey: ["community-reactions", ...targetKey, user?.id],
+    queryFn: async () => {
+      let query = supabase.from("community_likes").select("reaction_type, user_id");
+      if (postId) query = query.eq("post_id", postId);
+      if (commentId) query = query.eq("comment_id", commentId);
+      const { data, error } = await query;
+      if (error) throw error;
+      const counts: Record<string, any> = {};
+      const my: string[] = [];
+      for (const row of data ?? []) {
+        const rt = (row as any).reaction_type ?? "heart";
+        counts[rt] = (counts[rt] ?? 0) + 1;
+        if ((row as any).user_id === user?.id) my.push(rt);
+      }
+      counts._my = my;
+      return counts as Record<string, any>;
+    },
+    enabled: !!(postId || commentId),
+  });
+};
+
+/** Legacy hook — still used by PostCard for the simple heart check */
 export const usePostLikes = (postId: string | null) => {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["community-likes", postId, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("community_likes")
         .select("id")
         .eq("post_id", postId!)
-        .eq("user_id", user!.id)
+        .eq("user_id", user!.id) as any)
+        .eq("reaction_type", "heart")
         .maybeSingle();
       if (error) throw error;
       return !!data;
     },
     enabled: !!postId && !!user,
+  });
+};
+
+export const useToggleReaction = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({
+      postId, commentId, reactionType, isReacted,
+    }: { postId: string | null; commentId: string | null; reactionType: string; isReacted: boolean }) => {
+      if (isReacted) {
+        let query = supabase
+          .from("community_likes")
+          .delete()
+          .eq("user_id", user!.id);
+        if (postId) query = query.eq("post_id", postId);
+        if (commentId) query = query.eq("comment_id", commentId);
+        const { error } = await (query as any).eq("reaction_type", reactionType);
+        if (error) throw error;
+      } else {
+        const row: any = { user_id: user!.id, reaction_type: reactionType };
+        if (postId) row.post_id = postId;
+        if (commentId) row.comment_id = commentId;
+        const { error } = await supabase.from("community_likes").insert(row);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-reactions"] });
+      queryClient.invalidateQueries({ queryKey: ["community-likes"] });
+      queryClient.invalidateQueries({ queryKey: ["community-posts"] });
+    },
   });
 };
 
@@ -252,21 +313,23 @@ export const useToggleLike = () => {
   return useMutation({
     mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean }) => {
       if (isLiked) {
-        const { error } = await supabase
+        const { error } = await (supabase
           .from("community_likes")
           .delete()
           .eq("post_id", postId)
-          .eq("user_id", user!.id);
+          .eq("user_id", user!.id) as any)
+          .eq("reaction_type", "heart");
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("community_likes")
-          .insert({ post_id: postId, user_id: user!.id });
+          .insert({ post_id: postId, user_id: user!.id, reaction_type: "heart" } as any);
         if (error) throw error;
       }
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ["community-likes", vars.postId] });
+      queryClient.invalidateQueries({ queryKey: ["community-reactions"] });
       queryClient.invalidateQueries({ queryKey: ["community-posts"] });
     },
   });

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Flag, Pin, EyeOff, Eye, Pencil, Trash2 } from "lucide-react";
+import { MessageCircle, Flag, Pin, EyeOff, Eye, Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CommunityAvatar } from "./CommunityAvatar";
+import { ReactionBar } from "./ReactionBar";
 import {
-  Post, usePostLikes, useToggleLike, useCreateReport,
+  Post, useCreateReport,
   useEditPost, useDeletePost,
 } from "@/hooks/useCommunity";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,6 @@ export const PostCard = ({
   post, onClick, isMod, onHide,
 }: { post: Post; onClick: () => void; isMod: boolean; onHide: any }) => {
   const { user } = useAuth();
-  const { data: isLiked = false } = usePostLikes(post.id);
-  const toggleLike = useToggleLike();
   const createReport = useCreateReport();
   const editPost = useEditPost();
   const deletePost = useDeletePost();
@@ -53,46 +52,43 @@ export const PostCard = ({
         <p className="text-sm font-semibold text-foreground">{post.title}</p>
         <p className="mt-1 text-xs text-muted-foreground line-clamp-3">{post.body}</p>
       </button>
-      <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-        <button
-          onClick={() => toggleLike.mutate({ postId: post.id, isLiked })}
-          className={`tap-highlight-none flex items-center gap-1 ${isLiked ? "text-primary" : "hover:text-primary"}`}
-        >
-          <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-primary" : ""}`} /> {post.likes_count}
-        </button>
-        <button onClick={onClick} className="tap-highlight-none flex items-center gap-1 hover:text-primary">
-          <MessageCircle className="h-3.5 w-3.5" /> {post.comments_count}
-        </button>
-        {isOwner && (
-          <>
+      <div className="mt-3 space-y-2">
+        <ReactionBar postId={post.id} />
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <button onClick={onClick} className="tap-highlight-none flex items-center gap-1 hover:text-primary">
+            <MessageCircle className="h-3.5 w-3.5" /> {post.comments_count}
+          </button>
+          {isOwner && (
+            <>
+              <button
+                onClick={() => { setEditTitle(post.title); setEditBody(post.body); setShowEdit(true); }}
+                className="tap-highlight-none flex items-center gap-1 hover:text-primary"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setShowDelete(true)}
+                className="tap-highlight-none flex items-center gap-1 hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setShowReport(true)}
+            className="tap-highlight-none ml-auto flex items-center gap-1 hover:text-destructive"
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
+          {isMod && (
             <button
-              onClick={() => { setEditTitle(post.title); setEditBody(post.body); setShowEdit(true); }}
-              className="tap-highlight-none flex items-center gap-1 hover:text-primary"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => setShowDelete(true)}
+              onClick={() => onHide.mutate({ postId: post.id, hidden: !post.is_hidden })}
               className="tap-highlight-none flex items-center gap-1 hover:text-destructive"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              {post.is_hidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
             </button>
-          </>
-        )}
-        <button
-          onClick={() => setShowReport(true)}
-          className="tap-highlight-none ml-auto flex items-center gap-1 hover:text-destructive"
-        >
-          <Flag className="h-3.5 w-3.5" />
-        </button>
-        {isMod && (
-          <button
-            onClick={() => onHide.mutate({ postId: post.id, hidden: !post.is_hidden })}
-            className="tap-highlight-none flex items-center gap-1 hover:text-destructive"
-          >
-            {post.is_hidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-          </button>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Edit Dialog */}
