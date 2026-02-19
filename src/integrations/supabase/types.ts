@@ -424,6 +424,35 @@ export type Database = {
           },
         ]
       }
+      learn_reads: {
+        Row: {
+          article_id: string
+          id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          id?: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learn_reads_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "learn_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_logs: {
         Row: {
           created_at: string
