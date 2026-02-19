@@ -10,7 +10,7 @@ import StreakBadge, { useStreak } from "@/components/StreakBadge";
 import WeekStreakBadge from "@/components/WeekStreakBadge";
 import MondayRecapCard from "@/components/MondayRecapCard";
 import StreakMilestoneBanner from "@/components/StreakMilestoneBanner";
-import MoodSparkline from "@/components/MoodSparkline";
+import SymptomSparkline from "@/components/SymptomSparkline";
 import { Link } from "react-router-dom";
 import { Settings, CheckCircle2 } from "lucide-react";
 import MedicationChecklist from "@/components/MedicationChecklist";
@@ -245,8 +245,11 @@ const TodayPage = () => {
         <StreakBadge />
         <WeekStreakBadge />
 
-        {/* Mood sparkline — last 7 days at a glance */}
-        <MoodSparkline entries={weekEntries} />
+        {/* 7-day sparklines — mood & fatigue at a glance */}
+        <div className="grid grid-cols-2 gap-3">
+          <SymptomSparkline entries={weekEntries} metric="mood" label="Mood" emoji="😊" higherIsBetter />
+          <SymptomSparkline entries={weekEntries} metric="fatigue" label="Fatigue" emoji="🔋" />
+        </div>
 
         {/* Quick symptom logging */}
         <div className="space-y-3 animate-fade-in">
