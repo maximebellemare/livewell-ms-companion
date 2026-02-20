@@ -250,11 +250,11 @@ export default function RelapseRiskIndicator() {
 
         return (
           <div className="mb-2">
-            <div className="flex items-center gap-2">
-              <div className="relative">
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
                 <svg
-                  viewBox="0 0 100 32"
-                  className="h-6 w-full max-w-[120px] cursor-pointer"
+                  viewBox="0 0 120 44"
+                  className="h-10 w-full max-w-[180px] cursor-pointer"
                   preserveAspectRatio="none"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
@@ -272,19 +272,19 @@ export default function RelapseRiskIndicator() {
                 >
                   <polyline
                     points={weeklyScores.map((s, i) => {
-                      const x = (i / (weeklyScores.length - 1)) * 96 + 2;
-                      const y = 28 - (s / max) * 24;
+                      const x = (i / (weeklyScores.length - 1)) * 112 + 4;
+                      const y = 38 - (s / max) * 32;
                       return `${x},${y}`;
                     }).join(" ")}
                     fill="none"
                     stroke={strokeColor}
-                    strokeWidth="2"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                   {weeklyScores.map((s, i) => {
-                    const x = (i / (weeklyScores.length - 1)) * 96 + 2;
-                    const y = 28 - (s / max) * 24;
+                    const x = (i / (weeklyScores.length - 1)) * 112 + 4;
+                    const y = 38 - (s / max) * 32;
                     const isActive = activeDot === i;
                     const isCurrent = i === weeklyScores.length - 1;
                     return (
@@ -292,7 +292,7 @@ export default function RelapseRiskIndicator() {
                         key={i}
                         cx={x}
                         cy={y}
-                        r={isActive ? 4 : isCurrent ? 3 : 2}
+                        r={isActive ? 5 : isCurrent ? 4 : 3}
                         fill={isActive || isCurrent ? strokeColor : "hsl(var(--muted-foreground))"}
                         opacity={isActive || isCurrent ? 1 : 0.5}
                         className="transition-all duration-200"
