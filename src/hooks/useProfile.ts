@@ -14,6 +14,7 @@ export interface Profile {
   medications: string[];
   neurologist_email: string | null;
   neurologist_name: string | null;
+  neurologist_phone: string | null;
   weekly_digest_enabled: boolean;
   weekly_log_goal: number;
   last_report_sent_at: string | null;

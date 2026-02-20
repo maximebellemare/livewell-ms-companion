@@ -1,13 +1,14 @@
-import { Pencil } from "lucide-react";
+import { Pencil, Phone } from "lucide-react";
 import { formatDrName } from "./utils";
 
 interface NeurologistInfoDisplayProps {
   name: string | null | undefined;
   email: string;
+  phone: string | null | undefined;
   onEdit: () => void;
 }
 
-export default function NeurologistInfoDisplay({ name, email, onEdit }: NeurologistInfoDisplayProps) {
+export default function NeurologistInfoDisplay({ name, email, phone, onEdit }: NeurologistInfoDisplayProps) {
   return (
     <div className="mb-3 rounded-lg bg-card/60 border border-border px-3 py-2 flex items-center">
       <div className="flex-1">
@@ -17,6 +18,12 @@ export default function NeurologistInfoDisplay({ name, email, onEdit }: Neurolog
         </p>
         {name && (
           <p className="text-[11px] text-muted-foreground">{email}</p>
+        )}
+        {phone && (
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+            <Phone className="h-3 w-3" />
+            {phone}
+          </p>
         )}
       </div>
       <button
