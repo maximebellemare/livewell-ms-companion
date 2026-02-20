@@ -19,6 +19,7 @@ import {
   Calendar,
   User,
   CalendarHeart,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -502,6 +503,18 @@ const MyMSHistoryPage = () => {
               emptyText="No goals set — tap Edit to choose yours"
             />
           )}
+        </Section>
+
+        {/* Relapses */}
+        <Section icon={Zap} title="Relapses">
+          <p className="text-xs text-muted-foreground">Track and review your MS flare-ups over time.</p>
+          <Link
+            to="/relapses"
+            className="flex items-center justify-between rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-muted"
+          >
+            <span>View Relapses</span>
+            <ChevronRight className="h-4 w-4" />
+          </Link>
         </Section>
 
         {/* Neurologist quick view */}
