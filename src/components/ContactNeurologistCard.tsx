@@ -7,6 +7,16 @@ import { format, subDays } from "date-fns";
 import { computeRisk } from "./relapse-risk/computeRisk";
 import { RISK_CONFIG } from "./relapse-risk/types";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ContactNeurologistCard() {
   const { data: profile } = useProfile();
@@ -14,6 +24,7 @@ export default function ContactNeurologistCard() {
   const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
 
@@ -68,9 +79,15 @@ export default function ContactNeurologistCard() {
     setIsEditing(false);
   };
 
-  const saveEditing = async () => {
+  const saveEditing = async (skipConfirm = false) => {
     const trimmedName = editName.trim();
     const trimmedEmail = editEmail.trim();
+
+    // If both fields are empty and neurologist existed before, confirm clearing
+    if (!skipConfirm && !trimmedName && !trimmedEmail && hasNeuro) {
+      setShowClearConfirm(true);
+      return;
+    }
 
     if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       toast.error("Please enter a valid email address");
@@ -95,6 +112,11 @@ export default function ContactNeurologistCard() {
     } catch {
       toast.error("Failed to save changes");
     }
+  };
+
+  const confirmClear = () => {
+    setShowClearConfirm(false);
+    saveEditing(true);
   };
 
   return (
@@ -136,7 +158,7 @@ export default function ContactNeurologistCard() {
           </div>
           <div className="flex gap-2 pt-1">
             <button
-              onClick={saveEditing}
+              onClick={() => saveEditing()}
               disabled={updateProfile.isPending}
               className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:opacity-90 disabled:opacity-50"
             >
@@ -209,6 +231,20 @@ export default function ContactNeurologistCard() {
       <p className="mt-2.5 text-[9px] text-muted-foreground text-center">
         {isElevated ? "Quick actions based on your current risk assessment" : "Email your neurologist or generate a report anytime"}
       </p>
+      <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove neurologist info?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will clear your neurologist's name and email. You can always add them again later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmClear}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
