@@ -15,3 +15,6 @@ verify_jwt = false
 [functions.article-recommendations]
 verify_jwt = false
 
+[functions.send-medication-reminders]
+verify_jwt = false
+

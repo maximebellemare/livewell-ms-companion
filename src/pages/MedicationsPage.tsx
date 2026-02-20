@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
-import { Plus, Pill, Trash2, Edit2, ArrowLeft } from "lucide-react";
+import { Plus, Pill, Trash2, Edit2, ArrowLeft, Bell, BellOff } from "lucide-react";
 import { useDbMedications, useSaveMedication, useDeleteMedication } from "@/hooks/useMedications";
 import { CardListSkeleton } from "@/components/PageSkeleton";
 
@@ -23,6 +23,7 @@ const MedicationsPage = () => {
       infusion_interval_months: editing.infusion_interval_months,
       active: editing.active ?? true,
       color: editing.color,
+      reminder_time: editing.reminder_enabled ? editing.reminder_time || null : null,
     });
     setShowForm(false);
     setEditing(null);
@@ -33,7 +34,7 @@ const MedicationsPage = () => {
   };
 
   const openEdit = (med: any) => {
-    setEditing({ ...med });
+    setEditing({ ...med, reminder_enabled: !!med.reminder_time });
     setShowForm(true);
   };
 
@@ -45,6 +46,8 @@ const MedicationsPage = () => {
       times_per_day: 1,
       infusion_interval_months: 6,
       active: true,
+      reminder_enabled: false,
+      reminder_time: "08:00",
     });
     setShowForm(true);
   };
@@ -132,6 +135,49 @@ const MedicationsPage = () => {
             )}
           </div>
 
+          {/* Reminder time */}
+          <div className="rounded-xl bg-card p-4 shadow-soft space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">Daily reminder</label>
+              <button
+                onClick={() => setEditing({ ...editing, reminder_enabled: !editing.reminder_enabled })}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+                  editing.reminder_enabled
+                    ? "bg-primary/10 text-primary"
+                    : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                {editing.reminder_enabled ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+                {editing.reminder_enabled ? "On" : "Off"}
+              </button>
+            </div>
+            {editing.reminder_enabled && (
+              <div className="space-y-2">
+                <label className="block text-xs text-muted-foreground">Reminder time (your local time)</label>
+                <select
+                  value={editing.reminder_time || "08:00"}
+                  onChange={(e) => {
+                    // Convert local hour to UTC for storage
+                    const localHour = parseInt(e.target.value.split(":")[0], 10);
+                    const utcHour = (localHour - new Date().getTimezoneOffset() / 60 + 24) % 24;
+                    const utcTime = `${String(Math.floor(utcHour)).padStart(2, "0")}:00`;
+                    setEditing({ ...editing, reminder_time: utcTime, _display_time: e.target.value });
+                  }}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  {Array.from({ length: 18 }, (_, i) => i + 6).map((h) => {
+                    const label = `${h === 0 ? 12 : h > 12 ? h - 12 : h}:00 ${h < 12 ? "AM" : "PM"}`;
+                    const value = `${String(h).padStart(2, "0")}:00`;
+                    return <option key={h} value={value}>{label}</option>;
+                  })}
+                </select>
+                <p className="text-[10px] text-muted-foreground">
+                  You'll get a push notification if you haven't logged this medication yet.
+                </p>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={handleSave}
             disabled={!editing.name || saveMutation.isPending}
@@ -190,6 +236,13 @@ const MedicationsPage = () => {
                   {med.schedule_type === "daily" && `${med.times_per_day || 1}× daily`}
                   {med.schedule_type === "infusion" && `Every ${med.infusion_interval_months || 6} months`}
                   {med.schedule_type === "custom" && "Custom schedule"}
+                  {med.reminder_time && (() => {
+                    const utcH = parseInt(med.reminder_time!.split(":")[0], 10);
+                    const localH = (utcH + new Date().getTimezoneOffset() / -60 + 24) % 24;
+                    const displayH = localH === 0 ? 12 : localH > 12 ? localH - 12 : localH;
+                    const ampm = localH < 12 ? "AM" : "PM";
+                    return ` · 🔔 ${displayH}:00 ${ampm}`;
+                  })()}
                 </p>
               </div>
               <div className="flex gap-1">
