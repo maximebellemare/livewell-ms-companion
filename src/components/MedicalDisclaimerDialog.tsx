@@ -32,8 +32,9 @@ const MedicalDisclaimerDialog = ({ trigger, triggerClassName }: MedicalDisclaime
               <p className="text-muted-foreground text-xs">
                 If you are experiencing a medical emergency, call your local emergency number immediately.
               </p>
-              <p className="pt-1">
-                <a href="/privacy" onClick={() => setOpen(false)} className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors text-xs font-medium">Learn more →</a>
+              <p className="pt-1 flex gap-3">
+                <a href="/privacy" onClick={() => setOpen(false)} className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors text-xs font-medium">Privacy →</a>
+                <a href="/terms" onClick={() => setOpen(false)} className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors text-xs font-medium">Terms →</a>
               </p>
             </DialogDescription>
           </DialogHeader>
