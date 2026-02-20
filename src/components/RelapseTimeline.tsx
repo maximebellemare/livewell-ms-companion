@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useRelapses, Relapse } from "@/hooks/useRelapses";
 import { format, parseISO, subMonths, eachMonthOfInterval, startOfMonth, differenceInDays } from "date-fns";
 import {
@@ -97,6 +97,19 @@ export default function RelapseTimeline() {
     });
   }, [relapses]);
 
+  const [tooltipKey, setTooltipKey] = useState(0);
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      if (chartRef.current && !chartRef.current.contains(e.target as Node)) {
+        setTooltipKey((k) => k + 1);
+      }
+    };
+    document.addEventListener("pointerdown", handleOutsideClick);
+    return () => document.removeEventListener("pointerdown", handleOutsideClick);
+  }, []);
+
   const totalRelapses = relapses.length;
   const ongoingCount = relapses.filter((r) => !r.is_recovered).length;
 
@@ -133,8 +146,8 @@ export default function RelapseTimeline() {
         </div>
       ) : (
         <>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-40" ref={chartRef}>
+            <ResponsiveContainer key={tooltipKey} width="100%" height="100%">
               <BarChart data={chartData} barCategoryGap="20%">
                 <XAxis
                   dataKey="month"
