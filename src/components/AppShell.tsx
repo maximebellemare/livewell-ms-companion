@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import BottomNav from "./BottomNav";
 import InstallPrompt from "./InstallPrompt";
+import OfflineBanner from "./OfflineBanner";
 
 interface AppShellProps {
   children: ReactNode;
@@ -13,6 +14,7 @@ const AppShell = ({ children }: AppShellProps) => {
 
   return (
     <div className="min-h-screen bg-background">
+      <OfflineBanner />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground focus:shadow-lg"
