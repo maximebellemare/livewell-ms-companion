@@ -32,6 +32,7 @@ import MyMSHistoryPage from "./pages/MyMSHistoryPage";
 import RelapsesPage from "./pages/RelapsesPage";
 import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
 import AdminPage from "./pages/AdminPage";
+import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ const AnimatedRoutes = () => {
         <Route path="/roadmap" element={<ProtectedRoute><AnimatedPage><FeaturesRoadmapPage /></AnimatedPage></ProtectedRoute>} />
         <Route path="/coming-soon/:feature" element={<ProtectedRoute><AnimatedPage><ComingSoonPage /></AnimatedPage></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AnimatedPage><AdminPage /></AnimatedPage></ProtectedRoute>} />
+        <Route path="/terms" element={<ProtectedRoute><AnimatedPage><TermsPage /></AnimatedPage></ProtectedRoute>} />
         <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
       </Routes>
     </AnimatePresence>
