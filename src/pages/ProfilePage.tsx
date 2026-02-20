@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import DigestPreviewCard from "@/components/DigestPreviewCard";
 import PageHeader from "@/components/PageHeader";
 import { Link } from "react-router-dom";
-import { ChevronRight, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check, Mails, Sparkles, Users, BellRing, Bell, Trash2, AlertTriangle, Globe, Calendar, Activity, Target, Stethoscope, Monitor } from "lucide-react";
+import { ChevronRight, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check, Mails, Sparkles, Users, BellRing, Bell, Trash2, AlertTriangle, Globe, Calendar, Activity, Target, Stethoscope, Monitor, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
@@ -394,6 +394,19 @@ const ProfilePage = () => {
             <span>Re-run Onboarding</span>
             <ChevronRight className="h-4 w-4" />
           </Link>
+          <button
+            onClick={() => {
+              localStorage.removeItem("onboarding_tour_v1");
+              toast.success("Tour reset! Visit Today to see it again 🗺️");
+            }}
+            className="mt-2 flex w-full items-center justify-between rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground transition-colors hover:bg-muted"
+          >
+            <span className="flex items-center gap-2">
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reset App Tour
+            </span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
           {isAdmin && (
             <Link
               to="/admin"
