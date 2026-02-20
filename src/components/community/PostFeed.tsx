@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { PostCard } from "./PostCard";
+import AnimatedList, { listItemVariants } from "@/components/AnimatedList";
+import { motion } from "framer-motion";
 
 export const PostFeed = ({
   channel, onBack, onSelectPost, roles,
@@ -199,9 +201,11 @@ export const PostFeed = ({
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <AnimatedList className="space-y-3">
           {filteredPosts.map((post) => (
-            <PostCard key={post.id} post={post} onClick={() => onSelectPost(post)} isMod={isMod} onHide={hidePost} userRoles={communityRoles[post.user_id]} />
+            <motion.div key={post.id} variants={listItemVariants}>
+              <PostCard post={post} onClick={() => onSelectPost(post)} isMod={isMod} onHide={hidePost} userRoles={communityRoles[post.user_id]} />
+            </motion.div>
           ))}
 
           {/* Infinite scroll sentinel */}
@@ -211,7 +215,7 @@ export const PostFeed = ({
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           )}
-        </div>
+        </AnimatedList>
       )}
     </div>
   );

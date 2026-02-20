@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import AnimatedList, { listItemVariants } from "@/components/AnimatedList";
+import { motion } from "framer-motion";
 import SymptomHeatmap from "@/components/SymptomHeatmap";
 import HeatmapWithSummary from "@/components/HeatmapWithSummary";
 import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
@@ -256,7 +258,7 @@ const InsightsPage = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-4 animate-fade-in">
+          <AnimatedList className="space-y-4">
 
             {/* ── Stat cards ── */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -916,7 +918,7 @@ const InsightsPage = () => {
             <p className="text-center text-xs text-muted-foreground">
               Export a professional PDF for your neurologist
             </p>
-          </div>
+          </AnimatedList>
         )}
       </div>
     </>
