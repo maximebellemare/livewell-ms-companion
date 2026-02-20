@@ -532,6 +532,7 @@ export type Database = {
           id: string
           infusion_interval_months: number | null
           name: string
+          reminder_time: string | null
           schedule_type: string
           times_per_day: number | null
           updated_at: string
@@ -545,6 +546,7 @@ export type Database = {
           id?: string
           infusion_interval_months?: number | null
           name: string
+          reminder_time?: string | null
           schedule_type?: string
           times_per_day?: number | null
           updated_at?: string
@@ -558,6 +560,7 @@ export type Database = {
           id?: string
           infusion_interval_months?: number | null
           name?: string
+          reminder_time?: string | null
           schedule_type?: string
           times_per_day?: number | null
           updated_at?: string

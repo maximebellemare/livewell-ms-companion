@@ -12,6 +12,7 @@ export interface DbMedication {
   infusion_interval_months: number | null;
   active: boolean;
   color: string | null;
+  reminder_time: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -60,6 +61,7 @@ export const useSaveMedication = () => {
             infusion_interval_months: med.infusion_interval_months,
             active: med.active ?? true,
             color: med.color,
+            reminder_time: med.reminder_time ?? null,
           })
           .eq("id", med.id)
           .select()
@@ -78,6 +80,7 @@ export const useSaveMedication = () => {
             infusion_interval_months: med.infusion_interval_months,
             active: med.active ?? true,
             color: med.color,
+            reminder_time: med.reminder_time ?? null,
           })
           .select()
           .single();
