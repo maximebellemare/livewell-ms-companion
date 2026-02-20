@@ -14,6 +14,7 @@ import SymptomSparkline from "@/components/SymptomSparkline";
 import InlineQuickLog from "@/components/InlineQuickLog";
 
 import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Settings, CheckCircle2, PenLine } from "lucide-react";
 import MedicationChecklist from "@/components/MedicationChecklist";
 import UpcomingAppointments from "@/components/UpcomingAppointments";
@@ -261,6 +262,18 @@ const TodayPage = () => {
         }
       />
       <div className="mx-auto max-w-lg space-y-4 px-4 py-4">
+        {todayLoading ? (
+          <div className="space-y-3 animate-fade-in">
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <div className="grid grid-cols-2 gap-2">
+              {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+            </div>
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+          </div>
+        ) : (
+        <>
 
         {isMilestone && (
           <StreakMilestoneBanner
@@ -554,6 +567,8 @@ const TodayPage = () => {
             ⚕️ This is not medical advice. Always consult your neurologist.
           </p>
         </div>
+        </>
+        )}
       </div>
 
       {/* Floating action button */}

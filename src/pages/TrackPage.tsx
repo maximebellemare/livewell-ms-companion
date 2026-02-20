@@ -5,6 +5,7 @@ import {
   parseISO,
 } from "date-fns";
 import PageHeader from "@/components/PageHeader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, List, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEntries, DailyEntry } from "@/hooks/useEntries";
 
@@ -229,7 +230,15 @@ const TrackPage = () => {
 
       <div className="mx-auto max-w-lg px-4 py-4 pb-8">
         {isLoading ? (
-          <div className="py-16 text-center"><span className="text-2xl animate-pulse">🧡</span></div>
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between px-1">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+            <Skeleton className="h-72 w-full rounded-2xl" />
+            <Skeleton className="h-28 w-full rounded-2xl" />
+          </div>
         ) : entries.length === 0 ? (
           <div className="py-16 text-center animate-fade-in">
             <span className="text-4xl">📊</span>
