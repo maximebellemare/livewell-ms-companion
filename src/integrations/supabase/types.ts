@@ -745,6 +745,51 @@ export type Database = {
         }
         Relationships: []
       }
+      relapses: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          is_recovered: boolean
+          notes: string | null
+          severity: string
+          start_date: string
+          symptoms: string[]
+          treatment: string | null
+          triggers: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_recovered?: boolean
+          notes?: string | null
+          severity?: string
+          start_date: string
+          symptoms?: string[]
+          treatment?: string | null
+          triggers?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_recovered?: boolean
+          notes?: string | null
+          severity?: string
+          start_date?: string
+          symptoms?: string[]
+          treatment?: string | null
+          triggers?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       report_history: {
         Row: {
           created_at: string
