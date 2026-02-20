@@ -253,13 +253,12 @@ export default function RelapseRiskIndicator() {
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
                 <svg
-                  viewBox="0 0 120 44"
-                  className="h-10 w-full max-w-[180px] cursor-pointer"
+                  viewBox="0 0 120 54"
+                  className="h-12 w-full max-w-[180px] cursor-pointer"
                   preserveAspectRatio="none"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const clickX = (e.clientX - rect.left) / rect.width;
-                    // Find closest dot
                     let closest = 0;
                     let minDist = Infinity;
                     weeklyScores.forEach((_, i) => {
@@ -273,7 +272,7 @@ export default function RelapseRiskIndicator() {
                   <polyline
                     points={weeklyScores.map((s, i) => {
                       const x = (i / (weeklyScores.length - 1)) * 112 + 4;
-                      const y = 38 - (s / max) * 32;
+                      const y = 34 - (s / max) * 28;
                       return `${x},${y}`;
                     }).join(" ")}
                     fill="none"
@@ -284,19 +283,29 @@ export default function RelapseRiskIndicator() {
                   />
                   {weeklyScores.map((s, i) => {
                     const x = (i / (weeklyScores.length - 1)) * 112 + 4;
-                    const y = 38 - (s / max) * 32;
+                    const y = 34 - (s / max) * 28;
                     const isActive = activeDot === i;
                     const isCurrent = i === weeklyScores.length - 1;
                     return (
-                      <circle
-                        key={i}
-                        cx={x}
-                        cy={y}
-                        r={isActive ? 5 : isCurrent ? 4 : 3}
-                        fill={isActive || isCurrent ? strokeColor : "hsl(var(--muted-foreground))"}
-                        opacity={isActive || isCurrent ? 1 : 0.5}
-                        className="transition-all duration-200"
-                      />
+                      <g key={i}>
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r={isActive ? 5 : isCurrent ? 4 : 3}
+                          fill={isActive || isCurrent ? strokeColor : "hsl(var(--muted-foreground))"}
+                          opacity={isActive || isCurrent ? 1 : 0.5}
+                          className="transition-all duration-200"
+                        />
+                        <text
+                          x={x}
+                          y={50}
+                          textAnchor="middle"
+                          className="fill-muted-foreground"
+                          style={{ fontSize: "8px" }}
+                        >
+                          {`W${i + 1}`}
+                        </text>
+                      </g>
                     );
                   })}
                 </svg>
