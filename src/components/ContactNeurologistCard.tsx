@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { useEntriesInRange } from "@/hooks/useEntries";
 import { format, subDays } from "date-fns";
-import { computeRisk, computeWeeklyScores } from "./relapse-risk/computeRisk";
-import { RISK_CONFIG, type RiskLevel } from "./relapse-risk/types";
+import { computeRisk } from "./relapse-risk/computeRisk";
+import { RISK_CONFIG } from "./relapse-risk/types";
 
 export default function ContactNeurologistCard() {
   const { data: profile } = useProfile();
@@ -24,30 +24,41 @@ export default function ContactNeurologistCard() {
     return (recent.length >= 2 && older.length >= 2) ? computeRisk(recent, older) : null;
   }, [entries]);
 
-  // Only show when risk is elevated or high
-  if (!risk || (risk.level !== "elevated" && risk.level !== "high")) return null;
-
-  const cfg = RISK_CONFIG[risk.level];
+  const isElevated = risk && (risk.level === "elevated" || risk.level === "high");
+  const cfg = isElevated ? RISK_CONFIG[risk.level] : null;
   const hasNeuro = !!profile?.neurologist_email;
   const neuroName = profile?.neurologist_name;
 
+  const mailtoSubject = isElevated
+    ? "Symptom update – elevated relapse risk"
+    : "Symptom update from my MS tracker";
+
+  const mailtoBody = isElevated
+    ? `Hi${neuroName ? ` Dr. ${neuroName}` : ""},\n\nMy symptom tracker is showing ${risk.level} relapse risk (score: ${risk.score}/100).\n\nKey factors:\n${risk.factors.map((f) => `• ${f}`).join("\n")}\n\nI'd like to discuss next steps.\n\nThank you`
+    : `Hi${neuroName ? ` Dr. ${neuroName}` : ""},\n\nI'd like to share an update from my MS symptom tracker.\n\nThank you`;
+
   const mailtoHref = hasNeuro
-    ? `mailto:${profile.neurologist_email}?subject=${encodeURIComponent("Symptom update – elevated relapse risk")}&body=${encodeURIComponent(
-        `Hi${neuroName ? ` Dr. ${neuroName}` : ""},\n\nMy symptom tracker is showing ${risk.level} relapse risk (score: ${risk.score}/100).\n\nKey factors:\n${risk.factors.map((f) => `• ${f}`).join("\n")}\n\nI'd like to discuss next steps.\n\nThank you`
-      )}`
+    ? `mailto:${profile.neurologist_email}?subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`
     : undefined;
 
+  // Dynamic styling based on risk
+  const borderClass = cfg ? cfg.border : "border-border";
+  const bgClass = cfg ? cfg.bg : "bg-card";
+  const subtitle = isElevated
+    ? `Your risk level is ${risk.level} — consider reaching out`
+    : "Stay connected with your care team";
+
   return (
-    <div className={`rounded-xl border ${cfg.border} ${cfg.bg} p-4 animate-fade-in`}>
+    <div className={`rounded-xl border ${borderClass} ${bgClass} p-4 animate-fade-in`}>
       <div className="flex items-center gap-2 mb-3">
         <span className="text-lg">🩺</span>
         <div className="flex-1">
           <p className="text-sm font-semibold text-foreground">Contact Your Neurologist</p>
-          <p className="text-[11px] text-muted-foreground">
-            Your risk level is {risk.level} — consider reaching out
-          </p>
+          <p className="text-[11px] text-muted-foreground">{subtitle}</p>
         </div>
-        <span className={`text-xs font-bold ${cfg.color}`}>{cfg.emoji} {cfg.label}</span>
+        {cfg && (
+          <span className={`text-xs font-bold ${cfg.color}`}>{cfg.emoji} {cfg.label}</span>
+        )}
       </div>
 
       {hasNeuro && (
@@ -90,7 +101,7 @@ export default function ContactNeurologistCard() {
       </div>
 
       <p className="mt-2.5 text-[9px] text-muted-foreground text-center">
-        Quick actions based on your current risk assessment
+        {isElevated ? "Quick actions based on your current risk assessment" : "Email your neurologist or generate a report anytime"}
       </p>
     </div>
   );
