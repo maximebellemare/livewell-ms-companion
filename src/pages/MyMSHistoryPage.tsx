@@ -284,6 +284,7 @@ const MyMSHistoryPage = () => {
                       mode="single"
                       selected={diagnosisDate}
                       onSelect={setDiagnosisDate}
+                      defaultMonth={diagnosisDate || new Date()}
                       disabled={(date) => date > new Date() || date < new Date("1960-01-01")}
                       initialFocus
                       captionLayout="dropdown-buttons"
