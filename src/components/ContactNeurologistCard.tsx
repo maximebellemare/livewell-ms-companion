@@ -28,6 +28,7 @@ export default function ContactNeurologistCard() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
 
   const today = new Date();
   const start = format(subDays(today, 34), "yyyy-MM-dd");
@@ -68,14 +69,16 @@ export default function ContactNeurologistCard() {
   const startEditing = () => {
     setEditName(profile?.neurologist_name || "");
     setEditEmail(profile?.neurologist_email || "");
+    setEditPhone(profile?.neurologist_phone || "");
     setIsEditing(true);
   };
 
   const saveEditing = async (skipConfirm = false) => {
     const trimmedName = editName.trim();
     const trimmedEmail = editEmail.trim();
+    const trimmedPhone = editPhone.trim();
 
-    if (!skipConfirm && !trimmedName && !trimmedEmail && hasNeuro) {
+    if (!skipConfirm && !trimmedName && !trimmedEmail && !trimmedPhone && hasNeuro) {
       setShowClearConfirm(true);
       return;
     }
@@ -92,11 +95,16 @@ export default function ContactNeurologistCard() {
       toast.error("Email must be less than 255 characters");
       return;
     }
+    if (trimmedPhone.length > 30) {
+      toast.error("Phone must be less than 30 characters");
+      return;
+    }
 
     try {
       await updateProfile.mutateAsync({
         neurologist_name: trimmedName || null,
         neurologist_email: trimmedEmail || null,
+        neurologist_phone: trimmedPhone || null,
       });
       toast.success("Neurologist info updated");
       setIsEditing(false);
@@ -122,8 +130,10 @@ export default function ContactNeurologistCard() {
         <NeurologistEditForm
           editName={editName}
           editEmail={editEmail}
+          editPhone={editPhone}
           onNameChange={setEditName}
           onEmailChange={setEditEmail}
+          onPhoneChange={setEditPhone}
           onSave={() => saveEditing()}
           onCancel={() => setIsEditing(false)}
           isSaving={updateProfile.isPending}
@@ -134,6 +144,7 @@ export default function ContactNeurologistCard() {
             <NeurologistInfoDisplay
               name={neuroName}
               email={profile.neurologist_email!}
+              phone={profile.neurologist_phone}
               onEdit={startEditing}
             />
           )}
@@ -154,7 +165,7 @@ export default function ContactNeurologistCard() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remove neurologist info?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will clear your neurologist's name and email. You can always add them again later.
+              This will clear your neurologist's name, email, and phone number. You can always add them again later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

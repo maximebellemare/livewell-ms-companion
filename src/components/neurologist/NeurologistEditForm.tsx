@@ -3,8 +3,10 @@ import { Check, X } from "lucide-react";
 interface NeurologistEditFormProps {
   editName: string;
   editEmail: string;
+  editPhone: string;
   onNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
+  onPhoneChange: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
   isSaving: boolean;
@@ -13,8 +15,10 @@ interface NeurologistEditFormProps {
 export default function NeurologistEditForm({
   editName,
   editEmail,
+  editPhone,
   onNameChange,
   onEmailChange,
+  onPhoneChange,
   onSave,
   onCancel,
   isSaving,
@@ -40,6 +44,17 @@ export default function NeurologistEditForm({
           onChange={(e) => onEmailChange(e.target.value)}
           placeholder="doctor@example.com"
           maxLength={255}
+          className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      <div>
+        <label className="text-[11px] text-muted-foreground block mb-1">Phone</label>
+        <input
+          type="tel"
+          value={editPhone}
+          onChange={(e) => onPhoneChange(e.target.value)}
+          placeholder="+1 (555) 123-4567"
+          maxLength={30}
           className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
