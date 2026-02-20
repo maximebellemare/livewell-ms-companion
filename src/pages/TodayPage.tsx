@@ -303,7 +303,7 @@ const TodayPage = () => {
 
         {/* 7-day sparklines — gridRef is used by blockGrid() to imperatively swallow
             stray click events after a panel save, preventing navigation side-effects */}
-        <div ref={gridRef} className={`grid grid-cols-2 gap-2${openPanel ? " pointer-events-none" : ""}`}>
+        <div data-tour="sparklines" ref={gridRef} className={`grid grid-cols-2 gap-2${openPanel ? " pointer-events-none" : ""}`}>
           <SymptomSparkline entries={weekEntries} metric="mood" label="Mood" emoji="😊" higherIsBetter
             saved={savedMetric === "mood"}
             onClick={() => setOpenPanel((p) => p === "mood" ? null : "mood")}
@@ -472,7 +472,7 @@ const TodayPage = () => {
         </p>
 
         {/* Quick symptom logging */}
-        <div ref={logRef} className="space-y-3 animate-fade-in">
+        <div data-tour="quick-log" ref={logRef} className="space-y-3 animate-fade-in">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Quick Log
           </p>
@@ -486,7 +486,7 @@ const TodayPage = () => {
         </div>
 
         {/* Mood tags */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
+        <div data-tour="mood-tags" className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
           <MoodSelector selected={moodTags} onToggle={toggleMoodTag} />
         </div>
 
@@ -560,7 +560,7 @@ const TodayPage = () => {
         </div>
 
         {/* Reminders */}
-        <div className="space-y-2 animate-slide-up" style={{ animationDelay: "0.35s" }}>
+        <div data-tour="reminders" className="space-y-2 animate-slide-up" style={{ animationDelay: "0.35s" }}>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Reminders
           </p>
@@ -584,6 +584,7 @@ const TodayPage = () => {
         </>
         )}
       </div>
+
 
       {/* Floating action button */}
       <AnimatePresence>

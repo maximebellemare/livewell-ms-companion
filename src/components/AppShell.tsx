@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import BottomNav from "./BottomNav";
 import InstallPrompt from "./InstallPrompt";
 import OfflineBanner from "./OfflineBanner";
+import OnboardingTooltips from "./OnboardingTooltips";
 
 interface AppShellProps {
   children: ReactNode;
@@ -26,6 +27,17 @@ const AppShell = ({ children }: AppShellProps) => {
       </main>
       <BottomNav />
       <InstallPrompt />
+      {showNav && location.pathname === "/today" && (
+        <OnboardingTooltips
+          storageKey="onboarding_tour_v1"
+          steps={[
+            { target: "sparklines", title: "Your week at a glance", description: "These sparklines show your symptom trends over the past 7 days. Tap any card to log quickly, or hold to dive into detailed insights.", position: "bottom" },
+            { target: "quick-log", title: "Log your symptoms", description: "Slide each symptom to rate how you're feeling today. Your weekly average is shown for comparison.", position: "top" },
+            { target: "mood-tags", title: "Tag your mood", description: "Add tags to capture the nuances of how you're feeling — they'll help spot patterns over time.", position: "top" },
+            { target: "reminders", title: "Medications & appointments", description: "Quick access to manage your medication schedule and upcoming visits — all in one place.", position: "top" },
+          ]}
+        />
+      )}
     </div>
   );
 };
