@@ -1,7 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useRelapses } from "@/hooks/useRelapses";
 import { differenceInDays, parseISO } from "date-fns";
 import { Shield } from "lucide-react";
+import confetti from "canvas-confetti";
+import { toast } from "@/hooks/use-toast";
 
 export default function RelapseFreeStreak() {
   const { data: relapses = [], isLoading } = useRelapses();
@@ -40,6 +42,44 @@ export default function RelapseFreeStreak() {
 
     return { streakDays: currentStreak, longestStreak: longest, hasOngoing: ongoing };
   }, [relapses]);
+
+  // Milestone celebration
+  const celebratedRef = useRef<number | null>(null);
+  const MILESTONES = [
+    { days: 30, label: "30 days relapse-free! 🌟", emoji: "🌟" },
+    { days: 60, label: "60 days relapse-free! 💪", emoji: "💪" },
+    { days: 90, label: "90 days relapse-free! 🏆", emoji: "🏆" },
+  ];
+
+  useEffect(() => {
+    if (hasOngoing || streakDays === null || streakDays === 0) return;
+
+    const milestone = [...MILESTONES].reverse().find((m) => streakDays >= m.days);
+    if (!milestone) return;
+    if (celebratedRef.current === milestone.days) return;
+
+    // Only celebrate once per session per milestone
+    const storageKey = `relapse-streak-celebrated-${milestone.days}`;
+    if (sessionStorage.getItem(storageKey)) {
+      celebratedRef.current = milestone.days;
+      return;
+    }
+
+    celebratedRef.current = milestone.days;
+    sessionStorage.setItem(storageKey, "true");
+
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { y: 0.7 },
+      colors: ["#E8751A", "#FFB347", "#FFDAB9"],
+    });
+
+    toast({
+      title: `${milestone.emoji} Milestone reached!`,
+      description: milestone.label,
+    });
+  }, [streakDays, hasOngoing]);
 
   if (isLoading) return null;
 
