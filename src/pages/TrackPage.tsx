@@ -211,7 +211,7 @@ const TrackPage = () => {
         title="Track"
         subtitle="Your symptom history"
         action={
-          <div className="flex gap-1 rounded-lg bg-secondary p-0.5">
+          <div data-tour="track-view-toggle" className="flex gap-1 rounded-lg bg-secondary p-0.5">
             <button
               onClick={() => setView("list")}
               className={`rounded-md p-1.5 transition-colors ${view === "list" ? "bg-card shadow-sm" : "text-muted-foreground"}`}
@@ -338,9 +338,9 @@ const TrackPage = () => {
           </div>
         ) : (
           /* ── List view ── */
-          <div className="space-y-3 animate-fade-in">
-            {entries.map((entry) => (
-              <div key={entry.id} className="rounded-xl bg-card p-4 shadow-soft">
+          <div data-tour="track-list-entries" className="space-y-3 animate-fade-in">
+            {entries.map((entry, idx) => (
+              <div key={entry.id} className="rounded-xl bg-card p-4 shadow-soft" {...(idx === 0 ? { "data-tour": "track-list-badge" } : {})}>
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-xs font-medium text-muted-foreground">
                     {format(parseISO(entry.date), "EEEE, MMM d")}
