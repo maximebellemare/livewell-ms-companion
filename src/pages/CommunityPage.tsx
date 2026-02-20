@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Bookmark, Shield } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useChannels, useUserRoles, Channel, Post,
 } from "@/hooks/useCommunity";
@@ -44,8 +45,13 @@ const CommunityPage = () => {
       <PageHeader title="Community" subtitle="You're not alone" action={savedAction} />
       <div className="mx-auto max-w-lg px-4 py-4">
         {isLoading ? (
-          <div className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">Loading community…</p>
+          <div className="space-y-4 animate-fade-in">
+            <Skeleton className="h-5 w-40 mb-2" />
+            <div className="flex gap-2 overflow-hidden">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-44 flex-shrink-0 rounded-xl" />)}
+            </div>
+            <Skeleton className="h-5 w-32 mt-2" />
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
           </div>
         ) : selectedPost ? (
           <PostDetail

@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, ArrowLeft, AlertTriangle, Search, ArrowUpDown, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -178,7 +179,19 @@ export const PostFeed = ({
       )}
 
       {isLoading ? (
-        <div className="py-12 text-center"><p className="text-sm text-muted-foreground">Loading posts…</p></div>
+        <div className="space-y-3 animate-fade-in">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-xl bg-card p-4 shadow-soft space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-2/3" />
+              <div className="flex gap-3 pt-1">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : filteredPosts.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm text-muted-foreground">
