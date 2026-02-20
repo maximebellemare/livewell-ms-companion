@@ -8,6 +8,7 @@ import AIWeeklyInsight from "@/components/AIWeeklyInsight";
 import RelapseTimeline from "@/components/RelapseTimeline";
 import RelapseTrendCard from "@/components/RelapseTrendCard";
 import RelapseFreeStreak from "@/components/RelapseFreeStreak";
+import RelapseSymptomBreakdown from "@/components/RelapseSymptomBreakdown";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip, Area, AreaChart, ReferenceLine,
@@ -815,6 +816,7 @@ const InsightsPage = () => {
             <RelapseTimeline />
             <RelapseTrendCard />
             <RelapseFreeStreak />
+            <RelapseSymptomBreakdown />
 
             {/* ── Mood Tags Breakdown ── */}
             {(() => {
