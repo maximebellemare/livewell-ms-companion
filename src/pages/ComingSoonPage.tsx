@@ -63,7 +63,8 @@ const features: Record<string, FeatureInfo> = {
     description: "Fun mini-games designed to exercise attention, memory, and reaction time — and track your cognitive trends over time.",
     icon: <Brain className="h-8 w-8" />,
     phase: 3,
-    status: "soon",
+    status: "done",
+    route: "/cognitive",
   },
   "therapist-directory": {
     title: "Therapist Directory",

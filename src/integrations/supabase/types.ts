@@ -74,6 +74,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cognitive_sessions: {
+        Row: {
+          created_at: string
+          details: Json | null
+          duration_seconds: number
+          game_type: string
+          id: string
+          played_at: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          duration_seconds?: number
+          game_type: string
+          id?: string
+          played_at?: string
+          score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          duration_seconds?: number
+          game_type?: string
+          id?: string
+          played_at?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_bookmarks: {
         Row: {
           created_at: string
