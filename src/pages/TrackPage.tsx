@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
@@ -243,10 +244,20 @@ const TrackPage = () => {
             <Skeleton className="h-28 w-full rounded-2xl" />
           </div>
         ) : entries.length === 0 ? (
-          <div className="py-16 text-center animate-fade-in">
-            <span className="text-4xl">📊</span>
-            <p className="mt-3 font-display text-lg font-medium text-foreground">No entries yet</p>
-            <p className="mt-1 text-sm text-muted-foreground">Head to Today and log your first entry!</p>
+          <div className="py-16 text-center animate-fade-in space-y-3">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent/50">
+              <span className="text-4xl">📊</span>
+            </div>
+            <h3 className="font-display text-base font-semibold text-foreground">No entries yet</h3>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              Start logging your symptoms on the Today page — your trends and calendar will appear here.
+            </p>
+            <Link
+              to="/today"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98]"
+            >
+              Log today's entry
+            </Link>
           </div>
         ) : view === "calendar" ? (
           /* ── Calendar view ── */

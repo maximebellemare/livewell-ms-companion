@@ -5,7 +5,6 @@ interface SymptomSliderProps {
   emoji: string;
   value: number;
   onChange: (v: number) => void;
-  color?: string;
   weekAvg?: number | null;
   /** When true, higher values are better (e.g. mood). Inverts trend arrow colors. */
   higherIsBetter?: boolean;
@@ -39,8 +38,20 @@ const TrendArrow = ({ current, avg, higherIsBetter = false }: { current: number;
   );
 };
 
-const SymptomSlider = ({ label, emoji, value, onChange, color = "bg-primary", weekAvg, higherIsBetter = false }: SymptomSliderProps) => {
+function sliderColor(value: number, higherIsBetter: boolean): string {
+  if (higherIsBetter) {
+    if (value >= 7) return "hsl(145 45% 45%)";
+    if (value >= 4) return "hsl(45 90% 52%)";
+    return "hsl(0 72% 51%)";
+  }
+  if (value <= 3) return "hsl(145 45% 45%)";
+  if (value <= 6) return "hsl(45 90% 52%)";
+  return "hsl(0 72% 51%)";
+}
+
+const SymptomSlider = ({ label, emoji, value, onChange, weekAvg, higherIsBetter = false }: SymptomSliderProps) => {
   const percentage = (value / 10) * 100;
+  const dynamicColor = sliderColor(value, higherIsBetter);
 
   return (
     <div className="rounded-xl bg-card p-4 shadow-soft">
@@ -51,14 +62,19 @@ const SymptomSlider = ({ label, emoji, value, onChange, color = "bg-primary", we
         </div>
         <div className="flex items-center gap-2">
           {weekAvg != null && <TrendArrow current={value} avg={weekAvg} higherIsBetter={higherIsBetter} />}
-          <span className="min-w-[2rem] text-right text-lg font-bold text-primary">{value}</span>
+          <span
+            className="min-w-[2rem] text-right text-lg font-bold transition-colors duration-200"
+            style={{ color: dynamicColor }}
+          >
+            {value}
+          </span>
         </div>
       </div>
       <div className="relative">
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className={`h-full rounded-full ${color} transition-all duration-200`}
-            style={{ width: `${percentage}%` }}
+            className="h-full rounded-full transition-all duration-200"
+            style={{ width: `${percentage}%`, backgroundColor: dynamicColor }}
           />
         </div>
         <input
