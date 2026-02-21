@@ -3,7 +3,7 @@ import confetti from "canvas-confetti";
 import SEOHead from "@/components/SEOHead";
 import { format, subDays } from "date-fns";
 import PageHeader from "@/components/PageHeader";
-import { FileText, Download, Calendar as CalendarIcon, ArrowLeft, Share2, Send, History, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { FileText, Download, Calendar as CalendarIcon, ArrowLeft, Share2, Send, History, ChevronDown, ChevronUp, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -27,6 +27,7 @@ import { generateReportFromData } from "@/lib/report-generator-db";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useReportHistory, useAddReportHistory, useDeleteReportHistory } from "@/hooks/useReportHistory";
+import ReportPreviewDialog from "@/components/ReportPreviewDialog";
 
 
 const PRESETS = [
@@ -67,6 +68,7 @@ const ReportsPage = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const reportFileName = `LiveWithMS-Report-${format(new Date(), "yyyy-MM-dd")}.pdf`;
 
 
@@ -355,17 +357,35 @@ const ReportsPage = () => {
         </div>
 
         <div data-tour="reports-actions" className="space-y-3">
-          {/* Primary generate button */}
+          {/* Primary preview → generate button */}
           <button
-            onClick={handleGenerate}
+            onClick={() => setShowPreview(true)}
             disabled={generating || sending}
             className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-base font-semibold text-primary-foreground shadow-card transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
           >
-            {generating
-              ? <><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />{includeAiInsight ? "Generating AI insight…" : "Generating…"}</>
-              : <><Download className="h-5 w-5" />Generate PDF Report</>
-            }
+            <Eye className="h-5 w-5" />Preview & Generate PDF
           </button>
+
+          <ReportPreviewDialog
+            open={showPreview}
+            onOpenChange={setShowPreview}
+            onConfirm={() => { setShowPreview(false); handleGenerate(); }}
+            generating={generating}
+            startDate={startStr}
+            endDate={endStr}
+            entries={entries}
+            profile={profile || null}
+            medications={medications}
+            medLogs={medLogs}
+            appointments={appointments.filter((a) => a.date >= startStr && a.date <= endStr)}
+            relapses={relapses}
+            sections={{
+              includeProfile, includeSymptoms, includeMedications, includeAppointments,
+              includeNotes, includeRelapses, includeHydration, includeRiskScore,
+              includeTrendCharts, includeMoodTags, includePeriodComparison,
+              includeTriggerAnalysis, includeAiInsight,
+            }}
+          />
 
           {/* Send to neurologist — always visible if email is saved */}
           {neuroEmail && (
