@@ -1090,6 +1090,36 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_match_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          id: string
+          looking_for: string | null
+          opt_in: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          id?: string
+          looking_for?: string | null
+          opt_in?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          id?: string
+          looking_for?: string | null
+          opt_in?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       supplement_logs: {
         Row: {
           created_at: string
