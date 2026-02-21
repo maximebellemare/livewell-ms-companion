@@ -1,5 +1,6 @@
 import { useState } from "react";
 import confetti from "canvas-confetti";
+import SEOHead from "@/components/SEOHead";
 import { format, subDays } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import { FileText, Download, Calendar as CalendarIcon, ArrowLeft, Share2, Send, History, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
@@ -191,6 +192,7 @@ const ReportsPage = () => {
 
   return (
     <>
+      <SEOHead title="Reports" description="Generate and share health reports with your neurologist." />
       {/* Delete history entry confirmation */}
       <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
         <AlertDialogContent>

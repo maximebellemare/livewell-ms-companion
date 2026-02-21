@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { format, parseISO, differenceInDays } from "date-fns";
+import SEOHead from "@/components/SEOHead";
 import PageHeader from "@/components/PageHeader";
 import { useRelapses, useCreateRelapse, useUpdateRelapse, useDeleteRelapse, Relapse } from "@/hooks/useRelapses";
 import { RelapsesSkeleton } from "@/components/PageSkeleton";
@@ -470,6 +471,7 @@ const RelapsesPage = () => {
 
   return (
     <>
+      <SEOHead title="Relapses" description="Log and monitor your MS relapses, triggers and recovery timeline." />
       <PageHeader title="Relapses" subtitle="Track your MS flare-ups" />
       <div className="mx-auto max-w-lg px-4 py-4 space-y-4 animate-fade-in pb-28">
         {/* Summary strip */}

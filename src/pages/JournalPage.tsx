@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import SEOHead from "@/components/SEOHead";
 import { format, isToday, isYesterday, startOfWeek, addDays, isFuture } from "date-fns";
 import confetti from "canvas-confetti";
 import PageHeader from "@/components/PageHeader";
@@ -265,6 +266,7 @@ const JournalPage = () => {
 
   return (
     <>
+      <SEOHead title="Journal" description="Write daily reflections and track your emotional well-being with MS." />
       <PageHeader title="Journal" subtitle="Your daily thoughts & feelings" />
 
       <div className="mx-auto max-w-lg px-4 py-4 space-y-6 animate-fade-in pb-10">

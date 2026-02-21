@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { subDays, format, startOfWeek } from "date-fns";
@@ -256,6 +257,7 @@ const TodayPage = () => {
 
   return (
     <>
+      <SEOHead title="Today" description="Your daily MS symptom check-in and wellness overview." />
       <PageHeader
         title="Today"
         subtitle={greetings() + " 🧡"}
