@@ -1,24 +1,24 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, BarChart3, TrendingUp, BookOpen, NotebookPen, Phone, Users } from "lucide-react";
+import { Home, BarChart3, TrendingUp, BookOpen, NotebookPen, Phone, Users, MessageCircle } from "lucide-react";
 import { motion, LayoutGroup } from "framer-motion";
 import { useUnreadCommunityPosts } from "@/hooks/useUnreadCommunity";
 import { useUnreadMessagesCount } from "@/hooks/useMessages";
 import MedicalDisclaimerDialog from "@/components/MedicalDisclaimerDialog";
 
 const baseTabs = [
-  { to: "/today",     icon: Home,        label: "Today" },
-  { to: "/track",     icon: BarChart3,   label: "Track" },
-  { to: "/insights",  icon: TrendingUp,  label: "Insights" },
-  { to: "/journal",   icon: NotebookPen, label: "Journal" },
-  { to: "/community", icon: Users,       label: "Community" },
-  { to: "/learn",     icon: BookOpen,    label: "Learn" },
+  { to: "/today",     icon: Home,          label: "Today" },
+  { to: "/track",     icon: BarChart3,     label: "Track" },
+  { to: "/insights",  icon: TrendingUp,    label: "Insights" },
+  { to: "/journal",   icon: NotebookPen,   label: "Journal" },
+  { to: "/community", icon: Users,         label: "Community" },
+  { to: "/messages",  icon: MessageCircle, label: "Messages" },
+  { to: "/learn",     icon: BookOpen,      label: "Learn" },
 ];
 
 const BottomNav = () => {
   const location = useLocation();
   const { data: unreadCount = 0 } = useUnreadCommunityPosts();
   const { data: unreadMessages = 0 } = useUnreadMessagesCount();
-  const communityBadge = (unreadCount || 0) + (unreadMessages || 0);
   
 
   // Hide on onboarding
@@ -54,7 +54,7 @@ const BottomNav = () => {
             <NavLink
               key={to}
               to={to}
-              aria-label={to === "/community" && communityBadge > 0 ? `${label} (${communityBadge} new)` : label}
+              aria-label={to === "/community" && unreadCount > 0 ? `${label} (${unreadCount} new)` : to === "/messages" && unreadMessages > 0 ? `${label} (${unreadMessages} new)` : label}
               aria-current={location.pathname === to ? "page" : undefined}
               className={({ isActive }) =>
                 `tap-highlight-none relative flex flex-col items-center gap-0.5 rounded-xl px-2 py-2 text-xs font-medium transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
@@ -75,14 +75,24 @@ const BottomNav = () => {
                       className={`h-5 w-5 transition-all ${isActive ? "stroke-[2.5]" : "stroke-[1.5]"}`}
                       aria-hidden="true"
                     />
-                    {to === "/community" && communityBadge > 0 && !isActive && (
+                    {to === "/community" && unreadCount > 0 && !isActive && (
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className="absolute -top-1 -right-1.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground"
                         aria-hidden="true"
                       >
-                        {communityBadge > 99 ? "99+" : communityBadge}
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </motion.span>
+                    )}
+                    {to === "/messages" && unreadMessages > 0 && !isActive && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1 -right-1.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground"
+                        aria-hidden="true"
+                      >
+                        {unreadMessages > 99 ? "99+" : unreadMessages}
                       </motion.span>
                     )}
                   </motion.div>
