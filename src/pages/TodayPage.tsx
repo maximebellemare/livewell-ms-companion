@@ -28,6 +28,7 @@ import { useSaveEntry, useEntriesInRange, useTodayEntry } from "@/hooks/useEntri
 import { useProfile } from "@/hooks/useProfile";
 import { useDbMedications, useDbMedicationLogs } from "@/hooks/useMedications";
 import { useDbAppointments } from "@/hooks/useAppointments";
+import { useRelapses } from "@/hooks/useRelapses";
 import { generateReportFromData } from "@/lib/report-generator-db";
 import { toast } from "sonner";
 
@@ -154,6 +155,7 @@ const TodayPage = () => {
   const { data: reportMeds = [] } = useDbMedications();
   const { data: reportMedLogs = [] } = useDbMedicationLogs(report30Start, report30End);
   const { data: reportAppts = [] } = useDbAppointments();
+  const { data: reportRelapses = [] } = useRelapses();
 
   const handleDownloadReport = async () => {
     setDownloadingReport(true);
@@ -162,9 +164,10 @@ const TodayPage = () => {
       const blob = generateReportFromData({
         startDate: report30Start, endDate: report30End,
         includeSymptoms: true, includeMedications: true, includeAppointments: true,
-        includeProfile: true, includeNotes: true,
+        includeProfile: true, includeNotes: true, includeRelapses: true, includeHydration: true,
         entries: report30Entries, profile: profile || null,
         medications: reportMeds, medLogs: reportMedLogs, appointments: filteredAppts,
+        relapses: reportRelapses,
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

@@ -1,10 +1,11 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, differenceInDays } from "date-fns";
 import type { DailyEntry } from "@/hooks/useEntries";
 import type { Profile } from "@/hooks/useProfile";
 import type { DbMedication, DbMedicationLog } from "@/hooks/useMedications";
 import type { DbAppointment } from "@/hooks/useAppointments";
+import type { Relapse } from "@/hooks/useRelapses";
 
 interface ReportData {
   startDate: string;
@@ -14,12 +15,15 @@ interface ReportData {
   includeAppointments: boolean;
   includeProfile: boolean;
   includeNotes: boolean;
+  includeRelapses?: boolean;
+  includeHydration?: boolean;
   aiInsight?: string | null;
   entries: DailyEntry[];
   profile: Profile | null;
   medications: DbMedication[];
   medLogs: DbMedicationLog[];
   appointments: DbAppointment[];
+  relapses?: Relapse[];
 }
 
 
@@ -231,6 +235,96 @@ export function generateReportFromData(data: ReportData): Blob {
       alternateRowStyles: { fillColor: LIGHT_BG }, margin: { left: 14, right: 14 },
     });
     y = (doc as any).lastAutoTable.finalY + 8;
+  }
+
+  // Hydration
+  if (data.includeHydration && entries.length > 0) {
+    const hydrationEntries = entries.filter((e) => e.water_glasses != null && e.water_glasses > 0);
+    if (hydrationEntries.length > 0) {
+      y = checkPageBreak(doc, y, 40);
+      y = addSectionTitle(doc, "Hydration Tracking", y);
+
+      const glasses = hydrationEntries.map((e) => e.water_glasses!);
+      const avg = (glasses.reduce((a, b) => a + b, 0) / glasses.length).toFixed(1);
+      const min = Math.min(...glasses);
+      const max = Math.max(...glasses);
+      const goal = data.profile?.hydration_goal ?? 8;
+      const daysMetGoal = hydrationEntries.filter((e) => e.water_glasses! >= goal).length;
+
+      autoTable(doc, {
+        startY: y, head: [], body: [
+          ["Days Tracked", String(hydrationEntries.length)],
+          ["Daily Goal", `${goal} glasses`],
+          ["Average", `${avg} glasses`],
+          ["Range", `${min}–${max} glasses`],
+          ["Days Goal Met", `${daysMetGoal} / ${hydrationEntries.length} (${Math.round((daysMetGoal / hydrationEntries.length) * 100)}%)`],
+        ], theme: "plain",
+        styles: { fontSize: 9, cellPadding: 2, textColor: DARK },
+        columnStyles: { 0: { fontStyle: "bold", cellWidth: 40, textColor: ORANGE }, 1: { cellWidth: "auto" } },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 8;
+    }
+  }
+
+  // Relapses
+  if (data.includeRelapses && data.relapses && data.relapses.length > 0) {
+    const periodRelapses = data.relapses.filter(
+      (r) => r.start_date >= data.startDate && r.start_date <= data.endDate
+    );
+    if (periodRelapses.length > 0) {
+      y = checkPageBreak(doc, y, 50);
+      y = addSectionTitle(doc, "Relapse History", y);
+
+      const sorted = [...periodRelapses].sort((a, b) => a.start_date.localeCompare(b.start_date));
+      const relapseBody = sorted.map((r) => {
+        const start = format(parseISO(r.start_date), "MMM d");
+        const end = r.end_date ? format(parseISO(r.end_date), "MMM d") : "Ongoing";
+        const duration = r.end_date
+          ? `${differenceInDays(parseISO(r.end_date), parseISO(r.start_date))} days`
+          : "Active";
+        const severity = r.severity.charAt(0).toUpperCase() + r.severity.slice(1);
+        const symptoms = r.symptoms?.slice(0, 3).join(", ") || "—";
+        const treatment = r.treatment || "—";
+        return [start, end, duration, severity, symptoms, treatment];
+      });
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Start", "End", "Duration", "Severity", "Symptoms", "Treatment"]],
+        body: relapseBody,
+        theme: "striped",
+        headStyles: { fillColor: ORANGE, textColor: WHITE, fontSize: 8, fontStyle: "bold" },
+        styles: { fontSize: 8, cellPadding: 2.5, textColor: DARK },
+        alternateRowStyles: { fillColor: LIGHT_BG },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 4;
+
+      // Summary stats
+      const active = periodRelapses.filter((r) => !r.is_recovered).length;
+      const recovered = periodRelapses.filter((r) => r.is_recovered).length;
+      y = addSubtext(doc, `Total: ${periodRelapses.length} · Recovered: ${recovered} · Active: ${active}`, y);
+      y += 4;
+
+      // Notes from relapses
+      const relapseNotes = sorted.filter((r) => r.notes?.trim());
+      if (relapseNotes.length > 0) {
+        y = checkPageBreak(doc, y, 20);
+        const notesBody = relapseNotes.map((r) => [
+          format(parseISO(r.start_date), "MMM d"),
+          r.notes!,
+        ]);
+        autoTable(doc, {
+          startY: y, head: [["Date", "Relapse Notes"]], body: notesBody, theme: "striped",
+          headStyles: { fillColor: ORANGE, textColor: WHITE, fontSize: 8, fontStyle: "bold" },
+          styles: { fontSize: 8, cellPadding: 2.5, textColor: DARK },
+          columnStyles: { 1: { cellWidth: "auto" } },
+          alternateRowStyles: { fillColor: LIGHT_BG }, margin: { left: 14, right: 14 },
+        });
+        y = (doc as any).lastAutoTable.finalY + 8;
+      }
+    }
   }
 
   // Notes

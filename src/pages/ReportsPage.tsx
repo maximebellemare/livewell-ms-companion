@@ -22,6 +22,7 @@ import { useEntriesInRange } from "@/hooks/useEntries";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useDbMedications, useDbMedicationLogs } from "@/hooks/useMedications";
 import { useDbAppointments } from "@/hooks/useAppointments";
+import { useRelapses } from "@/hooks/useRelapses";
 import { generateReportFromData } from "@/lib/report-generator-db";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -52,6 +53,8 @@ const ReportsPage = () => {
   const [includeAppointments, setIncludeAppointments] = useState(true);
   const [includeProfile, setIncludeProfile] = useState(true);
   const [includeNotes, setIncludeNotes] = useState(true);
+  const [includeRelapses, setIncludeRelapses] = useState(true);
+  const [includeHydration, setIncludeHydration] = useState(true);
   const [includeAiInsight, setIncludeAiInsight] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
@@ -71,6 +74,7 @@ const ReportsPage = () => {
   const { data: medications = [] } = useDbMedications();
   const { data: medLogs = [] } = useDbMedicationLogs(startStr, endStr);
   const { data: appointments = [] } = useDbAppointments();
+  const { data: relapses = [] } = useRelapses();
   const { data: reportHistory = [] } = useReportHistory();
   const addReportHistory = useAddReportHistory();
   const deleteReportHistory = useDeleteReportHistory();
@@ -91,9 +95,9 @@ const ReportsPage = () => {
     return generateReportFromData({
       startDate: startStr, endDate: endStr,
       includeSymptoms, includeMedications, includeAppointments,
-      includeProfile, includeNotes, aiInsight,
+      includeProfile, includeNotes, includeRelapses, includeHydration, aiInsight,
       entries, profile: profile || null,
-      medications, medLogs, appointments: filteredAppts,
+      medications, medLogs, appointments: filteredAppts, relapses,
     });
   };
 
@@ -326,6 +330,8 @@ const ReportsPage = () => {
             { label: "Medication Adherence", checked: includeMedications, toggle: setIncludeMedications, emoji: "💊" },
             { label: "Appointment History", checked: includeAppointments, toggle: setIncludeAppointments, emoji: "📅" },
             { label: "Notes & Observations", checked: includeNotes, toggle: setIncludeNotes, emoji: "📝" },
+            { label: "Relapse History", checked: includeRelapses, toggle: setIncludeRelapses, emoji: "🔄" },
+            { label: "Hydration Tracking", checked: includeHydration, toggle: setIncludeHydration, emoji: "💧" },
             { label: "AI Weekly Insight", checked: includeAiInsight, toggle: setIncludeAiInsight, emoji: "✨" },
           ].map(({ label, checked, toggle, emoji }) => (
             <button key={label} onClick={() => toggle(!checked)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all hover:bg-secondary/50">
