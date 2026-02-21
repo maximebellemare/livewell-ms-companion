@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Navigate } from "react-router-dom";
 import { Shield, ShieldCheck, ShieldOff, FileText, Users, Flag, Plus, Pencil, Trash2, EyeOff, Eye, CheckCircle2, XCircle, ThumbsUp, ThumbsDown, MessageSquare, CalendarIcon, X } from "lucide-react";
 import { format, formatDistanceToNow, isAfter, isBefore, startOfDay, endOfDay, subDays, subMonths } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FeedbackTrendsChart } from "@/components/admin/FeedbackTrendsChart";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -482,6 +483,9 @@ const FeedbackTab = () => {
           </p>
         </div>
       )}
+
+      {/* Trends chart */}
+      {filtered.length > 0 && <FeedbackTrendsChart data={filtered} />}
 
       {/* Per-session breakdown */}
       {filtered.length === 0 ? (
