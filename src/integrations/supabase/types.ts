@@ -906,6 +906,7 @@ export type Database = {
           badge_count: number
           display_name: string
           latest_badge_at: string
+          previous_rank: number
           user_id: string
         }[]
       }

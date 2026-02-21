@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Trophy, Crown, Medal, Award } from "lucide-react";
+import { Trophy, Crown, Medal, Award, TrendingUp, TrendingDown, Minus, Sparkles } from "lucide-react";
 import { useBadgeLeaderboard } from "@/hooks/useBadgeLeaderboard";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -54,6 +54,11 @@ const BadgeLeaderboard = () => {
           const isCompletionist = entry.badge_count >= 15;
           const highlighted = isMe(entry.user_id);
 
+          // Rank change calculation
+          const prevRank = entry.previous_rank;
+          const rankChange = prevRank != null ? prevRank - rank : null;
+          const isNew = prevRank == null;
+
           return (
             <motion.div
               key={entry.user_id}
@@ -96,6 +101,25 @@ const BadgeLeaderboard = () => {
                   {entry.badge_count} badge{entry.badge_count !== 1 ? "s" : ""} earned
                   {isCompletionist && " 🌈"}
                 </p>
+              </div>
+
+              {/* Weekly rank change */}
+              <div className="flex-shrink-0 w-10 flex items-center justify-center">
+                {isNew ? (
+                  <span className="flex items-center gap-0.5 text-[10px] font-semibold text-primary">
+                    <Sparkles className="h-3 w-3" /> new
+                  </span>
+                ) : rankChange != null && rankChange > 0 ? (
+                  <span className="flex items-center gap-0.5 text-[10px] font-semibold text-green-600 dark:text-green-400">
+                    <TrendingUp className="h-3 w-3" /> +{rankChange}
+                  </span>
+                ) : rankChange != null && rankChange < 0 ? (
+                  <span className="flex items-center gap-0.5 text-[10px] font-semibold text-destructive">
+                    <TrendingDown className="h-3 w-3" /> {rankChange}
+                  </span>
+                ) : (
+                  <Minus className="h-3 w-3 text-muted-foreground" />
+                )}
               </div>
 
               {/* Badge count pill */}
