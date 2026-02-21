@@ -1,0 +1,1 @@
+ALTER TABLE public.coach_sessions ADD COLUMN is_pinned boolean NOT NULL DEFAULT false;

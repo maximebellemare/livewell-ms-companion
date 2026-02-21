@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Trash2, BarChart3, Heart, CalendarClock, HelpCircle, Trash, Search, Pencil, Check, X } from "lucide-react";
+import { MessageSquare, Trash2, BarChart3, Heart, CalendarClock, HelpCircle, Trash, Search, Pencil, Check, X, Pin, PinOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { CoachMode } from "@/hooks/useCoach";
@@ -11,6 +11,7 @@ interface CoachSession {
   mode: string;
   title: string | null;
   updated_at: string;
+  is_pinned: boolean;
 }
 
 interface CoachHistoryProps {
@@ -46,8 +47,9 @@ const CoachHistory = ({ onSelectSession }: CoachHistoryProps) => {
     setLoading(true);
     const { data } = await supabase
       .from("coach_sessions")
-      .select("id, mode, title, updated_at")
+      .select("id, mode, title, updated_at, is_pinned")
       .eq("user_id", user.id)
+      .order("is_pinned", { ascending: false })
       .order("updated_at", { ascending: false })
       .limit(30);
 
@@ -84,6 +86,18 @@ const CoachHistory = ({ onSelectSession }: CoachHistoryProps) => {
   const cancelRename = (e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingId(null);
+  };
+
+  const togglePin = async (e: React.MouseEvent, id: string, currentlyPinned: boolean) => {
+    e.stopPropagation();
+    await supabase.from("coach_sessions").update({ is_pinned: !currentlyPinned }).eq("id", id);
+    setSessions((prev) => {
+      const updated = prev.map((s) => s.id === id ? { ...s, is_pinned: !currentlyPinned } : s);
+      return updated.sort((a, b) => {
+        if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      });
+    });
   };
 
   const clearAllSessions = async () => {
@@ -184,7 +198,7 @@ const CoachHistory = ({ onSelectSession }: CoachHistoryProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03, duration: 0.2 }}
             onClick={() => onSelectSession(s.id, s.mode as CoachMode)}
-            className="w-full flex items-center gap-3 rounded-xl border border-border bg-card p-3.5 text-left hover:border-primary/30 transition-all active:scale-[0.98] group"
+            className={`w-full flex items-center gap-3 rounded-xl border bg-card p-3.5 text-left hover:border-primary/30 transition-all active:scale-[0.98] group ${s.is_pinned ? "border-primary/40" : "border-border"}`}
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary">
               <Icon className="h-4 w-4" />
@@ -211,7 +225,8 @@ const CoachHistory = ({ onSelectSession }: CoachHistoryProps) => {
                 </div>
               ) : (
                 <>
-                  <p className="text-sm font-medium text-foreground truncate">
+                  <p className="text-sm font-medium text-foreground truncate flex items-center gap-1.5">
+                    {s.is_pinned && <Pin className="h-3 w-3 text-primary shrink-0" />}
                     {s.title || "Untitled conversation"}
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -222,6 +237,13 @@ const CoachHistory = ({ onSelectSession }: CoachHistoryProps) => {
             </div>
             {editingId !== s.id && (
               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+                <button
+                  onClick={(e) => togglePin(e, s.id, s.is_pinned)}
+                  className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${s.is_pinned ? "text-primary hover:text-muted-foreground" : "text-muted-foreground hover:text-primary"} hover:bg-accent`}
+                  aria-label={s.is_pinned ? "Unpin conversation" : "Pin conversation"}
+                >
+                  {s.is_pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+                </button>
                 <button
                   onClick={(e) => startRename(e, s)}
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
