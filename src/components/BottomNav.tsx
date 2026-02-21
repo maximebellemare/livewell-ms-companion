@@ -160,38 +160,57 @@ const BottomNav = () => {
                 )}
               </button>
 
-              {/* Dropdown */}
+              {/* Sheet overlay + slide-up panel */}
               <AnimatePresence>
                 {moreOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute bottom-full right-0 mb-2 z-[60] w-44 rounded-lg border border-border bg-card shadow-lg overflow-hidden"
-                  >
-                    {moreTabs.map(({ to, icon: Icon, label }) => {
-                      const active = location.pathname.startsWith(to);
-                      const badge = to === "/messages" ? unreadMessages : 0;
-                      return (
-                        <button
-                          key={to}
-                          onClick={() => { setMoreOpen(false); navigate(to); }}
-                          className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-accent ${
-                            active ? "text-primary font-semibold" : "text-foreground"
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span className="flex-1 text-left">{label}</span>
-                          {badge > 0 && (
-                            <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                              {badge > 99 ? "99+" : badge}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </motion.div>
+                  <>
+                    {/* Backdrop */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="fixed inset-0 z-[59] bg-black/40"
+                      onClick={() => setMoreOpen(false)}
+                    />
+                    {/* Sheet */}
+                    <motion.div
+                      initial={{ y: "100%" }}
+                      animate={{ y: 0 }}
+                      exit={{ y: "100%" }}
+                      transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                      className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-2xl border-t border-border bg-card pb-safe"
+                    >
+                      {/* Handle */}
+                      <div className="flex justify-center pt-3 pb-1">
+                        <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+                      </div>
+                      {/* Items */}
+                      <div className="px-4 pb-6 space-y-1">
+                        {moreTabs.map(({ to, icon: Icon, label }) => {
+                          const active = location.pathname.startsWith(to);
+                          const badge = to === "/messages" ? unreadMessages : 0;
+                          return (
+                            <button
+                              key={to}
+                              onClick={() => { setMoreOpen(false); navigate(to); }}
+                              className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-sm transition-colors hover:bg-accent ${
+                                active ? "text-primary font-semibold bg-accent/50" : "text-foreground"
+                              }`}
+                            >
+                              <Icon className="h-5 w-5" />
+                              <span className="flex-1 text-left text-base">{label}</span>
+                              {badge > 0 && (
+                                <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                                  {badge > 99 ? "99+" : badge}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  </>
                 )}
               </AnimatePresence>
             </div>
