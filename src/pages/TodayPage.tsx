@@ -28,6 +28,7 @@ import RelapseRiskIndicator from "@/components/RelapseRiskIndicator";
 import BadgeNudgeCard from "@/components/badges/BadgeNudgeCard";
 import DiagnosisAnniversaryCard from "@/components/DiagnosisAnniversaryCard";
 import { useMedStreak } from "@/hooks/useMedStreak";
+import { useCognitiveStreak } from "@/hooks/useCognitiveStreak";
 import { useRelapseFreeStreak } from "@/hooks/useRelapseFreeStreak";
 import { useBadgeProximityAlert } from "@/hooks/useBadgeProximityAlert";
 import { useRecordBadgeEvent } from "@/hooks/useBadgeEvents";
@@ -126,9 +127,10 @@ const TodayPage = () => {
   const medStreak = useMedStreak();
   const relapseStreak = useRelapseFreeStreak();
   const { weekStreak } = useWeekStreak();
+  const { streak: cogStreak } = useCognitiveStreak();
   const recordBadge = useRecordBadgeEvent();
   useBadgeProximityAlert(
-    { logStreak: streak, weekStreak, medStreak, relapseStreak },
+    { logStreak: streak, weekStreak, medStreak, relapseStreak, cogStreak },
     (badgeIds) => recordBadge.mutate(badgeIds)
   );
 
@@ -363,7 +365,7 @@ const TodayPage = () => {
         <WeeklySummaryBanner />
         <StreakBadge />
         <WeekStreakBadge />
-        <BadgeNudgeCard streakData={{ logStreak: streak, weekStreak, medStreak, relapseStreak }} />
+        <BadgeNudgeCard streakData={{ logStreak: streak, weekStreak, medStreak, relapseStreak, cogStreak }} />
 
         {/* Goal tracking progress rings */}
         <GoalTrackingDashboard />

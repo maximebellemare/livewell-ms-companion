@@ -9,6 +9,7 @@ interface StreakData {
   weekStreak: number;
   medStreak: number;
   relapseStreak: number;
+  cogStreak: number;
 }
 
 interface NearBadge {
@@ -19,7 +20,7 @@ interface NearBadge {
   unit: string;
 }
 
-const BADGE_TARGETS: { id: string; emoji: string; name: string; target: number; category: "logging" | "weekly" | "medication" | "relapse" }[] = [
+const BADGE_TARGETS: { id: string; emoji: string; name: string; target: number; category: "logging" | "weekly" | "medication" | "relapse" | "cognitive" }[] = [
   { id: "log-3", emoji: "⚡", name: "3-Day Logger", target: 3, category: "logging" },
   { id: "log-7", emoji: "🔥", name: "Week Warrior", target: 7, category: "logging" },
   { id: "log-14", emoji: "⭐", name: "Fortnight Focus", target: 14, category: "logging" },
@@ -35,6 +36,10 @@ const BADGE_TARGETS: { id: string; emoji: string; name: string; target: number; 
   { id: "relapse-30", emoji: "🛡️", name: "30 Days Strong", target: 30, category: "relapse" },
   { id: "relapse-60", emoji: "💪", name: "60 Days Strong", target: 60, category: "relapse" },
   { id: "relapse-90", emoji: "🌟", name: "90 Days Strong", target: 90, category: "relapse" },
+  // Cognitive
+  { id: "cog-1", emoji: "🧩", name: "First Game", target: 1, category: "cognitive" },
+  { id: "cog-7", emoji: "🧠", name: "Brain Trainer", target: 7, category: "cognitive" },
+  { id: "cog-30", emoji: "🎓", name: "Memory Master", target: 30, category: "cognitive" },
 ];
 
 const CATEGORY_UNITS: Record<string, string> = {
@@ -42,6 +47,7 @@ const CATEGORY_UNITS: Record<string, string> = {
   weekly: "weeks",
   medication: "days",
   relapse: "days",
+  cognitive: "days",
 };
 
 function streakFor(cat: string, data: StreakData): number {
@@ -50,6 +56,7 @@ function streakFor(cat: string, data: StreakData): number {
     case "weekly": return data.weekStreak;
     case "medication": return data.medStreak;
     case "relapse": return data.relapseStreak;
+    case "cognitive": return data.cogStreak;
     default: return 0;
   }
 }

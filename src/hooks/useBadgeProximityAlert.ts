@@ -7,6 +7,7 @@ interface StreakData {
   weekStreak: number;
   medStreak: number;
   relapseStreak: number;
+  cogStreak: number;
 }
 
 const BADGE_TARGETS = [
@@ -23,6 +24,10 @@ const BADGE_TARGETS = [
   { id: "relapse-30", emoji: "🛡️", name: "30 Days Strong", target: 30, category: "relapse" as const },
   { id: "relapse-60", emoji: "💪", name: "60 Days Strong", target: 60, category: "relapse" as const },
   { id: "relapse-90", emoji: "🌟", name: "90 Days Strong", target: 90, category: "relapse" as const },
+  // Cognitive
+  { id: "cog-1", emoji: "🧩", name: "First Game", target: 1, category: "cognitive" as const },
+  { id: "cog-7", emoji: "🧠", name: "Brain Trainer", target: 7, category: "cognitive" as const },
+  { id: "cog-30", emoji: "🎓", name: "Memory Master", target: 30, category: "cognitive" as const },
 ];
 
 function streakFor(cat: string, data: StreakData): number {
@@ -31,6 +36,7 @@ function streakFor(cat: string, data: StreakData): number {
     case "weekly": return data.weekStreak;
     case "medication": return data.medStreak;
     case "relapse": return data.relapseStreak;
+    case "cognitive": return data.cogStreak;
     default: return 0;
   }
 }
