@@ -56,6 +56,7 @@ const ReportsPage = () => {
   const [includeRelapses, setIncludeRelapses] = useState(true);
   const [includeHydration, setIncludeHydration] = useState(true);
   const [includeRiskScore, setIncludeRiskScore] = useState(true);
+  const [includeTrendCharts, setIncludeTrendCharts] = useState(true);
   const [includeAiInsight, setIncludeAiInsight] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
@@ -96,7 +97,7 @@ const ReportsPage = () => {
     return generateReportFromData({
       startDate: startStr, endDate: endStr,
       includeSymptoms, includeMedications, includeAppointments,
-      includeProfile, includeNotes, includeRelapses, includeHydration, includeRiskScore, aiInsight,
+      includeProfile, includeNotes, includeRelapses, includeHydration, includeRiskScore, includeTrendCharts, aiInsight,
       entries, profile: profile || null,
       medications, medLogs, appointments: filteredAppts, relapses,
     });
@@ -334,6 +335,7 @@ const ReportsPage = () => {
             { label: "Relapse History", checked: includeRelapses, toggle: setIncludeRelapses, emoji: "🔄" },
             { label: "Hydration Tracking", checked: includeHydration, toggle: setIncludeHydration, emoji: "💧" },
             { label: "Relapse Risk Score", checked: includeRiskScore, toggle: setIncludeRiskScore, emoji: "⚠️" },
+            { label: "Mood & Sleep Trends", checked: includeTrendCharts, toggle: setIncludeTrendCharts, emoji: "📈" },
             { label: "AI Weekly Insight", checked: includeAiInsight, toggle: setIncludeAiInsight, emoji: "✨" },
           ].map(({ label, checked, toggle, emoji }) => (
             <button key={label} onClick={() => toggle(!checked)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all hover:bg-secondary/50">
