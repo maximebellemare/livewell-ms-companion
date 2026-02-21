@@ -13,6 +13,7 @@ import WeeklyMoodTrendChart from "@/components/WeeklyMoodTrendChart";
 import SleepFatigueScatter from "@/components/SleepFatigueScatter";
 import SymptomCorrelationMatrix from "@/components/SymptomCorrelationMatrix";
 import MedicationAdherenceChart from "@/components/MedicationAdherenceChart";
+import MedicationStreakCounter from "@/components/MedicationStreakCounter";
 import RelapseTimeline from "@/components/RelapseTimeline";
 import RelapseTrendCard from "@/components/RelapseTrendCard";
 import RelapseFreeStreak from "@/components/RelapseFreeStreak";
@@ -853,6 +854,7 @@ const InsightsPage = () => {
 
             {/* ── Medication Adherence ── */}
             <MedicationAdherenceChart range={range} />
+            <MedicationStreakCounter />
 
             {/* ── Relapse Risk Indicator ── */}
             <div data-tour="insights-risk">
