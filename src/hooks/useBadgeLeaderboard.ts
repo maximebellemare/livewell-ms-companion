@@ -8,6 +8,7 @@ export interface LeaderboardEntry {
   avatar_url: string | null;
   badge_count: number;
   latest_badge_at: string;
+  previous_rank: number | null;
 }
 
 export function useBadgeLeaderboard() {
