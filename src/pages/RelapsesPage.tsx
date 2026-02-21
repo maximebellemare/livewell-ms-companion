@@ -544,10 +544,12 @@ const RelapsesPage = () => {
           </div>
         ) : (
           !showForm && (
-            <div className="rounded-xl bg-card p-8 shadow-soft text-center space-y-2">
-              <Zap className="h-8 w-8 text-muted-foreground mx-auto" />
-              <p className="text-sm font-medium text-foreground">No relapses logged yet</p>
-              <p className="text-xs text-muted-foreground">
+            <div className="rounded-xl bg-card p-8 shadow-soft text-center space-y-3 animate-fade-in">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent/50">
+                <span className="text-4xl">🛡️</span>
+              </div>
+              <h3 className="font-display text-base font-semibold text-foreground">No relapses logged</h3>
+              <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
                 Tracking relapses helps you and your neurologist spot patterns and optimize treatment.
               </p>
             </div>
