@@ -1,8 +1,14 @@
 import { useMemo, useState } from "react";
 import { format, startOfWeek, endOfWeek, subWeeks } from "date-fns";
-import { X, CalendarDays } from "lucide-react";
+import { X, CalendarDays, Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useEntriesInRange } from "@/hooks/useEntries";
 import { useProfile } from "@/hooks/useProfile";
+import { useStreak } from "@/components/StreakBadge";
+import { useWeekStreak } from "@/hooks/useWeekStreak";
+import { useMedStreak } from "@/hooks/useMedStreak";
+import { useRelapseFreeStreak } from "@/hooks/useRelapseFreeStreak";
+import { Progress } from "@/components/ui/progress";
 
 /* ── helpers ─────────────────────────────────────────────── */
 function avg(vals: (number | null | undefined)[]): number | null {
@@ -53,6 +59,7 @@ const SYMPTOMS = [
 
 /* ── component ───────────────────────────────────────────── */
 const MondayRecapCard = () => {
+  const navigate = useNavigate();
   // Only render on Mondays
   const isMonday = new Date().getDay() === 1;
 
@@ -72,6 +79,35 @@ const MondayRecapCard = () => {
 
   const { data: entries = [], isLoading: entriesLoading } = useEntriesInRange(lastWeekStart, lastWeekEnd);
   const { data: profile, isLoading: profileLoading }      = useProfile();
+
+  const { streak: logStreak } = useStreak();
+  const { weekStreak } = useWeekStreak();
+  const medStreak = useMedStreak();
+  const relapseStreak = useRelapseFreeStreak();
+
+  const BADGE_TARGETS = useMemo(() => [
+    { emoji: "⚡", name: "3-Day Logger", target: 3, current: logStreak },
+    { emoji: "🔥", name: "Week Warrior", target: 7, current: logStreak },
+    { emoji: "⭐", name: "Fortnight Focus", target: 14, current: logStreak },
+    { emoji: "🏆", name: "Monthly Master", target: 30, current: logStreak },
+    { emoji: "📊", name: "2-Week Goal", target: 2, current: weekStreak },
+    { emoji: "🗓️", name: "Monthly Rhythm", target: 4, current: weekStreak },
+    { emoji: "💊", name: "Med Week", target: 7, current: medStreak },
+    { emoji: "💉", name: "Med Fortnight", target: 14, current: medStreak },
+    { emoji: "🏅", name: "Med Month", target: 30, current: medStreak },
+    { emoji: "🛡️", name: "30 Days Strong", target: 30, current: relapseStreak },
+    { emoji: "💪", name: "60 Days Strong", target: 60, current: relapseStreak },
+    { emoji: "🌟", name: "90 Days Strong", target: 90, current: relapseStreak },
+  ], [logStreak, weekStreak, medStreak, relapseStreak]);
+
+  const badgeProgress = useMemo(() => {
+    const earned = BADGE_TARGETS.filter(b => b.current >= b.target);
+    const upcoming = BADGE_TARGETS
+      .filter(b => b.current < b.target && b.current / b.target >= 0.3)
+      .sort((a, b) => (b.current / b.target) - (a.current / a.target))
+      .slice(0, 2);
+    return { earnedCount: earned.length, total: BADGE_TARGETS.length, upcoming };
+  }, [BADGE_TARGETS]);
 
   const stats = useMemo(() => ({
     daysLogged:  entries.length,
@@ -168,6 +204,38 @@ const MondayRecapCard = () => {
           </div>
         </div>
       )}
+
+      {/* Badge progress */}
+      <button
+        onClick={() => navigate("/badges")}
+        className="mx-4 mb-2 flex w-[calc(100%-2rem)] items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2.5 text-left transition-all hover:bg-primary/10 active:scale-[0.98]"
+      >
+        <Trophy className="h-4 w-4 text-primary flex-shrink-0" />
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-foreground">
+              {badgeProgress.earnedCount}/{badgeProgress.total} badges
+            </span>
+            <span className="text-[10px] text-muted-foreground">View all →</span>
+          </div>
+          {badgeProgress.upcoming.length > 0 && (
+            <div className="space-y-1">
+              {badgeProgress.upcoming.map((b) => {
+                const pct = Math.round((b.current / b.target) * 100);
+                return (
+                  <div key={b.name} className="flex items-center gap-2">
+                    <span className="text-xs flex-shrink-0">{b.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <Progress value={pct} className="h-1" />
+                    </div>
+                    <span className="text-[9px] text-muted-foreground flex-shrink-0 tabular-nums">{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </button>
 
       {/* Motivational message */}
       <div className="px-4 pb-4 pt-2">
