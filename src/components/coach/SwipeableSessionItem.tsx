@@ -66,10 +66,15 @@ const SwipeableSessionItem = ({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDragging = useRef(false);
 
+  const triggerHaptic = () => {
+    if (navigator.vibrate) navigator.vibrate(15);
+  };
+
   const handlePointerDown = () => {
     isDragging.current = false;
     longPressTimer.current = setTimeout(() => {
       if (!isDragging.current && !swiped) {
+        triggerHaptic();
         animate(x, -ACTION_WIDTH, { type: "spring", stiffness: 300, damping: 30 });
         setSwiped(true);
       }
@@ -90,6 +95,7 @@ const SwipeableSessionItem = ({
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x < -SWIPE_THRESHOLD) {
+      triggerHaptic();
       animate(x, -ACTION_WIDTH, { type: "spring", stiffness: 300, damping: 30 });
       setSwiped(true);
     } else {
