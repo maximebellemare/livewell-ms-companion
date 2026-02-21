@@ -390,8 +390,14 @@ const BadgesPage = () => {
               <div className="grid grid-cols-3 gap-3">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 24 }}
+                  animate={allBadgesEarned
+                    ? { opacity: 1, scale: 1, boxShadow: ["0 0 0px hsl(var(--primary) / 0)", "0 0 20px hsl(var(--primary) / 0.3)", "0 0 0px hsl(var(--primary) / 0)"] }
+                    : { opacity: 1, scale: 1 }
+                  }
+                  transition={allBadgesEarned
+                    ? { delay: 0.2, type: "spring", stiffness: 300, damping: 24, boxShadow: { duration: 2.5, repeat: Infinity, ease: "easeInOut" } }
+                    : { delay: 0.2, type: "spring", stiffness: 300, damping: 24 }
+                  }
                   onClick={() => setSelectedBadge({
                     id: "completionist",
                     emoji: "🌈",
@@ -407,6 +413,7 @@ const BadgesPage = () => {
                       : "border-border/50 bg-card/50 opacity-50 grayscale"
                   }`}
                 >
+                  {/* Shimmer sweep */}
                   {allBadgesEarned && (
                     <div
                       className="pointer-events-none absolute inset-0 animate-badge-shimmer"
@@ -416,19 +423,68 @@ const BadgesPage = () => {
                       }}
                     />
                   )}
+
+                  {/* Floating particles */}
+                  {allBadgesEarned && (
+                    <div className="pointer-events-none absolute inset-0">
+                      {[...Array(8)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute rounded-full"
+                          style={{
+                            width: 4 + (i % 3) * 2,
+                            height: 4 + (i % 3) * 2,
+                            left: `${10 + i * 11}%`,
+                            bottom: 0,
+                            background: i % 2 === 0 ? "hsl(var(--primary) / 0.6)" : "hsl(var(--accent) / 0.5)",
+                          }}
+                          animate={{
+                            y: [0, -40 - (i % 3) * 15, 0],
+                            opacity: [0, 0.8, 0],
+                            scale: [0.5, 1, 0.5],
+                          }}
+                          transition={{
+                            duration: 2.5 + (i % 3) * 0.5,
+                            repeat: Infinity,
+                            delay: i * 0.4,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Radial glow */}
+                  {allBadgesEarned && (
+                    <motion.div
+                      className="pointer-events-none absolute inset-0 rounded-2xl"
+                      style={{
+                        background: "radial-gradient(circle at 15% 50%, hsl(var(--primary) / 0.12) 0%, transparent 60%)",
+                      }}
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+
                   {!allBadgesEarned && (
                     <div className="absolute right-3 top-3">
                       <Lock className="h-3 w-3 text-muted-foreground" />
                     </div>
                   )}
                   <motion.span
-                    className="text-4xl flex-shrink-0"
-                    animate={allBadgesEarned ? { scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] } : {}}
-                    transition={allBadgesEarned ? { duration: 2, repeat: Infinity, repeatDelay: 3 } : {}}
+                    className="text-4xl flex-shrink-0 relative z-10"
+                    animate={allBadgesEarned
+                      ? { scale: [1, 1.2, 1], rotate: [0, 8, -8, 0] }
+                      : {}
+                    }
+                    transition={allBadgesEarned
+                      ? { duration: 3, repeat: Infinity, repeatDelay: 2, ease: "easeInOut" }
+                      : {}
+                    }
                   >
                     🌈
                   </motion.span>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 relative z-10">
                     <p className={`text-sm font-bold leading-tight ${allBadgesEarned ? "text-foreground" : "text-muted-foreground"}`}>
                       Completionist
                     </p>
@@ -439,7 +495,13 @@ const BadgesPage = () => {
                     </p>
                   </div>
                   {allBadgesEarned && (
-                    <span className="text-xs font-bold text-primary flex-shrink-0">★</span>
+                    <motion.span
+                      className="text-sm font-bold text-primary flex-shrink-0 relative z-10"
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                    >
+                      ★
+                    </motion.span>
                   )}
                 </motion.div>
               </div>
