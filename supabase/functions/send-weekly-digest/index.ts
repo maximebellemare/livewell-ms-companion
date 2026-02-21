@@ -158,6 +158,173 @@ Do NOT cite r values or statistics. Return ONLY a JSON array of strings.`,
   }
 }
 
+// ── Badge progress helpers ──
+const BADGE_TARGETS = [
+  { id: "log-3", emoji: "⚡", name: "3-Day Logger", target: 3, category: "logging" },
+  { id: "log-7", emoji: "🔥", name: "Week Warrior", target: 7, category: "logging" },
+  { id: "log-14", emoji: "⭐", name: "Fortnight Focus", target: 14, category: "logging" },
+  { id: "log-30", emoji: "🏆", name: "Monthly Master", target: 30, category: "logging" },
+  { id: "week-2", emoji: "📊", name: "2-Week Goal", target: 2, category: "weekly" },
+  { id: "week-4", emoji: "🗓️", name: "Monthly Rhythm", target: 4, category: "weekly" },
+  { id: "week-8", emoji: "💫", name: "2-Month Flow", target: 8, category: "weekly" },
+  { id: "med-7", emoji: "💊", name: "Med Week", target: 7, category: "medication" },
+  { id: "med-14", emoji: "💉", name: "Med Fortnight", target: 14, category: "medication" },
+  { id: "med-30", emoji: "🏅", name: "Med Month", target: 30, category: "medication" },
+  { id: "med-60", emoji: "💎", name: "Med Diamond", target: 60, category: "medication" },
+  { id: "med-90", emoji: "👑", name: "Med Royalty", target: 90, category: "medication" },
+  { id: "relapse-30", emoji: "🛡️", name: "30 Days Strong", target: 30, category: "relapse" },
+  { id: "relapse-60", emoji: "💪", name: "60 Days Strong", target: 60, category: "relapse" },
+  { id: "relapse-90", emoji: "🌟", name: "90 Days Strong", target: 90, category: "relapse" },
+];
+
+interface BadgeProgress {
+  total_earned: number;
+  total_badges: number;
+  next_badge_emoji: string | null;
+  next_badge_name: string | null;
+  next_badge_progress: number; // 0-100
+  next_badge_remaining: number;
+  next_badge_unit: string | null;
+  badges_summary: string;
+}
+
+function streakForCategory(cat: string, streaks: { log: number; week: number; med: number; relapse: number }): number {
+  switch (cat) {
+    case "logging": return streaks.log;
+    case "weekly": return streaks.week;
+    case "medication": return streaks.med;
+    case "relapse": return streaks.relapse;
+    default: return 0;
+  }
+}
+
+const CATEGORY_UNITS: Record<string, string> = { logging: "days", weekly: "weeks", medication: "days", relapse: "days" };
+
+function computeBadgeProgress(
+  earnedBadgeIds: Set<string>,
+  streaks: { log: number; week: number; med: number; relapse: number },
+): BadgeProgress {
+  const totalEarned = BADGE_TARGETS.filter((b) => earnedBadgeIds.has(b.id)).length;
+
+  // Find the closest unearned badge (highest completion %)
+  let bestPct = -1;
+  let best: typeof BADGE_TARGETS[0] | null = null;
+  let bestCurrent = 0;
+  for (const b of BADGE_TARGETS) {
+    if (earnedBadgeIds.has(b.id)) continue;
+    const current = streakForCategory(b.category, streaks);
+    const pct = current / b.target;
+    if (pct > bestPct) {
+      bestPct = pct;
+      best = b;
+      bestCurrent = current;
+    }
+  }
+
+  const pctRounded = best ? Math.round((bestCurrent / best.target) * 100) : 0;
+  const remaining = best ? best.target - bestCurrent : 0;
+
+  let summary: string;
+  if (totalEarned === BADGE_TARGETS.length) {
+    summary = `All ${BADGE_TARGETS.length} badges earned — incredible! 🏆`;
+  } else if (best && pctRounded >= 75) {
+    summary = `${totalEarned}/${BADGE_TARGETS.length} badges earned · Almost there on ${best.emoji} ${best.name}! (${pctRounded}%)`;
+  } else {
+    summary = `${totalEarned}/${BADGE_TARGETS.length} badges earned${best ? ` · Next up: ${best.emoji} ${best.name}` : ""}`;
+  }
+
+  return {
+    total_earned: totalEarned,
+    total_badges: BADGE_TARGETS.length,
+    next_badge_emoji: best?.emoji ?? null,
+    next_badge_name: best?.name ?? null,
+    next_badge_progress: pctRounded,
+    next_badge_remaining: remaining,
+    next_badge_unit: best ? CATEGORY_UNITS[best.category] : null,
+    badges_summary: summary,
+  };
+}
+
+// deno-lint-ignore no-explicit-any
+async function computeLogStreak(supabase: any, userId: string): Promise<number> {
+  const now = new Date();
+  const start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const end = now.toISOString().slice(0, 10);
+  const { data } = await supabase
+    .from("daily_entries")
+    .select("date")
+    .eq("user_id", userId)
+    .gte("date", start)
+    .lte("date", end);
+  const dates = new Set((data ?? []).map((e: { date: string }) => e.date));
+  let streak = 0;
+  const cursor = new Date(now);
+  for (let i = 0; i < 90; i++) {
+    if (dates.has(cursor.toISOString().slice(0, 10))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    } else break;
+  }
+  return streak;
+}
+
+// deno-lint-ignore no-explicit-any
+async function computeMedStreak(supabase: any, userId: string): Promise<number> {
+  const now = new Date();
+  const start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const end = now.toISOString().slice(0, 10);
+
+  const { data: meds } = await supabase
+    .from("medications")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("active", true)
+    .eq("schedule_type", "daily");
+
+  if (!meds || meds.length === 0) return 0;
+
+  const { data: logs } = await supabase
+    .from("medication_logs")
+    .select("date, medication_id, status")
+    .eq("user_id", userId)
+    .gte("date", start)
+    .lte("date", end)
+    .eq("status", "taken");
+
+  const logsByDate = new Map<string, Set<string>>();
+  for (const log of logs ?? []) {
+    if (!logsByDate.has(log.date)) logsByDate.set(log.date, new Set());
+    logsByDate.get(log.date)!.add(log.medication_id);
+  }
+
+  let streak = 0;
+  const cursor = new Date(now);
+  for (let i = 0; i < 90; i++) {
+    const dateStr = cursor.toISOString().slice(0, 10);
+    const taken = logsByDate.get(dateStr)?.size ?? 0;
+    if (taken >= meds.length) { streak++; cursor.setDate(cursor.getDate() - 1); }
+    else break;
+  }
+  return streak;
+}
+
+// deno-lint-ignore no-explicit-any
+async function computeRelapseFreeStreak(supabase: any, userId: string): Promise<number> {
+  const { data: relapses } = await supabase
+    .from("relapses")
+    .select("start_date, end_date, is_recovered")
+    .eq("user_id", userId)
+    .order("start_date", { ascending: false })
+    .limit(1);
+
+  if (!relapses || relapses.length === 0) return 0; // no relapses recorded = no streak context
+  const last = relapses[0];
+  if (!last.is_recovered || !last.end_date) return 0;
+  const endDate = new Date(last.end_date + "T00:00:00Z");
+  const days = Math.floor((Date.now() - endDate.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(days, 0);
+}
+
 /** Returns how many consecutive past weeks (including current) the user hit their goal. */
 async function computeWeekStreak(
   // deno-lint-ignore no-explicit-any
@@ -169,7 +336,6 @@ async function computeWeekStreak(
 ): Promise<number> {
   if (!currentWeekGoalAchieved) return 0;
 
-  // Fetch up to 52 weeks of past entries (before current week)
   const lookbackStart = new Date(currentWeekStart + "T00:00:00Z");
   lookbackStart.setUTCDate(lookbackStart.getUTCDate() - 52 * 7);
 
@@ -180,18 +346,16 @@ async function computeWeekStreak(
     .gte("date", lookbackStart.toISOString().slice(0, 10))
     .lt("date", currentWeekStart);
 
-  // Group entries by their Monday (week key)
   const weekCounts = new Map<string, number>();
   for (const entry of (pastEntries ?? [])) {
     const d = new Date(entry.date + "T00:00:00Z");
-    const day = d.getUTCDay(); // 0=Sun
+    const day = d.getUTCDay();
     d.setUTCDate(d.getUTCDate() + (day === 0 ? -6 : 1 - day));
     const key = d.toISOString().slice(0, 10);
     weekCounts.set(key, (weekCounts.get(key) ?? 0) + 1);
   }
 
-  // Count backward from the week before current
-  let streak = 1; // current week already confirmed
+  let streak = 1;
   const check = new Date(currentWeekStart + "T00:00:00Z");
   for (let i = 0; i < 52; i++) {
     check.setUTCDate(check.getUTCDate() - 7);
@@ -364,6 +528,28 @@ serve(async (req) => {
         const correlationInsights = await generateCorrelationInsights(correlations);
         console.log(`[digest] Generated ${correlationInsights.length} AI insights:`, JSON.stringify(correlationInsights));
 
+        // ── Badge progress ──
+        const [logStreak, medStreak, relapseStreak] = await Promise.all([
+          computeLogStreak(supabase, profile.user_id),
+          computeMedStreak(supabase, profile.user_id),
+          computeRelapseFreeStreak(supabase, profile.user_id),
+        ]);
+
+        // Fetch earned badges
+        const { data: earnedBadges } = await supabase
+          .from("badge_events")
+          .select("badge_id")
+          .eq("user_id", profile.user_id);
+        const earnedBadgeIds = new Set<string>((earnedBadges ?? []).map((b: { badge_id: string }) => b.badge_id));
+
+        const badgeProgress = computeBadgeProgress(earnedBadgeIds, {
+          log: logStreak,
+          week: weekStreak,
+          med: medStreak,
+          relapse: relapseStreak,
+        });
+        console.log(`[digest] ${email}: badges ${badgeProgress.total_earned}/${badgeProgress.total_badges}, next: ${badgeProgress.next_badge_name ?? "none"}`);
+
         // Step 1: Upsert a Klaviyo profile (409 = already exists, that's fine)
         await klaviyoPost("/profiles/", {
           data: {
@@ -420,6 +606,19 @@ serve(async (req) => {
                 correlation_insight_1: correlationInsights[0] ?? null,
                 correlation_insight_2: correlationInsights[1] ?? null,
                 correlation_insight_3: correlationInsights[2] ?? null,
+                // Badge progress
+                badges_total_earned: badgeProgress.total_earned,
+                badges_total: badgeProgress.total_badges,
+                badges_summary: badgeProgress.badges_summary,
+                has_next_badge: badgeProgress.next_badge_name !== null,
+                next_badge_emoji: badgeProgress.next_badge_emoji,
+                next_badge_name: badgeProgress.next_badge_name,
+                next_badge_progress: badgeProgress.next_badge_progress,
+                next_badge_remaining: badgeProgress.next_badge_remaining,
+                next_badge_unit: badgeProgress.next_badge_unit,
+                log_streak: logStreak,
+                med_streak: medStreak,
+                relapse_free_streak: relapseStreak,
               },
             },
           },
