@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import SEOHead from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { Bookmark, Shield } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -42,6 +43,7 @@ const CommunityPage = () => {
 
   return (
     <>
+      <SEOHead title="Community" description="Connect with others living with MS — share, support, and learn together." />
       <PageHeader title="Community" subtitle="You're not alone" action={savedAction} />
       <div className="mx-auto max-w-lg px-4 py-4">
         {isLoading ? (

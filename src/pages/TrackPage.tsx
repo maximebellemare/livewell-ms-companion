@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import SEOHead from "@/components/SEOHead";
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   getDay, subMonths, addMonths, isSameDay, isToday,
@@ -208,6 +209,7 @@ const TrackPage = () => {
 
   return (
     <>
+      <SEOHead title="Track" description="Log and review your daily MS symptoms on a calendar view." />
       <PageHeader
         title="Track"
         subtitle="Your symptom history"

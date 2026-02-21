@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 import PageHeader from "@/components/PageHeader";
 import { Plus, Pill, Trash2, Edit2, ArrowLeft, Bell, BellOff } from "lucide-react";
 import { useDbMedications, useSaveMedication, useDeleteMedication } from "@/hooks/useMedications";
@@ -192,6 +193,7 @@ const MedicationsPage = () => {
 
   return (
     <>
+      <SEOHead title="Medications" description="Track and manage your MS medications, dosages and reminders." />
       <PageHeader
         title="Medications"
         subtitle="Manage your medication schedule"

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import SEOHead from "@/components/SEOHead";
 import DigestPreviewCard from "@/components/DigestPreviewCard";
 import PageHeader from "@/components/PageHeader";
 import { Link } from "react-router-dom";
@@ -367,6 +368,7 @@ const ProfilePage = () => {
 
   return (
     <>
+      <SEOHead title="Profile" description="Manage your LiveWithMS account, preferences and notification settings." />
       <PageHeader title="Profile" subtitle="Your MS companion settings" />
       <div className="mx-auto max-w-lg px-4 py-4 space-y-4 animate-fade-in">
         {/* User info */}

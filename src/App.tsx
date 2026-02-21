@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import AppLoadingSkeleton from "@/components/PageSkeleton";
@@ -12,30 +13,34 @@ import { useProfile } from "@/hooks/useProfile";
 import ThemeWrapper from "@/components/ThemeWrapper";
 import AppShell from "./components/AppShell";
 import AnimatedPage from "./components/AnimatedPage";
+
+// Eagerly loaded (landing + auth — needed immediately)
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
-import OnboardingPage from "./pages/OnboardingPage";
-import TodayPage from "./pages/TodayPage";
-import TrackPage from "./pages/TrackPage";
-import InsightsPage from "./pages/InsightsPage";
-import LearnPage from "./pages/LearnPage";
-import CommunityPage from "./pages/CommunityPage";
-import ProfilePage from "./pages/ProfilePage";
-import JournalPage from "./pages/JournalPage";
-import MedicationsPage from "./pages/MedicationsPage";
-import AppointmentsPage from "./pages/AppointmentsPage";
-import ReportsPage from "./pages/ReportsPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import ComingSoonPage from "./pages/ComingSoonPage";
-import FeaturesRoadmapPage from "./pages/FeaturesRoadmapPage";
-import NotificationSettingsPage from "./pages/NotificationSettingsPage";
-import MyMSHistoryPage from "./pages/MyMSHistoryPage";
-import RelapsesPage from "./pages/RelapsesPage";
-import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
-import AdminPage from "./pages/AdminPage";
-import TermsPage from "./pages/TermsPage";
-import NotFound from "./pages/NotFound";
+
+// Lazy-loaded pages
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
+const TodayPage = lazy(() => import("./pages/TodayPage"));
+const TrackPage = lazy(() => import("./pages/TrackPage"));
+const InsightsPage = lazy(() => import("./pages/InsightsPage"));
+const LearnPage = lazy(() => import("./pages/LearnPage"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const JournalPage = lazy(() => import("./pages/JournalPage"));
+const MedicationsPage = lazy(() => import("./pages/MedicationsPage"));
+const AppointmentsPage = lazy(() => import("./pages/AppointmentsPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const ComingSoonPage = lazy(() => import("./pages/ComingSoonPage"));
+const FeaturesRoadmapPage = lazy(() => import("./pages/FeaturesRoadmapPage"));
+const NotificationSettingsPage = lazy(() => import("./pages/NotificationSettingsPage"));
+const MyMSHistoryPage = lazy(() => import("./pages/MyMSHistoryPage"));
+const RelapsesPage = lazy(() => import("./pages/RelapsesPage"));
+const CommunityGuidelinesPage = lazy(() => import("./pages/CommunityGuidelinesPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -47,13 +52,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading || profileLoading) return <AppLoadingSkeleton />;
   if (!user) return <Navigate to="/auth" replace />;
 
-  // Redirect to onboarding if not completed (but don't redirect if already on /onboarding)
   if (profile && !profile.onboarding_completed && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
 };
+
+const LazyPage = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<AppLoadingSkeleton />}>
+    <AnimatedPage>{children}</AnimatedPage>
+  </Suspense>
+);
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -64,28 +74,28 @@ const AnimatedRoutes = () => {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={user ? <Navigate to="/today" replace /> : <AnimatedPage><Index /></AnimatedPage>} />
         <Route path="/auth" element={user ? <Navigate to="/today" replace /> : <AnimatedPage><AuthPage /></AnimatedPage>} />
-        <Route path="/reset-password" element={<AnimatedPage><ResetPasswordPage /></AnimatedPage>} />
-        <Route path="/onboarding" element={<ProtectedRoute><AnimatedPage><OnboardingPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/today" element={<ProtectedRoute><AnimatedPage><TodayPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/track" element={<ProtectedRoute><AnimatedPage><TrackPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/insights" element={<ProtectedRoute><AnimatedPage><InsightsPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/learn" element={<ProtectedRoute><AnimatedPage><LearnPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/community" element={<ProtectedRoute><AnimatedPage><CommunityPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/journal" element={<ProtectedRoute><AnimatedPage><JournalPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><AnimatedPage><ProfilePage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/medications" element={<ProtectedRoute><AnimatedPage><MedicationsPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/appointments" element={<ProtectedRoute><AnimatedPage><AppointmentsPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute><AnimatedPage><ReportsPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/privacy" element={<ProtectedRoute><AnimatedPage><PrivacyPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/notifications/settings" element={<ProtectedRoute><AnimatedPage><NotificationSettingsPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/my-ms-history" element={<ProtectedRoute><AnimatedPage><MyMSHistoryPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/relapses" element={<ProtectedRoute><AnimatedPage><RelapsesPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/community/guidelines" element={<ProtectedRoute><AnimatedPage><CommunityGuidelinesPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/roadmap" element={<ProtectedRoute><AnimatedPage><FeaturesRoadmapPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/coming-soon/:feature" element={<ProtectedRoute><AnimatedPage><ComingSoonPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AnimatedPage><AdminPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/terms" element={<ProtectedRoute><AnimatedPage><TermsPage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
+        <Route path="/reset-password" element={<LazyPage><ResetPasswordPage /></LazyPage>} />
+        <Route path="/onboarding" element={<ProtectedRoute><LazyPage><OnboardingPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/today" element={<ProtectedRoute><LazyPage><TodayPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/track" element={<ProtectedRoute><LazyPage><TrackPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/insights" element={<ProtectedRoute><LazyPage><InsightsPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/learn" element={<ProtectedRoute><LazyPage><LearnPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/community" element={<ProtectedRoute><LazyPage><CommunityPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/journal" element={<ProtectedRoute><LazyPage><JournalPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><LazyPage><ProfilePage /></LazyPage></ProtectedRoute>} />
+        <Route path="/medications" element={<ProtectedRoute><LazyPage><MedicationsPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/appointments" element={<ProtectedRoute><LazyPage><AppointmentsPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><LazyPage><ReportsPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/privacy" element={<ProtectedRoute><LazyPage><PrivacyPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/notifications/settings" element={<ProtectedRoute><LazyPage><NotificationSettingsPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/my-ms-history" element={<ProtectedRoute><LazyPage><MyMSHistoryPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/relapses" element={<ProtectedRoute><LazyPage><RelapsesPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/community/guidelines" element={<ProtectedRoute><LazyPage><CommunityGuidelinesPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/roadmap" element={<ProtectedRoute><LazyPage><FeaturesRoadmapPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/coming-soon/:feature" element={<ProtectedRoute><LazyPage><ComingSoonPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><LazyPage><AdminPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/terms" element={<ProtectedRoute><LazyPage><TermsPage /></LazyPage></ProtectedRoute>} />
+        <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
       </Routes>
     </AnimatePresence>
   );

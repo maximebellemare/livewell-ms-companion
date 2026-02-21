@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import SEOHead from "@/components/SEOHead";
 import AnimatedList, { listItemVariants } from "@/components/AnimatedList";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -53,6 +54,7 @@ const LearnPage = () => {
 
   return (
     <>
+      <SEOHead title="Learn" description="Evidence-based articles and resources about living with multiple sclerosis." />
       <PageHeader title="Learn" subtitle="Evidence-based MS education" />
       <div className="mx-auto max-w-lg px-4 py-4">
         {/* Learning progress summary */}

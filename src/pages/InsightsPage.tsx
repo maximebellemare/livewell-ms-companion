@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import SEOHead from "@/components/SEOHead";
 import { ChevronDown } from "lucide-react";
 import AnimatedList, { listItemVariants } from "@/components/AnimatedList";
 import { motion } from "framer-motion";
@@ -225,6 +226,7 @@ const InsightsPage = () => {
 
   return (
     <>
+      <SEOHead title="Insights" description="Visualize MS symptom trends, correlations and relapse patterns over time." />
       <PageHeader title="Insights" subtitle="Your health at a glance" />
       <div className="mx-auto max-w-lg px-4 py-4 pb-8">
 
