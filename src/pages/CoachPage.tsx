@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, Heart, CalendarClock, HelpCircle, ArrowLeft, Sparkles } from "lucide-react";
+import { BarChart3, Heart, CalendarClock, HelpCircle, ArrowLeft, Sparkles, History } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
 import CoachChat from "@/components/coach/CoachChat";
-import type { CoachMode } from "@/hooks/useCoach";
+import CoachHistory from "@/components/coach/CoachHistory";
+import { useCoach, type CoachMode } from "@/hooks/useCoach";
 
 const modes: { id: CoachMode; icon: typeof Heart; label: string; description: string; color: string }[] = [
   {
@@ -39,6 +40,23 @@ const modes: { id: CoachMode; icon: typeof Heart; label: string; description: st
 
 const CoachPage = () => {
   const [activeMode, setActiveMode] = useState<CoachMode | null>(null);
+  const [resumeSessionId, setResumeSessionId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const handleNewChat = (mode: CoachMode) => {
+    setResumeSessionId(null);
+    setActiveMode(mode);
+  };
+
+  const handleResumeSession = useCallback((sessionId: string, mode: CoachMode) => {
+    setResumeSessionId(sessionId);
+    setActiveMode(mode);
+  }, []);
+
+  const handleBack = () => {
+    setActiveMode(null);
+    setResumeSessionId(null);
+  };
 
   return (
     <>
@@ -56,7 +74,7 @@ const CoachPage = () => {
           >
             <div className="flex items-center gap-3 px-4 pt-4 pb-2">
               <button
-                onClick={() => setActiveMode(null)}
+                onClick={handleBack}
                 className="flex items-center justify-center h-9 w-9 rounded-xl bg-secondary text-foreground hover:bg-accent transition-colors"
                 aria-label="Back to coach menu"
               >
@@ -68,7 +86,7 @@ const CoachPage = () => {
                 </h2>
               </div>
             </div>
-            <CoachChat mode={activeMode} />
+            <CoachChat mode={activeMode} resumeSessionId={resumeSessionId} />
           </motion.div>
         ) : (
           <motion.div
@@ -89,14 +107,14 @@ const CoachPage = () => {
             </div>
 
             {/* Mode cards */}
-            <div className="px-4 space-y-3 pb-6">
+            <div className="px-4 space-y-3">
               {modes.map((m, i) => (
                 <motion.button
                   key={m.id}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08, duration: 0.3 }}
-                  onClick={() => setActiveMode(m.id)}
+                  onClick={() => handleNewChat(m.id)}
                   className="w-full flex items-start gap-4 rounded-2xl border border-border bg-card p-5 text-left shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:border-primary/30 transition-all active:scale-[0.98]"
                 >
                   <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary ${m.color}`}>
@@ -108,6 +126,31 @@ const CoachPage = () => {
                   </div>
                 </motion.button>
               ))}
+            </div>
+
+            {/* History section */}
+            <div className="mt-6">
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="flex items-center gap-2 px-4 mb-2 w-full text-left"
+              >
+                <History className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">Recent Conversations</span>
+                <span className="text-xs text-muted-foreground ml-auto">{showHistory ? "Hide" : "Show"}</span>
+              </button>
+              <AnimatePresence>
+                {showHistory && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <CoachHistory onSelectSession={handleResumeSession} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
