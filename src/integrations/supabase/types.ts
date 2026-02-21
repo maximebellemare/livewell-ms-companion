@@ -401,6 +401,74 @@ export type Database = {
         }
         Relationships: []
       }
+      energy_activities: {
+        Row: {
+          budget_id: string
+          completed: boolean
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          spoon_cost: number
+          user_id: string
+        }
+        Insert: {
+          budget_id: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          spoon_cost?: number
+          user_id: string
+        }
+        Update: {
+          budget_id?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          spoon_cost?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "energy_activities_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "energy_budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      energy_budgets: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          total_spoons: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          total_spoons?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          total_spoons?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       learn_articles: {
         Row: {
           body: string
