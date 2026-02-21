@@ -19,6 +19,7 @@ interface ReportData {
   includeRelapses?: boolean;
   includeHydration?: boolean;
   includeRiskScore?: boolean;
+  includeTrendCharts?: boolean;
   aiInsight?: string | null;
   entries: DailyEntry[];
   profile: Profile | null;
@@ -73,6 +74,127 @@ function addSubtext(doc: jsPDF, text: string, y: number): number {
 function checkPageBreak(doc: jsPDF, y: number, needed: number): number {
   if (y + needed > 275) { doc.addPage(); return 20; }
   return y;
+}
+
+function drawTrendChart(
+  doc: jsPDF,
+  entries: DailyEntry[],
+  y: number,
+  title: string,
+  getVal: (e: DailyEntry) => number | null | undefined,
+  color: [number, number, number],
+  maxVal: number,
+  unitLabel: string,
+): number {
+  const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+  const points = sorted
+    .map((e) => ({ date: e.date, val: getVal(e) }))
+    .filter((p): p is { date: string; val: number } => p.val != null);
+
+  if (points.length < 2) return y;
+
+  const chartX = 24;
+  const chartW = 160;
+  const chartH = 36;
+  const chartTop = y;
+  const chartBottom = chartTop + chartH;
+
+  // Title
+  doc.setTextColor(...DARK);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.text(title, 14, chartTop - 2);
+
+  // Y-axis labels
+  doc.setTextColor(...GRAY);
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.text(String(maxVal), chartX - 2, chartTop + 3, { align: "right" });
+  doc.text(String(Math.round(maxVal / 2)), chartX - 2, chartTop + chartH / 2 + 1, { align: "right" });
+  doc.text("0", chartX - 2, chartBottom + 1, { align: "right" });
+
+  // Grid lines
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.15);
+  for (let i = 0; i <= 4; i++) {
+    const gy = chartTop + (chartH / 4) * i;
+    doc.line(chartX, gy, chartX + chartW, gy);
+  }
+
+  // Area fill
+  const xStep = chartW / (points.length - 1);
+  doc.setFillColor(color[0], color[1], color[2]);
+  // Area fill region
+
+  // Draw the line and collect coordinates
+  const coords: { x: number; py: number }[] = [];
+  for (let i = 0; i < points.length; i++) {
+    const px = chartX + i * xStep;
+    const normalized = Math.min(points[i].val / maxVal, 1);
+    const py = chartBottom - normalized * chartH;
+    coords.push({ x: px, py });
+  }
+
+  // Light fill under curve
+  doc.setFillColor(color[0], color[1], color[2]);
+  doc.setDrawColor(color[0], color[1], color[2]);
+
+  // Draw filled area using triangles
+  for (let i = 0; i < coords.length - 1; i++) {
+    const c1 = coords[i];
+    const c2 = coords[i + 1];
+    // Triangle 1: c1.top, c2.top, c1.bottom
+    doc.setFillColor(color[0], color[1], color[2]);
+    // Use a very light rectangle approximation for fill
+  }
+
+  // Draw the trend line
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(0.6);
+  for (let i = 0; i < coords.length - 1; i++) {
+    doc.line(coords[i].x, coords[i].py, coords[i + 1].x, coords[i + 1].py);
+  }
+
+  // Data points
+  doc.setFillColor(color[0], color[1], color[2]);
+  for (const c of coords) {
+    doc.circle(c.x, c.py, 0.8, "F");
+  }
+
+  // X-axis date labels (show ~5–6 evenly spaced)
+  doc.setTextColor(...GRAY);
+  doc.setFontSize(6);
+  doc.setFont("helvetica", "normal");
+  const labelCount = Math.min(6, points.length);
+  const labelStep = Math.max(1, Math.floor((points.length - 1) / (labelCount - 1)));
+  for (let i = 0; i < points.length; i += labelStep) {
+    const px = chartX + i * xStep;
+    doc.text(format(parseISO(points[i].date), "M/d"), px, chartBottom + 5, { align: "center" });
+  }
+  // Always show last date
+  if ((points.length - 1) % labelStep !== 0) {
+    const last = points.length - 1;
+    doc.text(format(parseISO(points[last].date), "M/d"), chartX + last * xStep, chartBottom + 5, { align: "center" });
+  }
+
+  // Unit label
+  doc.setTextColor(...GRAY);
+  doc.setFontSize(6);
+  doc.text(unitLabel, chartX + chartW + 2, chartTop + chartH / 2 + 1);
+
+  // Average line
+  const avgVal = points.reduce((s, p) => s + p.val, 0) / points.length;
+  const avgY = chartBottom - (avgVal / maxVal) * chartH;
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(0.25);
+  doc.setLineDashPattern?.([2, 2], 0);
+  doc.line(chartX, avgY, chartX + chartW, avgY);
+  doc.setLineDashPattern?.([], 0);
+  doc.setFontSize(6);
+  doc.setTextColor(color[0], color[1], color[2]);
+  doc.text(`avg ${avgVal.toFixed(1)}`, chartX + chartW + 2, avgY + 1);
+
+  return chartBottom + 10;
 }
 
 export function generateReportFromData(data: ReportData): Blob {
@@ -131,6 +253,23 @@ export function generateReportFromData(data: ReportData): Blob {
       alternateRowStyles: { fillColor: LIGHT_BG }, margin: { left: 14, right: 14 },
     });
     y = (doc as any).lastAutoTable.finalY + 6;
+
+    // Mood & Sleep Trend Charts
+    if (data.includeTrendCharts && entries.length >= 3) {
+      y = checkPageBreak(doc, y, 110);
+      y = addSectionTitle(doc, "Mood & Sleep Trends", y);
+      y += 4;
+
+      const MOOD_COLOR: [number, number, number] = [59, 130, 246]; // blue
+      const SLEEP_COLOR: [number, number, number] = [139, 92, 246]; // purple
+
+      y = drawTrendChart(doc, entries, y, "Mood (0–10, higher = better)", (e) => e.mood, MOOD_COLOR, 10, "/10");
+      y = checkPageBreak(doc, y, 55);
+      y = drawTrendChart(doc, entries, y, "Sleep (hours)", (e) => e.sleep_hours, SLEEP_COLOR, 12, "hrs");
+
+      y = addSubtext(doc, "Charts show daily values with dashed average line over the report period.", y);
+      y += 6;
+    }
 
     // Daily detail
     if (entries.length > 0) {
