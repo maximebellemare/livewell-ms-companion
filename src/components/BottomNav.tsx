@@ -16,12 +16,14 @@ const mainTabs = [
 
 type MoreSection = {
   heading: string;
+  emoji: string;
   items: { to: string; icon: typeof Home; label: string }[];
 };
 
 const moreSections: MoreSection[] = [
   {
     heading: "Health",
+    emoji: "❤️",
     items: [
       { to: "/my-ms-history", icon: History,       label: "My MS History" },
       { to: "/relapses",      icon: AlertTriangle,  label: "Relapses" },
@@ -32,6 +34,7 @@ const moreSections: MoreSection[] = [
   },
   {
     heading: "Social",
+    emoji: "💬",
     items: [
       { to: "/messages", icon: MessageCircle, label: "Messages" },
       { to: "/badges",   icon: Award,         label: "Badges" },
@@ -40,6 +43,7 @@ const moreSections: MoreSection[] = [
   },
   {
     heading: "Account",
+    emoji: "⚙️",
     items: [
       { to: "/profile", icon: UserCog, label: "Profile & Settings" },
     ],
@@ -235,7 +239,7 @@ const BottomNav = () => {
                               <div className="my-1.5 border-t border-border/50" />
                             )}
                             <p className="px-4 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                              {section.heading}
+                              <span className="mr-1">{section.emoji}</span>{section.heading}
                             </p>
                             <div className="space-y-0.5">
                               {section.items.map(({ to, icon: Icon, label }) => {
