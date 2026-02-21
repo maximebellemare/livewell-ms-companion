@@ -56,7 +56,8 @@ const features: Record<string, FeatureInfo> = {
     description: "Sync data from your Apple Watch, Fitbit, or other wearables to automatically enrich your health logs.",
     icon: <Watch className="h-8 w-8" />,
     phase: 3,
-    status: "soon",
+    status: "done",
+    route: "/wearables",
   },
   "cognitive-games": {
     title: "Cognitive Games",
