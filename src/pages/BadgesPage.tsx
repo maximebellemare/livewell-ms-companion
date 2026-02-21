@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
-import { Lock, Share2, Trophy } from "lucide-react";
+import { Lock, Share2, Trophy, Clock, Grid3X3, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import BadgeDetailDialog from "@/components/badges/BadgeDetailDialog";
@@ -107,6 +107,7 @@ const BadgesPage = () => {
   const { data: badgeEvents = [] } = useBadgeEvents();
   const recordBadge = useRecordBadgeEvent();
   const [selectedBadge, setSelectedBadge] = useState<BadgeDef | null>(null);
+  const [view, setView] = useState<"grid" | "timeline">("grid");
 
   // Map badge_id → earned_at for quick lookups
   const earnedAtMap = useMemo(() => {
@@ -115,6 +116,17 @@ const BadgesPage = () => {
       map.set(ev.badge_id, ev.earned_at);
     }
     return map;
+  }, [badgeEvents]);
+
+  // Timeline: earned badges sorted chronologically (newest first)
+  const timelineItems = useMemo(() => {
+    return badgeEvents
+      .map((ev) => {
+        const badge = BADGE_DEFS.find((b) => b.id === ev.badge_id);
+        if (!badge) return null;
+        return { ...badge, earnedAt: ev.earned_at };
+      })
+      .filter(Boolean) as (BadgeDef & { earnedAt: string })[];
   }, [badgeEvents]);
 
   const streakForCategory = useCallback(
@@ -259,37 +271,119 @@ const BadgesPage = () => {
           )}
         </div>
 
-        {/* Badge categories */}
-        {categories.map((cat) => {
-          const badges = BADGE_DEFS.filter((b) => b.category === cat);
-          const catEarned = badges.filter((b) => earnedSet.has(b.id)).length;
-          const meta = CATEGORY_LABELS[cat];
+        {/* View toggle */}
+        <div className="flex items-center gap-2 justify-center">
+          <button
+            onClick={() => setView("grid")}
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+              view === "grid"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Grid3X3 className="h-3.5 w-3.5" />
+            Grid
+          </button>
+          <button
+            onClick={() => setView("timeline")}
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+              view === "timeline"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Clock className="h-3.5 w-3.5" />
+            Timeline
+          </button>
+        </div>
 
-          return (
-            <div key={cat} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground">
-                  {meta.emoji} {meta.label}
-                </p>
-                <span className="text-[10px] text-muted-foreground">
-                  {catEarned}/{badges.length}
-                </span>
+        {view === "grid" ? (
+          <>
+            {/* Badge categories */}
+            {categories.map((cat) => {
+              const badges = BADGE_DEFS.filter((b) => b.category === cat);
+              const catEarned = badges.filter((b) => earnedSet.has(b.id)).length;
+              const meta = CATEGORY_LABELS[cat];
+
+              return (
+                <div key={cat} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">
+                      {meta.emoji} {meta.label}
+                    </p>
+                    <span className="text-[10px] text-muted-foreground">
+                      {catEarned}/{badges.length}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {badges.map((badge, i) => (
+                      <BadgeCard
+                        key={badge.id}
+                        badge={badge}
+                        earned={earnedSet.has(badge.id)}
+                        earnedAt={earnedAtMap.get(badge.id)}
+                        index={i}
+                        onClick={() => setSelectedBadge(badge)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        ) : (
+          /* Timeline view */
+          <div className="space-y-1">
+            {timelineItems.length === 0 ? (
+              <div className="rounded-2xl bg-card p-6 text-center space-y-2">
+                <Clock className="h-6 w-6 text-muted-foreground mx-auto" />
+                <p className="text-sm text-muted-foreground">No badges earned yet</p>
+                <p className="text-xs text-muted-foreground">Keep logging to unlock your first badge!</p>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                {badges.map((badge, i) => (
-                  <BadgeCard
-                    key={badge.id}
-                    badge={badge}
-                    earned={earnedSet.has(badge.id)}
-                    earnedAt={earnedAtMap.get(badge.id)}
-                    index={i}
-                    onClick={() => setSelectedBadge(badge)}
-                  />
-                ))}
+            ) : (
+              <div className="relative">
+                {/* Vertical line */}
+                <div className="absolute left-5 top-3 bottom-3 w-px bg-border" />
+
+                {timelineItems.map((item, i) => {
+                  const meta = CATEGORY_LABELS[item.category];
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.08, type: "spring", stiffness: 300, damping: 24 }}
+                      onClick={() => setSelectedBadge(item)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === "Enter" && setSelectedBadge(item)}
+                      className="relative flex items-start gap-4 py-3 pl-2 cursor-pointer group"
+                    >
+                      {/* Dot on the timeline */}
+                      <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/30 text-lg group-hover:bg-primary/20 transition-colors">
+                        {item.emoji}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-foreground truncate">{item.name}</p>
+                          <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[9px] font-medium text-muted-foreground">
+                            {meta.emoji} {meta.label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                        <div className="flex items-center gap-1 mt-1 text-[10px] text-primary/70 font-medium">
+                          <Calendar className="h-3 w-3" />
+                          {format(new Date(item.earnedAt), "MMMM d, yyyy")}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
-            </div>
-          );
-        })}
+            )}
+          </div>
+        )}
 
         <BadgeDetailDialog
           badge={selectedBadge}
