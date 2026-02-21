@@ -1,11 +1,12 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { format, parseISO, differenceInDays } from "date-fns";
+import { format, parseISO, differenceInDays, subDays } from "date-fns";
 import type { DailyEntry } from "@/hooks/useEntries";
 import type { Profile } from "@/hooks/useProfile";
 import type { DbMedication, DbMedicationLog } from "@/hooks/useMedications";
 import type { DbAppointment } from "@/hooks/useAppointments";
 import type { Relapse } from "@/hooks/useRelapses";
+import { computeRisk, computeWeeklyScores } from "@/components/relapse-risk/computeRisk";
 
 interface ReportData {
   startDate: string;
@@ -17,6 +18,7 @@ interface ReportData {
   includeNotes: boolean;
   includeRelapses?: boolean;
   includeHydration?: boolean;
+  includeRiskScore?: boolean;
   aiInsight?: string | null;
   entries: DailyEntry[];
   profile: Profile | null;
@@ -156,7 +158,66 @@ export function generateReportFromData(data: ReportData): Blob {
     }
   }
 
-  // AI Insight
+  // Relapse Risk Score
+  if (data.includeRiskScore && entries.length >= 4) {
+    y = checkPageBreak(doc, y, 50);
+    y = addSectionTitle(doc, "Relapse Risk Assessment", y);
+
+    const endDate = parseISO(data.endDate);
+    const recent = entries.filter((e) => {
+      const d = e.date;
+      const cutoff = format(subDays(endDate, 7), "yyyy-MM-dd");
+      return d > cutoff && d <= data.endDate;
+    });
+    const older = entries.filter((e) => {
+      const d = e.date;
+      const cutoffRecent = format(subDays(endDate, 7), "yyyy-MM-dd");
+      const cutoffOlder = format(subDays(endDate, 14), "yyyy-MM-dd");
+      return d > cutoffOlder && d <= cutoffRecent;
+    });
+
+    const risk = computeRisk(recent, older);
+    const weeklyScores = computeWeeklyScores(entries, endDate);
+
+    const levelColor: Record<string, [number, number, number]> = {
+      low: [34, 139, 34],
+      moderate: [218, 165, 32],
+      elevated: [232, 117, 26],
+      high: [200, 30, 30],
+    };
+    const color = levelColor[risk.level] || ORANGE;
+    const levelLabel = risk.level.charAt(0).toUpperCase() + risk.level.slice(1);
+
+    autoTable(doc, {
+      startY: y, head: [], body: [
+        ["Risk Score", `${risk.score}/100`],
+        ["Risk Level", levelLabel],
+        ...(weeklyScores.length > 0 ? [["4-Week Trend", weeklyScores.map((s) => `${s}`).join(" → ")]] : []),
+      ], theme: "plain",
+      styles: { fontSize: 9, cellPadding: 2.5, textColor: DARK },
+      columnStyles: { 0: { fontStyle: "bold", cellWidth: 40, textColor: color }, 1: { cellWidth: "auto" } },
+      margin: { left: 14, right: 14 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 4;
+
+    if (risk.factors.length > 0) {
+      doc.setTextColor(...GRAY);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text("Contributing factors:", 14, y);
+      y += 5;
+      for (const factor of risk.factors) {
+        y = checkPageBreak(doc, y, 6);
+        doc.text(`  •  ${factor}`, 14, y);
+        y += 4.5;
+      }
+      y += 4;
+    }
+
+    y = addSubtext(doc, "Based on 7-day symptom trends vs. prior 7 days. Not a clinical assessment.", y);
+    y += 6;
+  }
+
   if (data.aiInsight) {
     y = checkPageBreak(doc, y, 40);
     y = addSectionTitle(doc, "AI Health Insight", y);
