@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import { subDays, format, startOfWeek } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import SymptomSlider from "@/components/SymptomSlider";
@@ -327,7 +328,7 @@ const TodayPage = () => {
           </Link>
         }
       />
-      <div className="mx-auto max-w-lg space-y-3 px-4 py-3">
+      <StaggerContainer className="mx-auto max-w-lg space-y-3 px-4 py-3">
         {todayLoading ? (
           <div className="space-y-3 animate-fade-in">
             <Skeleton className="h-14 w-full rounded-xl" />
@@ -342,40 +343,45 @@ const TodayPage = () => {
         <>
 
         {isMilestone && (
-          <StreakMilestoneBanner
-            streak={activeMilestoneStreak}
-            onDismiss={() => setMilestoneDismissed(true)}
-          />
+          <StaggerItem>
+            <StreakMilestoneBanner
+              streak={activeMilestoneStreak}
+              onDismiss={() => setMilestoneDismissed(true)}
+            />
+          </StaggerItem>
         )}
 
-        <DiagnosisAnniversaryCard />
-        <HeatAlertCard />
+        <StaggerItem><DiagnosisAnniversaryCard /></StaggerItem>
+        <StaggerItem><HeatAlertCard /></StaggerItem>
 
         {!todayLoading && alreadyLogged && (
-          <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/8 px-4 py-3 animate-fade-in">
-            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">Already logged today 🧡</p>
-              <p className="text-xs text-muted-foreground">Your entry is saved — update it any time below.</p>
+          <StaggerItem>
+            <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/8 px-4 py-3">
+              <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Already logged today 🧡</p>
+                <p className="text-xs text-muted-foreground">Your entry is saved — update it any time below.</p>
+              </div>
             </div>
-          </div>
+          </StaggerItem>
         )}
 
-        <MondayRecapCard />
-        <WeeklySummaryBanner />
-        <StreakBadge />
-        <WeekStreakBadge />
-        <BadgeNudgeCard streakData={{ logStreak: streak, weekStreak, medStreak, relapseStreak, cogStreak }} />
+        <StaggerItem><MondayRecapCard /></StaggerItem>
+        <StaggerItem><WeeklySummaryBanner /></StaggerItem>
+        <StaggerItem><StreakBadge /></StaggerItem>
+        <StaggerItem><WeekStreakBadge /></StaggerItem>
+        <StaggerItem><BadgeNudgeCard streakData={{ logStreak: streak, weekStreak, medStreak, relapseStreak, cogStreak }} /></StaggerItem>
 
-        {/* Goal tracking progress rings */}
-        <GoalTrackingDashboard />
+        <StaggerItem><GoalTrackingDashboard /></StaggerItem>
 
-        {/* Section: Your Week */}
-        <p className="section-label pt-1">
-          📊 Your Week at a Glance
-        </p>
+        <StaggerItem>
+          <p className="section-label pt-1">
+            📊 Your Week at a Glance
+          </p>
+        </StaggerItem>
 
         {/* 7-day sparklines */}
+        <StaggerItem>
         <div data-tour="sparklines" ref={gridRef} className={`grid grid-cols-2 gap-1.5${openPanel ? " pointer-events-none" : ""}`}>
           <SymptomSparkline entries={weekEntries} metric="mood" label="Mood" emoji="😊" higherIsBetter
             saved={savedMetric === "mood"}
@@ -411,6 +417,7 @@ const TodayPage = () => {
             onClick={() => setOpenPanel((p) => p === "stress" ? null : "stress")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "stress" } })} />
         </div>
+        </StaggerItem>
 
         {/* Inline quick-log panels */}
         {openPanel === "mood" && (
@@ -615,41 +622,20 @@ const TodayPage = () => {
         </div>
 
         {/* Section: Wellness */}
-        <p className="section-label pt-1">
-          ❤️ Wellness
-        </p>
+        <StaggerItem>
+          <p className="section-label pt-1">❤️ Wellness</p>
+        </StaggerItem>
 
-        {/* Medication checklist */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.25s" }}>
-          <MedicationChecklist />
-        </div>
+        <StaggerItem><MedicationChecklist /></StaggerItem>
+        <StaggerItem><UpcomingAppointments /></StaggerItem>
+        <StaggerItem><HydrationCard /></StaggerItem>
+        <StaggerItem><RelapseRiskIndicator /></StaggerItem>
+        <StaggerItem><RelapseFreeStreakCompact /></StaggerItem>
 
-        {/* Upcoming appointments */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.28s" }}>
-          <UpcomingAppointments />
-        </div>
-
-        {/* Hydration tracker */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.3s" }}>
-          <HydrationCard />
-        </div>
-
-        {/* Relapse risk indicator */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.32s" }}>
-          <RelapseRiskIndicator />
-        </div>
-
-        {/* Relapse-free streak */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.34s" }}>
-          <RelapseFreeStreakCompact />
-        </div>
-
-        {/* Reminders */}
         {/* Section: Quick Actions */}
-        <div data-tour="reminders" className="space-y-2 animate-slide-up" style={{ animationDelay: "0.35s" }}>
-          <p className="section-label pt-1">
-            ⚡ Quick Actions
-          </p>
+        <StaggerItem>
+        <div data-tour="reminders" className="space-y-2">
+          <p className="section-label pt-1">⚡ Quick Actions</p>
           <QuickCard emoji="💊" title="Medications" subtitle="Manage your medications" onClick={() => navigate("/medications")} />
           <QuickCard emoji="📅" title="Appointments" subtitle="View & manage appointments" onClick={() => navigate("/appointments")} />
           <button
@@ -686,9 +672,11 @@ const TodayPage = () => {
             }}
           />
         </div>
+        </StaggerItem>
 
         {/* Log button */}
-        <div className="pb-8 animate-slide-up" style={{ animationDelay: "0.4s" }}>
+        <StaggerItem>
+        <div className="pb-8">
           <button
             onClick={handleLog}
             disabled={saveEntry.isPending}
@@ -700,9 +688,10 @@ const TodayPage = () => {
             ⚕️ This is not medical advice. Always consult your neurologist.
           </p>
         </div>
+        </StaggerItem>
         </>
         )}
-      </div>
+      </StaggerContainer>
 
 
       {/* Floating action button */}

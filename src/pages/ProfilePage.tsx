@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import SEOHead from "@/components/SEOHead";
 import DigestPreviewCard from "@/components/DigestPreviewCard";
 import PageHeader from "@/components/PageHeader";
@@ -448,8 +449,9 @@ const ProfilePage = () => {
     <>
       <SEOHead title="Profile" description="Manage your LiveWithMS account, preferences and notification settings." />
       <PageHeader title="Profile" subtitle="Your MS companion settings" showBack />
-      <div className="mx-auto max-w-lg px-4 py-4 space-y-4 animate-fade-in">
+      <StaggerContainer className="mx-auto max-w-lg px-4 py-4 space-y-4">
         {/* User info */}
+        <StaggerItem>
         <div className="card-base">
           <div className="flex items-center gap-3">
             <AvatarUpload currentUrl={(profile as any)?.avatar_url ?? null} />
@@ -529,8 +531,10 @@ const ProfilePage = () => {
             </Link>
           )}
         </div>
+        </StaggerItem>
 
         {/* MS Details */}
+        <StaggerItem>
         <div data-tour="profile-ms-details" className="card-base space-y-3">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
@@ -794,8 +798,10 @@ const ProfilePage = () => {
             Save Goals
           </button>
         </div>
+        </StaggerItem>
 
         {/* Neurologist details */}
+        <StaggerItem>
         <div data-tour="profile-neurologist" className="card-base space-y-3">
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-primary" />
@@ -852,8 +858,10 @@ const ProfilePage = () => {
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </Link>
+        </StaggerItem>
 
         {/* Settings */}
+        <StaggerItem>
         <div className="space-y-1">
           <p data-tour="profile-notifications" className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Settings</p>
 
@@ -1183,8 +1191,10 @@ const ProfilePage = () => {
             </div>
           </button>
         </div>
+        </StaggerItem>
 
         {/* Delete Account */}
+        <StaggerItem>
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -1236,8 +1246,10 @@ const ProfilePage = () => {
             </div>
           )}
         </div>
+        </StaggerItem>
 
         {/* Crisis resources */}
+        <StaggerItem>
         <div className="rounded-xl border border-border bg-card p-4 text-center">
           <p className="text-xs font-medium text-foreground">Need support?</p>
           <a href="https://www.nationalmssociety.org" target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline">
@@ -1245,11 +1257,14 @@ const ProfilePage = () => {
           </a>
           <p className="mt-2 text-[10px] text-muted-foreground">Crisis Line: 988 (Suicide & Crisis Lifeline)</p>
         </div>
+        </StaggerItem>
 
+        <StaggerItem>
         <p className="pb-4 text-center text-[10px] text-muted-foreground">
           LiveWithMS v1.0 · Not medical advice · © 2026
         </p>
-      </div>
+        </StaggerItem>
+      </StaggerContainer>
     </>
   );
 };
