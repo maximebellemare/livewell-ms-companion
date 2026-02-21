@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Home, BarChart3, TrendingUp, NotebookPen, Phone, Users, MoreHorizontal, MessageCircle, BookOpen, AlertTriangle, FileText, CalendarDays, Pill, UserCog, Award, History } from "lucide-react";
+import { Home, BarChart3, TrendingUp, NotebookPen, Phone, Users, MoreHorizontal, MessageCircle, BookOpen, AlertTriangle, FileText, CalendarDays, Pill, UserCog, Award, History, Map } from "lucide-react";
 import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
 import { useUnreadCommunityPosts } from "@/hooks/useUnreadCommunity";
 import { useUnreadMessagesCount } from "@/hooks/useMessages";
@@ -39,6 +39,13 @@ const moreSections: MoreSection[] = [
       { to: "/messages", icon: MessageCircle, label: "Messages" },
       { to: "/badges",   icon: Award,         label: "Badges" },
       { to: "/learn",    icon: BookOpen,       label: "Learn" },
+    ],
+  },
+  {
+    heading: "Info",
+    emoji: "🗺️",
+    items: [
+      { to: "/roadmap", icon: Map, label: "Roadmap" },
     ],
   },
   {
