@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Thermometer, Dumbbell, Users, MessageCircle, Battery, Watch, Brain, Stethoscope, CreditCard, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, Thermometer, Dumbbell, Users, MessageCircle, Battery, Watch, Brain, CreditCard, CheckCircle2 } from "lucide-react";
 
 interface FeatureInfo {
   title: string;
@@ -65,13 +65,6 @@ const features: Record<string, FeatureInfo> = {
     phase: 3,
     status: "done",
     route: "/cognitive",
-  },
-  "therapist-directory": {
-    title: "Therapist Directory",
-    description: "Find and book appointments with MS-experienced therapists, counselors, and rehabilitation specialists near you.",
-    icon: <Stethoscope className="h-8 w-8" />,
-    phase: 3,
-    status: "soon",
   },
   "subscriptions": {
     title: "Premium Plans",
