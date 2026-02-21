@@ -7,6 +7,7 @@ import MemoryMatchGame from "@/components/cognitive/MemoryMatchGame";
 import ReactionTimeGame from "@/components/cognitive/ReactionTimeGame";
 import SequenceRecallGame from "@/components/cognitive/SequenceRecallGame";
 import CognitiveTrends from "@/components/cognitive/CognitiveTrends";
+import CognitiveStreakBadge from "@/components/cognitive/CognitiveStreakBadge";
 import { useBestScores } from "@/hooks/useCognitiveSessions";
 
 const GAMES = [
@@ -24,7 +25,7 @@ const CognitivePage = () => {
       <SEOHead title="Cognitive Games" description="Exercise your brain with fun mini-games and track cognitive trends." />
       <PageHeader title="Cognitive Games" subtitle="Train your brain 🧠" />
       <div className="mx-auto max-w-lg px-4 py-4 space-y-4 animate-fade-in">
-
+        <CognitiveStreakBadge />
         {/* Best scores summary */}
         {bestScores && Object.keys(bestScores).length > 0 && (
           <div className="flex gap-2">
