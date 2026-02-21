@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import SEOHead from "@/components/SEOHead";
 import { ChevronDown } from "lucide-react";
-import AnimatedList, { listItemVariants } from "@/components/AnimatedList";
-import { motion } from "framer-motion";
+import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import SymptomHeatmap from "@/components/SymptomHeatmap";
 import HeatmapWithSummary from "@/components/HeatmapWithSummary";
 import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
@@ -267,9 +266,10 @@ const InsightsPage = () => {
             </button>
           </div>
         ) : (
-          <AnimatedList className="space-y-4">
+          <StaggerContainer className="space-y-4">
 
             {/* ── Stat cards ── */}
+            <StaggerItem>
             <div data-tour="insights-stats" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {SYMPTOMS.slice(0, 6).map(({ key, label, emoji }) => {
                 const higherIsBetter = key === "mood" || key === "mobility" || key === "sleep_hours";
@@ -319,14 +319,17 @@ const InsightsPage = () => {
                 );
               })}
             </div>
+            </StaggerItem>
             <p className="text-[10px] text-muted-foreground text-center -mt-1">
               Tap a card to focus that symptom
             </p>
 
             {/* ── 30-Day Heatmap ── */}
+            <StaggerItem>
             <div data-tour="insights-heatmap">
               <HeatmapWithSummary entries={dedupedEntries} days={heatmapDays} initialMetric={initialHeatmapMetric} />
             </div>
+            </StaggerItem>
 
             {/* ── Weekly Progress Summary ── */}
             {(() => {
@@ -952,7 +955,7 @@ const InsightsPage = () => {
             <p className="text-center text-xs text-muted-foreground">
               Export a professional PDF for your neurologist
             </p>
-          </AnimatedList>
+          </StaggerContainer>
         )}
       </div>
     </>

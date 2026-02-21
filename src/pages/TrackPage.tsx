@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
+import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   getDay, subMonths, addMonths, isSameDay, isToday,
@@ -261,8 +262,9 @@ const TrackPage = () => {
           </div>
         ) : view === "calendar" ? (
           /* ── Calendar view ── */
-          <div className="animate-fade-in space-y-3">
+          <StaggerContainer className="space-y-3">
             {/* Month navigator */}
+            <StaggerItem>
             <div data-tour="track-month-nav" className="flex items-center justify-between px-1">
               <button
                 onClick={() => { setMonth((m) => subMonths(m, 1)); setSelectedDate(null); }}
@@ -280,7 +282,9 @@ const TrackPage = () => {
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
+            </StaggerItem>
 
+            <StaggerItem>
             <div data-tour="track-heatmap">
               <CalendarHeatmap
                 month={month}
@@ -289,6 +293,7 @@ const TrackPage = () => {
                 onSelectDate={handleSelectDate}
               />
             </div>
+            </StaggerItem>
 
             {/* Day detail popover */}
             {selectedDate && (
@@ -349,7 +354,7 @@ const TrackPage = () => {
                 </div>
               );
             })()}
-          </div>
+          </StaggerContainer>
         ) : (
           /* ── List view ── */
           <>

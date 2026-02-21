@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { format, parseISO, differenceInDays } from "date-fns";
 import SEOHead from "@/components/SEOHead";
+import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import PageHeader from "@/components/PageHeader";
 import { useRelapses, useCreateRelapse, useUpdateRelapse, useDeleteRelapse, Relapse } from "@/hooks/useRelapses";
 import { RelapsesSkeleton } from "@/components/PageSkeleton";
@@ -473,8 +474,9 @@ const RelapsesPage = () => {
     <>
       <SEOHead title="Relapses" description="Log and monitor your MS relapses, triggers and recovery timeline." />
       <PageHeader title="Relapses" subtitle="Track your MS flare-ups" showBack />
-      <div className="mx-auto max-w-lg px-4 py-4 space-y-4 animate-fade-in pb-28">
+      <StaggerContainer className="mx-auto max-w-lg px-4 py-4 space-y-4 pb-28">
         {/* Summary strip */}
+        <StaggerItem>
         <div className="flex gap-3" data-tour="relapses-summary">
           <div className="flex-1 rounded-xl bg-card p-3 shadow-soft text-center">
             <p className="text-2xl font-bold text-foreground">{totalRelapses}</p>
@@ -493,8 +495,10 @@ const RelapsesPage = () => {
             </div>
           )}
         </div>
+        </StaggerItem>
 
         {/* Add button */}
+        <StaggerItem>
         {!showForm && !editingId && (
           <button
             data-tour="relapses-log-btn"
@@ -505,6 +509,7 @@ const RelapsesPage = () => {
             Log a Relapse
           </button>
         )}
+        </StaggerItem>
 
         {/* Create form */}
         {showForm && (
@@ -527,6 +532,7 @@ const RelapsesPage = () => {
 
         {/* Relapse list */}
         {relapses && relapses.length > 0 ? (
+          <StaggerItem>
           <div className="space-y-3" data-tour="relapses-list">
             {relapses.map((relapse) =>
               editingId === relapse.id ? null : (
@@ -542,9 +548,11 @@ const RelapsesPage = () => {
               )
             )}
           </div>
+          </StaggerItem>
         ) : (
           !showForm && (
-            <div className="rounded-xl bg-card p-8 shadow-soft text-center space-y-3 animate-fade-in">
+            <StaggerItem>
+            <div className="rounded-xl bg-card p-8 shadow-soft text-center space-y-3">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent/50">
                 <span className="text-4xl">🛡️</span>
               </div>
@@ -553,9 +561,10 @@ const RelapsesPage = () => {
                 Tracking relapses helps you and your neurologist spot patterns and optimize treatment.
               </p>
             </div>
+            </StaggerItem>
           )
         )}
-      </div>
+      </StaggerContainer>
     </>
   );
 };
