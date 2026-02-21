@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useAuth } from "./useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
@@ -16,10 +16,72 @@ export const useCoach = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<CoachMode>("emotional");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
 
   const resetChat = useCallback(() => {
     setMessages([]);
+    setSessionId(null);
+    sessionIdRef.current = null;
   }, []);
+
+  const loadSession = useCallback(
+    async (id: string, sessionMode: CoachMode) => {
+      if (!user) return;
+      setMode(sessionMode);
+      setSessionId(id);
+      sessionIdRef.current = id;
+
+      const { data } = await supabase
+        .from("coach_messages")
+        .select("role, content")
+        .eq("session_id", id)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+      if (data) {
+        setMessages(data.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })));
+      }
+    },
+    [user]
+  );
+
+  const ensureSession = useCallback(
+    async (firstMessage: string): Promise<string | null> => {
+      if (!user) return null;
+      if (sessionIdRef.current) return sessionIdRef.current;
+
+      const title = firstMessage.slice(0, 80) || "New conversation";
+      const { data, error } = await supabase
+        .from("coach_sessions")
+        .insert({ user_id: user.id, mode, title })
+        .select("id")
+        .single();
+
+      if (error || !data) {
+        console.error("Failed to create session:", error);
+        return null;
+      }
+
+      setSessionId(data.id);
+      sessionIdRef.current = data.id;
+      return data.id;
+    },
+    [user, mode]
+  );
+
+  const persistMessage = useCallback(
+    async (sid: string, role: "user" | "assistant", content: string) => {
+      if (!user) return;
+      await supabase.from("coach_messages").insert({
+        session_id: sid,
+        user_id: user.id,
+        role,
+        content,
+      });
+    },
+    [user]
+  );
 
   const sendMessage = useCallback(
     async (input: string, userData?: Record<string, unknown>) => {
@@ -29,6 +91,14 @@ export const useCoach = () => {
       const newMessages = [...messages, userMsg];
       setMessages(newMessages);
       setIsLoading(true);
+
+      // Ensure we have a session
+      const sid = await ensureSession(input.trim());
+
+      // Persist user message
+      if (sid) {
+        persistMessage(sid, "user", input.trim());
+      }
 
       let assistantSoFar = "";
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -48,6 +118,7 @@ export const useCoach = () => {
           body: JSON.stringify({
             mode,
             messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+            sessionId: sid,
             userData,
           }),
         });
@@ -58,10 +129,12 @@ export const useCoach = () => {
           const json = await resp.json();
 
           if (json.crisis) {
+            const crisisMsg = json.message;
             setMessages((prev) => [
               ...prev,
-              { role: "assistant", content: json.message },
+              { role: "assistant", content: crisisMsg },
             ]);
+            if (sid) persistMessage(sid, "assistant", crisisMsg);
             setIsLoading(false);
             return;
           }
@@ -72,7 +145,6 @@ export const useCoach = () => {
               description: json.message || json.error,
               variant: "destructive",
             });
-            // Remove the user message we optimistically added
             setMessages(messages);
             setIsLoading(false);
             return;
@@ -149,6 +221,11 @@ export const useCoach = () => {
             } catch { /* ignore */ }
           }
         }
+
+        // Persist final assistant message
+        if (sid && assistantSoFar) {
+          persistMessage(sid, "assistant", assistantSoFar);
+        }
       } catch (e) {
         console.error("Coach error:", e);
         toast({
@@ -161,15 +238,17 @@ export const useCoach = () => {
         setIsLoading(false);
       }
     },
-    [user, messages, mode, toast]
+    [user, messages, mode, toast, ensureSession, persistMessage]
   );
 
   return {
     messages,
     isLoading,
     mode,
+    sessionId,
     setMode,
     sendMessage,
     resetChat,
+    loadSession,
   };
 };

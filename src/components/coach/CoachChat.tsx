@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 
 interface CoachChatProps {
   mode: CoachMode;
+  resumeSessionId?: string | null;
 }
 
 const PromptChip = ({ label, onTap }: { label: string; onTap: (v: string) => void }) => (
@@ -20,8 +21,8 @@ const PromptChip = ({ label, onTap }: { label: string; onTap: (v: string) => voi
   </button>
 );
 
-const CoachChat = ({ mode }: CoachChatProps) => {
-  const { messages, isLoading, sendMessage, setMode, resetChat } = useCoach();
+const CoachChat = ({ mode, resumeSessionId }: CoachChatProps) => {
+  const { messages, isLoading, sendMessage, setMode, resetChat, loadSession } = useCoach();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -30,11 +31,15 @@ const CoachChat = ({ mode }: CoachChatProps) => {
   const { data: profile } = useProfile();
   const { data: relapses } = useRelapses();
 
-  // Set mode on mount
+  // Set mode on mount or resume session
   useEffect(() => {
-    setMode(mode);
-    resetChat();
-  }, [mode, setMode, resetChat]);
+    if (resumeSessionId) {
+      loadSession(resumeSessionId, mode);
+    } else {
+      setMode(mode);
+      resetChat();
+    }
+  }, [mode, resumeSessionId, setMode, resetChat, loadSession]);
 
   // Auto-scroll
   useEffect(() => {
