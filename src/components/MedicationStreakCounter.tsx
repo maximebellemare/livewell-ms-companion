@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
+import { toast } from "@/hooks/use-toast";
 import { format, subDays, eachDayOfInterval } from "date-fns";
 import { useDbMedications, useDbMedicationLogs } from "@/hooks/useMedications";
 
@@ -52,6 +54,42 @@ export default function MedicationStreakCounter() {
 
     return { streak: current, longestStreak: longest };
   }, [activeMeds, logs]);
+
+  // Milestone celebration
+  const celebratedRef = useRef<number | null>(null);
+  const MILESTONES = [
+    { days: 7, label: "7-day perfect med streak! 🔥", emoji: "🔥" },
+    { days: 14, label: "14-day perfect med streak! ⭐", emoji: "⭐" },
+    { days: 30, label: "30-day perfect med streak! 🏆", emoji: "🏆" },
+  ];
+
+  useEffect(() => {
+    if (streak === 0) return;
+    const milestone = [...MILESTONES].reverse().find((m) => streak >= m.days);
+    if (!milestone) return;
+    if (celebratedRef.current === milestone.days) return;
+
+    const storageKey = `med-streak-celebrated-${milestone.days}`;
+    if (sessionStorage.getItem(storageKey)) {
+      celebratedRef.current = milestone.days;
+      return;
+    }
+
+    celebratedRef.current = milestone.days;
+    sessionStorage.setItem(storageKey, "true");
+
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { y: 0.7 },
+      colors: ["#E8751A", "#FFB347", "#FFDAB9", "#4CAF50", "#42A5F5"],
+    });
+
+    toast({
+      title: `${milestone.emoji} Milestone reached!`,
+      description: milestone.label,
+    });
+  }, [streak]);
 
   if (activeMeds.length === 0) return null;
 
