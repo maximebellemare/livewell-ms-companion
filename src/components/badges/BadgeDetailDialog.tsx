@@ -9,7 +9,7 @@ export interface BadgeDef {
   emoji: string;
   name: string;
   description: string;
-  category: "logging" | "weekly" | "medication" | "relapse";
+  category: "logging" | "weekly" | "medication" | "relapse" | "cognitive";
 }
 
 /** Maps badge id → required threshold */
@@ -18,6 +18,7 @@ const BADGE_THRESHOLDS: Record<string, number> = {
   "week-2": 2, "week-4": 4, "week-8": 8,
   "med-7": 7, "med-14": 14, "med-30": 30, "med-60": 60, "med-90": 90,
   "relapse-30": 30, "relapse-60": 60, "relapse-90": 90,
+  "cog-1": 1, "cog-7": 7, "cog-30": 30,
 };
 
 const CATEGORY_UNITS: Record<string, string> = {
@@ -25,6 +26,7 @@ const CATEGORY_UNITS: Record<string, string> = {
   weekly: "weeks",
   medication: "days",
   relapse: "days",
+  cognitive: "days",
 };
 
 interface Props {

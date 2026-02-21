@@ -14,6 +14,7 @@ import { useRelapses } from "@/hooks/useRelapses";
 import { useMedStreak } from "@/hooks/useMedStreak";
 import { useRelapseFreeStreak } from "@/hooks/useRelapseFreeStreak";
 import { useBadgeEvents, useRecordBadgeEvent } from "@/hooks/useBadgeEvents";
+import { useCognitiveStreak } from "@/hooks/useCognitiveStreak";
 import { differenceInDays, parseISO, format, subDays, eachDayOfInterval } from "date-fns";
 
 /* ── Badge definition ───────────────────────────────────── */
@@ -22,7 +23,7 @@ interface BadgeDef {
   emoji: string;
   name: string;
   description: string;
-  category: "logging" | "weekly" | "medication" | "relapse";
+  category: "logging" | "weekly" | "medication" | "relapse" | "cognitive";
 }
 
 const BADGE_DEFS: BadgeDef[] = [
@@ -48,6 +49,11 @@ const BADGE_DEFS: BadgeDef[] = [
   { id: "relapse-30", emoji: "🛡️", name: "30 Days Strong", description: "30 days relapse-free", category: "relapse" },
   { id: "relapse-60", emoji: "💪", name: "60 Days Strong", description: "60 days relapse-free", category: "relapse" },
   { id: "relapse-90", emoji: "🌟", name: "90 Days Strong", description: "90 days relapse-free", category: "relapse" },
+
+  // Cognitive
+  { id: "cog-1", emoji: "🧩", name: "First Game", description: "Play your first cognitive game", category: "cognitive" },
+  { id: "cog-7", emoji: "🧠", name: "Brain Trainer", description: "Play cognitive games 7 days in a row", category: "cognitive" },
+  { id: "cog-30", emoji: "🎓", name: "Memory Master", description: "Play cognitive games 30 days in a row", category: "cognitive" },
 ];
 
 const CATEGORY_LABELS: Record<string, { label: string; emoji: string }> = {
@@ -55,6 +61,7 @@ const CATEGORY_LABELS: Record<string, { label: string; emoji: string }> = {
   weekly: { label: "Weekly Goals", emoji: "📊" },
   medication: { label: "Medication", emoji: "💊" },
   relapse: { label: "Relapse-Free", emoji: "🛡️" },
+  cognitive: { label: "Cognitive Games", emoji: "🧠" },
 };
 
 const BADGE_THRESHOLDS: Record<string, number> = {
@@ -62,6 +69,7 @@ const BADGE_THRESHOLDS: Record<string, number> = {
   "week-2": 2, "week-4": 4, "week-8": 8,
   "med-7": 7, "med-14": 14, "med-30": 30, "med-60": 60, "med-90": 90,
   "relapse-30": 30, "relapse-60": 60, "relapse-90": 90,
+  "cog-1": 1, "cog-7": 7, "cog-30": 30,
 };
 
 /* ── Badge Card ────────────────────────────────────────── */
@@ -144,6 +152,7 @@ const BadgesPage = () => {
   const { weekStreak } = useWeekStreak();
   const medStreak = useMedStreak();
   const relapseStreak = useRelapseFreeStreak();
+  const { streak: cogStreak } = useCognitiveStreak();
   const { data: badgeEvents = [] } = useBadgeEvents();
   const recordBadge = useRecordBadgeEvent();
   const [selectedBadge, setSelectedBadge] = useState<BadgeDef | null>(null);
@@ -182,10 +191,11 @@ const BadgesPage = () => {
         case "weekly": return weekStreak;
         case "medication": return medStreak;
         case "relapse": return relapseStreak;
+        case "cognitive": return cogStreak;
         default: return 0;
       }
     },
-    [logStreak, weekStreak, medStreak, relapseStreak]
+    [logStreak, weekStreak, medStreak, relapseStreak, cogStreak]
   );
 
   const earnedSet = useMemo(() => {
@@ -214,8 +224,13 @@ const BadgesPage = () => {
     if (relapseStreak >= 60) set.add("relapse-60");
     if (relapseStreak >= 90) set.add("relapse-90");
 
+    // Cognitive
+    if (cogStreak >= 1) set.add("cog-1");
+    if (cogStreak >= 7) set.add("cog-7");
+    if (cogStreak >= 30) set.add("cog-30");
+
     return set;
-  }, [logStreak, weekStreak, medStreak, relapseStreak]);
+  }, [logStreak, weekStreak, medStreak, relapseStreak, cogStreak]);
 
   const earnedCount = earnedSet.size;
   const totalCount = BADGE_DEFS.length;
@@ -285,7 +300,7 @@ const BadgesPage = () => {
   }, [earnedBadges, earnedCount, totalCount]);
 
   const handleShareCompletionist = useCallback(async () => {
-    const text = `🌈🏆 I've unlocked EVERY badge on LiveWithMS! 🏆🌈\n\n⚡🔥⭐🏆📊🗓️💫💊💉🏅💎👑🛡️💪🌟\n\n15/15 badges earned — Completionist achieved!\nConsistency, resilience, and dedication — one day at a time. 🧡\n\n#MSWarrior #LiveWithMS`;
+    const text = `🌈🏆 I've unlocked EVERY badge on LiveWithMS! 🏆🌈\n\n⚡🔥⭐🏆📊🗓️💫💊💉🏅💎👑🛡️💪🌟🧩🧠🎓\n\n${totalCount}/${totalCount} badges earned — Completionist achieved!\nConsistency, resilience, and dedication — one day at a time. 🧡\n\n#MSWarrior #LiveWithMS`;
 
     if (navigator.share) {
       try {
@@ -302,7 +317,7 @@ const BadgesPage = () => {
     }
   }, []);
 
-  const categories = ["logging", "weekly", "medication", "relapse"] as const;
+  const categories = ["logging", "weekly", "medication", "relapse", "cognitive"] as const;
 
   return (
     <>
@@ -422,7 +437,7 @@ const BadgesPage = () => {
                     id: "completionist",
                     emoji: "🌈",
                     name: "Completionist",
-                    description: "Earn all 15 badges to unlock this legendary achievement",
+                    description: "Earn all 18 badges to unlock this legendary achievement",
                     category: "logging",
                   })}
                   role="button"
@@ -511,7 +526,7 @@ const BadgesPage = () => {
                     <p className="text-[10px] leading-snug text-muted-foreground mt-0.5">
                       {allBadgesEarned
                         ? "You've earned every single badge — legendary! 🎉"
-                        : `Earn all 15 badges to unlock • ${earnedCount}/15`}
+                        : `Earn all ${totalCount} badges to unlock • ${earnedCount}/${totalCount}`}
                     </p>
                   </div>
                   {allBadgesEarned && (
@@ -575,6 +590,7 @@ const BadgesPage = () => {
                   weekly: { emoji: "📊", title: "Build your weekly rhythm", message: "Meet your weekly logging goal 2 weeks in a row to earn your first Weekly badge." },
                   medication: { emoji: "💊", title: "Stay on track", message: "Take all your medications for 7 days straight to earn your first Medication badge." },
                   relapse: { emoji: "🛡️", title: "Every day is progress", message: "Reach 30 days relapse-free to unlock your first milestone in this category." },
+                  cognitive: { emoji: "🧠", title: "Exercise your brain", message: "Play a cognitive game to earn your first Brain badge — every round counts!" },
                 };
                 const state = emptyStates[timelineFilter] ?? emptyStates.all;
                 return (
