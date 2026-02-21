@@ -899,6 +899,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_badge_leaderboard: {
+        Args: { result_limit?: number }
+        Returns: {
+          avatar_url: string
+          badge_count: number
+          display_name: string
+          latest_badge_at: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

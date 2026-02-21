@@ -5,6 +5,7 @@ import { Lock, Share2, Trophy, Clock, Grid3X3, Calendar, ChevronRight } from "lu
 import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import BadgeDetailDialog from "@/components/badges/BadgeDetailDialog";
+import BadgeLeaderboard from "@/components/badges/BadgeLeaderboard";
 import PageHeader from "@/components/PageHeader";
 import { useStreak } from "@/components/StreakBadge";
 import { useWeekStreak } from "@/hooks/useWeekStreak";
@@ -629,6 +630,9 @@ const BadgesPage = () => {
             )}
           </div>
         )}
+
+        {/* Leaderboard */}
+        <BadgeLeaderboard />
 
         <BadgeDetailDialog
           badge={selectedBadge}
