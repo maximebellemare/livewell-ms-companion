@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check } from "lucide-react";
+import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check, History } from "lucide-react";
 import confetti from "canvas-confetti";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { format } from "date-fns";
 
 const senses = [
   { count: 5, sense: "things you can see", icon: Eye, color: "text-[hsl(var(--brand-blue))]", bg: "bg-[hsl(var(--brand-blue))]/10" },
@@ -12,12 +15,41 @@ const senses = [
 ];
 
 const GroundingExercise = () => {
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [started, setStarted] = useState(false);
   const [inputs, setInputs] = useState<string[][]>(senses.map((s) => Array(s.count).fill("")));
   const [showReflections, setShowReflections] = useState(false);
   const [breathProgress, setBreathProgress] = useState(0);
+  const [showHistory, setShowHistory] = useState(false);
+  const [pastSessions, setPastSessions] = useState<any[]>([]);
+  const [saved, setSaved] = useState(false);
   const finished = step >= senses.length;
+
+  const loadHistory = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("grounding_sessions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("completed_at", { ascending: false })
+      .limit(20);
+    if (data) setPastSessions(data);
+  }, [user]);
+
+  const saveSession = useCallback(async () => {
+    if (!user || saved) return;
+    const reflections = senses.map((sense, idx) => ({
+      sense: sense.sense,
+      items: inputs[idx].filter((v) => v.trim()),
+    })).filter((r) => r.items.length > 0);
+    if (reflections.length === 0) return;
+    await supabase.from("grounding_sessions").insert({
+      user_id: user.id,
+      reflections,
+    });
+    setSaved(true);
+  }, [user, inputs, saved]);
 
   const currentSense = senses[step];
 
@@ -46,6 +78,7 @@ const GroundingExercise = () => {
     setStarted(false);
     setShowReflections(false);
     setBreathProgress(0);
+    setSaved(false);
     setInputs(senses.map((s) => Array(s.count).fill("")));
   };
 
@@ -62,10 +95,11 @@ const GroundingExercise = () => {
       if (elapsed >= duration) {
         clearInterval(timer);
         setShowReflections(true);
+        saveSession();
       }
     }, interval);
     return () => clearInterval(timer);
-  }, [finished]);
+  }, [finished, saveSession]);
 
   const updateInput = (senseIdx: number, itemIdx: number, value: string) => {
     setInputs((prev) => {
@@ -74,6 +108,51 @@ const GroundingExercise = () => {
       return copy;
     });
   };
+
+  if (showHistory) {
+    return (
+      <div className="space-y-4">
+        <button
+          onClick={() => setShowHistory(false)}
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Back
+        </button>
+        <h3 className="font-display text-lg font-bold text-foreground">Past Sessions</h3>
+        {pastSessions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No past sessions yet. Complete an exercise to see your history.</p>
+        ) : (
+          pastSessions.map((session) => (
+            <div key={session.id} className="rounded-xl bg-card p-4 shadow-soft space-y-3">
+              <p className="text-xs font-medium text-muted-foreground">
+                {format(new Date(session.completed_at), "MMM d, yyyy · h:mm a")}
+              </p>
+              {(session.reflections as any[]).map((r: any, idx: number) => {
+                const sense = senses[idx] || senses[0];
+                const Icon = sense.icon;
+                return (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Icon className={`h-3.5 w-3.5 ${sense.color}`} />
+                      <span className="text-xs text-muted-foreground capitalize">{r.sense}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {r.items.map((item: string, i: number) => (
+                        <span key={i} className={`inline-block rounded-lg ${sense.bg} px-2 py-0.5 text-xs font-medium text-foreground`}>
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))
+        )}
+      </div>
+    );
+  }
 
   if (!started) {
     return (
@@ -86,13 +165,24 @@ const GroundingExercise = () => {
           <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
             Engage each of your senses to gently bring yourself back to the present moment. There's no rush — take your time.
           </p>
-          <button
-            onClick={() => setStarted(true)}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98]"
-          >
-            Begin Exercise
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => setStarted(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98]"
+            >
+              Begin Exercise
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            {user && (
+              <button
+                onClick={() => { loadHistory(); setShowHistory(true); }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+              >
+                <History className="h-4 w-4" />
+                Past Sessions
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

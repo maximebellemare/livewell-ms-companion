@@ -748,6 +748,30 @@ export type Database = {
         }
         Relationships: []
       }
+      grounding_sessions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          id: string
+          reflections: Json
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          reflections?: Json
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          reflections?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       learn_articles: {
         Row: {
           body: string
