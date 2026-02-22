@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import SEOHead from "@/components/SEOHead";
 import CoachChat from "@/components/coach/CoachChat";
 import CoachHistory from "@/components/coach/CoachHistory";
+import ProgramsSection from "@/components/premium/ProgramsSection";
 import { useCoach, type CoachMode } from "@/hooks/useCoach";
 
 const modes: { id: CoachMode; icon: typeof Heart; label: string; description: string; color: string }[] = [
@@ -155,6 +156,13 @@ const CoachPage = () => {
                 )}
               </AnimatePresence>
             </div>
+            </StaggerItem>
+
+            {/* Programs */}
+            <StaggerItem>
+              <div className="mt-2 px-4">
+                <ProgramsSection />
+              </div>
             </StaggerItem>
             </StaggerContainer>
           </motion.div>

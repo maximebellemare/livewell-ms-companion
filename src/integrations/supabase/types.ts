@@ -1052,6 +1052,39 @@ export type Database = {
           },
         ]
       }
+      premium_programs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          day_number: number
+          id: string
+          last_activity_at: string
+          program_id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          day_number?: number
+          id?: string
+          last_activity_at?: string
+          program_id: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          day_number?: number
+          id?: string
+          last_activity_at?: string
+          program_id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age_range: string | null
@@ -1067,9 +1100,12 @@ export type Database = {
           goals: string[] | null
           hydration_goal: number
           id: string
+          is_premium: boolean
           last_digest_sent_at: string | null
           last_report_sent_at: string | null
           medications: string[] | null
+          monthly_reports_reset_at: string | null
+          monthly_reports_used: number
           ms_type: string | null
           neurologist_email: string | null
           neurologist_name: string | null
@@ -1080,6 +1116,8 @@ export type Database = {
           notify_push_enabled: boolean
           notify_thread_replies: boolean
           onboarding_completed: boolean
+          premium_started_at: string | null
+          premium_until: string | null
           sleep_goal: number
           streak_freeze_enabled: boolean
           symptoms: string[] | null
@@ -1103,9 +1141,12 @@ export type Database = {
           goals?: string[] | null
           hydration_goal?: number
           id?: string
+          is_premium?: boolean
           last_digest_sent_at?: string | null
           last_report_sent_at?: string | null
           medications?: string[] | null
+          monthly_reports_reset_at?: string | null
+          monthly_reports_used?: number
           ms_type?: string | null
           neurologist_email?: string | null
           neurologist_name?: string | null
@@ -1116,6 +1157,8 @@ export type Database = {
           notify_push_enabled?: boolean
           notify_thread_replies?: boolean
           onboarding_completed?: boolean
+          premium_started_at?: string | null
+          premium_until?: string | null
           sleep_goal?: number
           streak_freeze_enabled?: boolean
           symptoms?: string[] | null
@@ -1139,9 +1182,12 @@ export type Database = {
           goals?: string[] | null
           hydration_goal?: number
           id?: string
+          is_premium?: boolean
           last_digest_sent_at?: string | null
           last_report_sent_at?: string | null
           medications?: string[] | null
+          monthly_reports_reset_at?: string | null
+          monthly_reports_used?: number
           ms_type?: string | null
           neurologist_email?: string | null
           neurologist_name?: string | null
@@ -1152,6 +1198,8 @@ export type Database = {
           notify_push_enabled?: boolean
           notify_thread_replies?: boolean
           onboarding_completed?: boolean
+          premium_started_at?: string | null
+          premium_until?: string | null
           sleep_goal?: number
           streak_freeze_enabled?: boolean
           symptoms?: string[] | null
@@ -1160,6 +1208,33 @@ export type Database = {
           weekly_digest_enabled?: boolean
           weekly_log_goal?: number
           year_diagnosed?: string | null
+        }
+        Relationships: []
+      }
+      program_day_logs: {
+        Row: {
+          completed_at: string
+          day_number: number
+          id: string
+          notes: string | null
+          program_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          day_number: number
+          id?: string
+          notes?: string | null
+          program_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          day_number?: number
+          id?: string
+          notes?: string | null
+          program_id?: string
+          user_id?: string
         }
         Relationships: []
       }
