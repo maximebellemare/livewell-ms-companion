@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { DailyEntry } from "@/hooks/useEntries";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const METRICS = [
   { key: "fatigue",     label: "Fatigue",   short: "Fat" },
@@ -38,6 +39,15 @@ function cellColor(r: number | null): string {
 function cellText(r: number | null): string {
   if (r === null) return "—";
   return r.toFixed(2);
+}
+
+function strengthLabel(r: number | null): string {
+  if (r === null) return "Not enough data";
+  const abs = Math.abs(r);
+  const dir = r > 0 ? "positive" : "negative";
+  if (abs >= 0.6) return `Strong ${dir}`;
+  if (abs >= 0.3) return `Moderate ${dir}`;
+  return `Weak ${dir}`;
 }
 
 interface Props {
@@ -106,69 +116,113 @@ export default function SymptomCorrelationMatrix({ entries }: Props) {
       </p>
 
       {/* Matrix grid */}
-      <div className="overflow-x-auto -mx-1">
-        <div className="inline-grid gap-[2px]" style={{
-          gridTemplateColumns: `40px repeat(${METRICS.length}, 1fr)`,
-          minWidth: "340px",
-        }}>
-          {/* Header row */}
-          <div />
-          {METRICS.map((m) => (
-            <div key={m.key} className="text-center text-[9px] font-semibold text-muted-foreground py-1 px-0.5 leading-tight">
-              {m.short}
-            </div>
-          ))}
-
-          {/* Data rows */}
-          {METRICS.map((row) => (
-            <>
-              <div key={`label-${row.key}`} className="flex items-center text-[9px] font-semibold text-muted-foreground pr-1 leading-tight">
-                {row.short}
+      <TooltipProvider delayDuration={200}>
+        <div className="overflow-x-auto -mx-1">
+          <div className="inline-grid gap-[2px]" style={{
+            gridTemplateColumns: `40px repeat(${METRICS.length}, 1fr)`,
+            minWidth: "340px",
+          }}>
+            {/* Header row */}
+            <div />
+            {METRICS.map((m) => (
+              <div key={m.key} className="text-center text-[9px] font-semibold text-muted-foreground py-1 px-0.5 leading-tight">
+                {m.short}
               </div>
-              {METRICS.map((col) => {
-                const r = matrix[row.key]?.[col.key] ?? null;
-                const isDiag = row.key === col.key;
-                const isSelected = selected?.row === row.key && selected?.col === col.key;
-                return (
-                  <button
-                    key={`${row.key}-${col.key}`}
-                    onClick={() => {
-                      if (!isDiag && r !== null) {
-                        setSelected(isSelected ? null : { row: row.key, col: col.key, r });
-                      }
-                    }}
-                    className={`aspect-square flex items-center justify-center rounded-md text-[9px] font-mono font-bold transition-all ${
-                      isDiag ? "opacity-30" : "cursor-pointer hover:ring-1 hover:ring-primary/50"
-                    } ${isSelected ? "ring-2 ring-primary" : ""}`}
-                    style={{ backgroundColor: cellColor(isDiag ? null : r) }}
-                    title={`${row.label} × ${col.label}: ${cellText(r)}`}
-                  >
-                    <span className={`${r !== null && Math.abs(r) > 0.3 ? "text-foreground" : "text-muted-foreground"}`}>
-                      {isDiag ? "•" : cellText(r)}
-                    </span>
-                  </button>
-                );
-              })}
-            </>
-          ))}
-        </div>
-      </div>
+            ))}
 
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-6 rounded-sm" style={{ backgroundColor: "hsl(210 70% 50% / 0.5)" }} />
-          Opposite
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-6 rounded-sm bg-muted" />
-          No link
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2.5 w-6 rounded-sm" style={{ backgroundColor: "hsl(25 85% 50% / 0.5)" }} />
-          Together
-        </span>
-      </div>
+            {/* Data rows */}
+            {METRICS.map((row) => (
+              <>
+                <div key={`label-${row.key}`} className="flex items-center text-[9px] font-semibold text-muted-foreground pr-1 leading-tight">
+                  {row.short}
+                </div>
+                {METRICS.map((col) => {
+                  const r = matrix[row.key]?.[col.key] ?? null;
+                  const isDiag = row.key === col.key;
+                  const isSelected = selected?.row === row.key && selected?.col === col.key;
+                  return (
+                    <UITooltip key={`${row.key}-${col.key}`}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            if (!isDiag && r !== null) {
+                              setSelected(isSelected ? null : { row: row.key, col: col.key, r });
+                            }
+                          }}
+                          className={`aspect-square flex items-center justify-center rounded-md text-[9px] font-mono font-bold transition-all ${
+                            isDiag ? "opacity-30" : "cursor-pointer hover:ring-1 hover:ring-primary/50"
+                          } ${isSelected ? "ring-2 ring-primary" : ""}`}
+                          style={{ backgroundColor: cellColor(isDiag ? null : r) }}
+                        >
+                          <span className={`${r !== null && Math.abs(r) > 0.3 ? "text-foreground" : "text-muted-foreground"}`}>
+                            {isDiag ? "•" : cellText(r)}
+                          </span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs max-w-[220px]">
+                        {isDiag ? (
+                          `${row.label} compared with itself — always 1.0`
+                        ) : r === null ? (
+                          `${row.label} × ${col.label}: Not enough paired data yet.`
+                        ) : (
+                          <>
+                            <span className="font-semibold">{row.label} × {col.label}</span>
+                            <br />
+                            r = {r.toFixed(2)} · {strengthLabel(r)}
+                            <br />
+                            {r > 0.3
+                              ? "These tend to rise and fall together."
+                              : r < -0.3
+                              ? "When one rises, the other tends to fall."
+                              : "No strong pattern between these."}
+                          </>
+                        )}
+                      </TooltipContent>
+                    </UITooltip>
+                  );
+                })}
+              </>
+            ))}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <span className="flex items-center gap-1 cursor-help">
+                <span className="h-2.5 w-6 rounded-sm" style={{ backgroundColor: "hsl(210 70% 50% / 0.5)" }} />
+                Opposite
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+              Blue cells mean these symptoms move in opposite directions — when one goes up, the other tends to go down.
+            </TooltipContent>
+          </UITooltip>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <span className="flex items-center gap-1 cursor-help">
+                <span className="h-2.5 w-6 rounded-sm bg-muted" />
+                No link
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+              Grey cells mean no meaningful pattern was found between these symptoms.
+            </TooltipContent>
+          </UITooltip>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <span className="flex items-center gap-1 cursor-help">
+                <span className="h-2.5 w-6 rounded-sm" style={{ backgroundColor: "hsl(25 85% 50% / 0.5)" }} />
+                Together
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+              Orange cells mean these symptoms rise and fall together — when one is high, the other tends to be high too.
+            </TooltipContent>
+          </UITooltip>
+        </div>
+      </TooltipProvider>
 
       {/* Selected cell detail */}
       {selected && (
