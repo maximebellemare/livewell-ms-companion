@@ -8,6 +8,7 @@ import { useGroundingStreak } from "@/hooks/useGroundingStreak";
 import { useProfile } from "@/hooks/useProfile";
 import { Target, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import confetti from "canvas-confetti";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const GOAL_OPTIONS = [1, 2, 3, 4, 5, 7, 10];
 
@@ -237,9 +238,22 @@ const GroundingSessionsChart = () => {
             </div>
             <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
               {metWeeks.length}/{activeWeeks.length} weeks ({pct}%)
-              {trendUp && <TrendingUp className="h-3 w-3 text-green-500" />}
-              {trendDown && <TrendingDown className="h-3 w-3 text-red-400" />}
-              {!trendUp && !trendDown && <Minus className="h-3 w-3 text-muted-foreground" />}
+              <TooltipProvider delayDuration={200}>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help">
+                      {trendUp && <TrendingUp className="h-3 w-3 text-green-500" />}
+                      {trendDown && <TrendingDown className="h-3 w-3 text-red-400" />}
+                      {!trendUp && !trendDown && <Minus className="h-3 w-3 text-muted-foreground" />}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs max-w-[200px]">
+                    {trendUp && "Sessions trending up — recent weeks have more sessions than earlier weeks."}
+                    {trendDown && "Sessions trending down — recent weeks have fewer sessions than earlier weeks."}
+                    {!trendUp && !trendDown && "Sessions are stable — recent and earlier weeks are similar."}
+                  </TooltipContent>
+                </UITooltip>
+              </TooltipProvider>
             </span>
           </div>
         ) : (
