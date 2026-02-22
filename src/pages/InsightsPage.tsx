@@ -8,6 +8,10 @@ import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import AIWeeklyInsight from "@/components/AIWeeklyInsight";
 import AISymptomCorrelations from "@/components/AISymptomCorrelations";
+import MonthlyHealthReview from "@/components/premium/MonthlyHealthReview";
+import FatigueDeepDive from "@/components/premium/FatigueDeepDive";
+import AdvancedCorrelations from "@/components/premium/AdvancedCorrelations";
+import DoctorMode from "@/components/premium/DoctorMode";
 import WeeklyMoodTrendChart from "@/components/WeeklyMoodTrendChart";
 import SleepFatigueScatter from "@/components/SleepFatigueScatter";
 import SymptomCorrelationMatrix from "@/components/SymptomCorrelationMatrix";
@@ -944,6 +948,12 @@ const InsightsPage = () => {
                 </div>
               );
             })()}
+
+            {/* ── Premium Sections ── */}
+            <StaggerItem><MonthlyHealthReview /></StaggerItem>
+            <StaggerItem><FatigueDeepDive /></StaggerItem>
+            <StaggerItem><AdvancedCorrelations /></StaggerItem>
+            <StaggerItem><DoctorMode /></StaggerItem>
 
             {/* ── CTA ── */}
             <button

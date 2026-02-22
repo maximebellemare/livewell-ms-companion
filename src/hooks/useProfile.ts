@@ -30,6 +30,11 @@ export interface Profile {
   cog_streak_freeze_enabled: boolean;
   allow_dms: boolean;
   ai_memory_enabled: boolean;
+  is_premium: boolean;
+  premium_until: string | null;
+  premium_started_at: string | null;
+  monthly_reports_used: number;
+  monthly_reports_reset_at: string | null;
 }
 
 export const useProfile = () => {

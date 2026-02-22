@@ -1,0 +1,200 @@
+import { useState } from "react";
+import { Crown, Sparkles, Brain, Stethoscope, Zap, BarChart3, BookOpen, Check, Star } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
+import PageHeader from "@/components/PageHeader";
+import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
+import { usePremium } from "@/hooks/usePremium";
+import { useUpdateProfile } from "@/hooks/useProfile";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
+
+const features = [
+  { icon: Sparkles, label: "AI Monthly Health Review", desc: "Personalized monthly summaries of your health patterns." },
+  { icon: Stethoscope, label: "Doctor Mode", desc: "90-day clinical summary with printable PDF for appointments." },
+  { icon: Zap, label: "Fatigue Deep Dive", desc: "Identify your top fatigue triggers and get pacing recommendations." },
+  { icon: BarChart3, label: "Advanced Correlations", desc: "Multi-variable analysis connecting sleep, stress, and symptoms." },
+  { icon: BookOpen, label: "Structured Programs", desc: "Guided programs for anxiety, nervous system, and flare management." },
+  { icon: Brain, label: "Unlimited AI Coach", desc: "Unlimited daily messages with your personal AI support coach." },
+];
+
+const PremiumPage = () => {
+  const { isPremium } = usePremium();
+  const updateProfile = useUpdateProfile();
+  const [billing, setBilling] = useState<"monthly" | "annual">("annual");
+  const [activating, setActivating] = useState(false);
+
+  const handleActivateTrial = async () => {
+    setActivating(true);
+    try {
+      const until = new Date();
+      until.setDate(until.getDate() + 14); // 14-day trial
+      await updateProfile.mutateAsync({
+        is_premium: true,
+        premium_started_at: new Date().toISOString(),
+        premium_until: until.toISOString(),
+      } as any);
+      toast.success("Welcome to Premium! 🎉 Your 14-day trial has started.");
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ["#E8751A", "#F5A623", "#FFFFFF"] });
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  return (
+    <>
+      <SEOHead title="Premium — LiveWithMS" description="Upgrade to Premium for AI-powered insights, clinical tools, and personalized programs." />
+      <PageHeader title="Premium" subtitle="Your MS Intelligence System" showBack />
+
+      <div className="mx-auto max-w-lg px-4 py-4 pb-24">
+        <StaggerContainer className="space-y-5">
+          {/* Hero */}
+          <StaggerItem>
+            <div className="rounded-2xl bg-gradient-to-br from-primary/15 via-accent to-card p-6 text-center border border-primary/10">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15">
+                <Crown className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="font-display text-xl font-bold text-foreground">LiveWithMS Premium</h2>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                Transform your tracking into actionable intelligence with AI-powered insights and clinical tools.
+              </p>
+            </div>
+          </StaggerItem>
+
+          {isPremium ? (
+            <StaggerItem>
+              <div className="rounded-xl bg-[hsl(var(--brand-green))]/10 border border-[hsl(var(--brand-green))]/20 p-5 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Star className="h-5 w-5 text-[hsl(var(--brand-green))]" />
+                  <span className="text-sm font-semibold text-foreground">You're a Premium member!</span>
+                </div>
+                <p className="text-xs text-muted-foreground">All premium features are unlocked.</p>
+              </div>
+            </StaggerItem>
+          ) : (
+            <>
+              {/* Billing toggle */}
+              <StaggerItem>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setBilling("monthly")}
+                    className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${billing === "monthly" ? "bg-primary text-primary-foreground shadow-soft" : "bg-secondary text-muted-foreground"}`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBilling("annual")}
+                    className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${billing === "annual" ? "bg-primary text-primary-foreground shadow-soft" : "bg-secondary text-muted-foreground"}`}
+                  >
+                    Annual
+                    <span className="ml-1.5 text-[10px] opacity-80">Save 33%</span>
+                  </button>
+                </div>
+              </StaggerItem>
+
+              {/* Price */}
+              <StaggerItem>
+                <div className="text-center">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="font-display text-4xl font-bold text-foreground">
+                      ${billing === "monthly" ? "19" : "12.67"}
+                    </span>
+                    <span className="text-sm text-muted-foreground">/month</span>
+                  </div>
+                  {billing === "annual" && (
+                    <p className="mt-1 text-xs text-muted-foreground">Billed annually at $152/year</p>
+                  )}
+                </div>
+              </StaggerItem>
+            </>
+          )}
+
+          {/* Features */}
+          <StaggerItem>
+            <div className="rounded-xl bg-card p-5 shadow-soft space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Everything in Premium</p>
+              {features.map(({ icon: Icon, label, desc }) => (
+                <div key={label} className="flex items-start gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 mt-0.5">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </StaggerItem>
+
+          {/* Free vs Premium comparison */}
+          <StaggerItem>
+            <div className="rounded-xl bg-card p-5 shadow-soft">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Free vs Premium</p>
+              {[
+                { feature: "Daily symptom tracking", free: true, premium: true },
+                { feature: "Community access", free: true, premium: true },
+                { feature: "Basic insights", free: true, premium: true },
+                { feature: "AI Coach messages", free: "5/day", premium: "Unlimited" },
+                { feature: "PDF reports", free: "1/month", premium: "Unlimited" },
+                { feature: "AI Monthly Review", free: false, premium: true },
+                { feature: "Doctor Mode", free: false, premium: true },
+                { feature: "Fatigue Blueprint", free: false, premium: true },
+                { feature: "Advanced Correlations", free: false, premium: true },
+                { feature: "Programs", free: false, premium: true },
+              ].map(({ feature, free, premium }) => (
+                <div key={feature} className="flex items-center py-2 border-b border-border/50 last:border-0">
+                  <span className="flex-1 text-sm text-foreground">{feature}</span>
+                  <span className="w-16 text-center text-xs">
+                    {typeof free === "boolean" ? (
+                      free ? <Check className="h-4 w-4 text-[hsl(var(--brand-green))] mx-auto" /> : <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <span className="text-muted-foreground">{free}</span>
+                    )}
+                  </span>
+                  <span className="w-16 text-center text-xs">
+                    {typeof premium === "boolean" ? (
+                      premium ? <Check className="h-4 w-4 text-primary mx-auto" /> : <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <span className="font-medium text-primary">{premium}</span>
+                    )}
+                  </span>
+                </div>
+              ))}
+              <div className="flex items-center pt-2">
+                <span className="flex-1" />
+                <span className="w-16 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Free</span>
+                <span className="w-16 text-center text-[10px] font-semibold uppercase tracking-wider text-primary">Premium</span>
+              </div>
+            </div>
+          </StaggerItem>
+
+          {/* CTA */}
+          {!isPremium && (
+            <StaggerItem>
+              <div className="space-y-3">
+                <button
+                  onClick={handleActivateTrial}
+                  disabled={activating}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+                >
+                  <Crown className="h-5 w-5" />
+                  {activating ? "Activating…" : "Start 14-Day Free Trial"}
+                </button>
+                <p className="text-center text-[11px] text-muted-foreground">
+                  No credit card required • Cancel anytime
+                </p>
+                <p className="text-center text-[10px] text-muted-foreground">
+                  Full payment integration coming soon. Trial activates all Premium features immediately.
+                </p>
+              </div>
+            </StaggerItem>
+          )}
+        </StaggerContainer>
+      </div>
+    </>
+  );
+};
+
+export default PremiumPage;
