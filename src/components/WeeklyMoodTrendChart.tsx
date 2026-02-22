@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, Tooltip, ReferenceLine, Cell,
 } from "recharts";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Entry {
   date: string;
@@ -125,22 +126,33 @@ const WeeklyMoodTrendChart = ({ entries }: Props) => {
           {overallAvg !== null && (
             <span className="text-lg font-bold text-foreground">{overallAvg.toFixed(1)}</span>
           )}
-          <span
-            className="inline-flex items-center gap-0.5 text-[10px] font-medium rounded-full px-1.5 py-0.5"
-            style={{
-              background: wowTrend === "up" ? "hsl(145 45% 45% / 0.12)" :
-                          wowTrend === "down" ? "hsl(0 72% 51% / 0.1)" :
-                          "hsl(var(--muted))",
-              color: wowTrend === "up" ? "hsl(145 45% 35%)" :
-                     wowTrend === "down" ? "hsl(0 72% 45%)" :
-                     "hsl(var(--muted-foreground))",
-            }}
-          >
-            {wowTrend === "up" ? <TrendingUp className="h-2.5 w-2.5" /> :
-             wowTrend === "down" ? <TrendingDown className="h-2.5 w-2.5" /> :
-             <Minus className="h-2.5 w-2.5" />}
-            {wowTrend === "flat" ? "Stable" : wowTrend === "up" ? "Rising" : "Dipping"}
-          </span>
+          <TooltipProvider delayDuration={200}>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className="inline-flex items-center gap-0.5 text-[10px] font-medium rounded-full px-1.5 py-0.5 cursor-help"
+                  style={{
+                    background: wowTrend === "up" ? "hsl(145 45% 45% / 0.12)" :
+                                wowTrend === "down" ? "hsl(0 72% 51% / 0.1)" :
+                                "hsl(var(--muted))",
+                    color: wowTrend === "up" ? "hsl(145 45% 35%)" :
+                           wowTrend === "down" ? "hsl(0 72% 45%)" :
+                           "hsl(var(--muted-foreground))",
+                  }}
+                >
+                  {wowTrend === "up" ? <TrendingUp className="h-2.5 w-2.5" /> :
+                   wowTrend === "down" ? <TrendingDown className="h-2.5 w-2.5" /> :
+                   <Minus className="h-2.5 w-2.5" />}
+                  {wowTrend === "flat" ? "Stable" : wowTrend === "up" ? "Rising" : "Dipping"}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="left" className="text-xs max-w-[220px]">
+                {wowTrend === "up" && "Your mood improved this week compared to last week."}
+                {wowTrend === "down" && "Your mood dipped this week compared to last week."}
+                {wowTrend === "flat" && "Your mood stayed about the same week over week."}
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
         </div>
       </div>
 
@@ -187,18 +199,45 @@ const WeeklyMoodTrendChart = ({ entries }: Props) => {
 
         {/* Legend */}
         <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "hsl(145 45% 45%)" }} />
-            Good (7+)
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "hsl(25 85% 50%)" }} />
-            Moderate (4–6)
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "hsl(0 72% 51%)" }} />
-            Low (&lt;4)
-          </span>
+          <TooltipProvider delayDuration={200}>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <span className="flex items-center gap-1 cursor-help">
+                  <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "hsl(145 45% 45%)" }} />
+                  Good (7+)
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+                Weeks where your average mood was 7 or higher — feeling good!
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
+          <TooltipProvider delayDuration={200}>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <span className="flex items-center gap-1 cursor-help">
+                  <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "hsl(25 85% 50%)" }} />
+                  Moderate (4–6)
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+                Weeks where your average mood was between 4 and 6 — middle ground.
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
+          <TooltipProvider delayDuration={200}>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <span className="flex items-center gap-1 cursor-help">
+                  <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "hsl(0 72% 51%)" }} />
+                  Low (&lt;4)
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+                Weeks where your average mood was below 4 — a tough stretch.
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
         </div>
 
         {/* Mood tag correlation breakdown */}
