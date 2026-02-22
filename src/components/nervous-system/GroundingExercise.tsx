@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -15,6 +15,8 @@ const GroundingExercise = () => {
   const [step, setStep] = useState(0);
   const [started, setStarted] = useState(false);
   const [inputs, setInputs] = useState<string[][]>(senses.map((s) => Array(s.count).fill("")));
+  const [showReflections, setShowReflections] = useState(false);
+  const [breathProgress, setBreathProgress] = useState(0);
   const finished = step >= senses.length;
 
   const currentSense = senses[step];
@@ -42,8 +44,28 @@ const GroundingExercise = () => {
   const handleReset = () => {
     setStep(0);
     setStarted(false);
+    setShowReflections(false);
+    setBreathProgress(0);
     setInputs(senses.map((s) => Array(s.count).fill("")));
   };
+
+  // Breathing pause before showing reflections
+  useEffect(() => {
+    if (!finished) return;
+    setBreathProgress(0);
+    const duration = 4000; // 4 seconds
+    const interval = 50;
+    let elapsed = 0;
+    const timer = setInterval(() => {
+      elapsed += interval;
+      setBreathProgress(Math.min(elapsed / duration, 1));
+      if (elapsed >= duration) {
+        clearInterval(timer);
+        setShowReflections(true);
+      }
+    }, interval);
+    return () => clearInterval(timer);
+  }, [finished]);
 
   const updateInput = (senseIdx: number, itemIdx: number, value: string) => {
     setInputs((prev) => {
@@ -84,25 +106,62 @@ const GroundingExercise = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-xl bg-card p-6 shadow-soft text-center space-y-4"
+          className="rounded-xl bg-card p-6 shadow-soft text-center space-y-5"
         >
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[hsl(var(--brand-green))]/10">
-            <Check className="h-7 w-7 text-[hsl(var(--brand-green))]" />
-          </div>
-          <h3 className="font-display text-lg font-bold text-foreground">You're grounded 🌿</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
-            Well done. Take a slow breath and notice how you feel right now.
-          </p>
-          <button
-            onClick={handleReset}
-            className="inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-secondary/80"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Start Over
-          </button>
+          {/* Breathing circle during pause */}
+          {!showReflections ? (
+            <div className="space-y-4">
+              <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
+                {/* Pulsing ring */}
+                <motion.div
+                  className="absolute inset-0 rounded-full border-2 border-[hsl(var(--brand-green))]/30"
+                  animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 4, ease: "easeInOut" }}
+                />
+                {/* Progress ring */}
+                <svg className="absolute inset-0 -rotate-90" viewBox="0 0 96 96">
+                  <circle cx="48" cy="48" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                  <circle
+                    cx="48" cy="48" r="42" fill="none"
+                    stroke="hsl(var(--brand-green))"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 42}
+                    strokeDashoffset={2 * Math.PI * 42 * (1 - breathProgress)}
+                    className="transition-all duration-100"
+                  />
+                </svg>
+                <motion.span
+                  className="text-3xl"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 4, ease: "easeInOut" }}
+                >
+                  🌿
+                </motion.span>
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">Take a slow breath…</p>
+            </div>
+          ) : (
+            <>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[hsl(var(--brand-green))]/10">
+                <Check className="h-7 w-7 text-[hsl(var(--brand-green))]" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-foreground">You're grounded 🌿</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                Well done. Notice how you feel right now.
+              </p>
+              <button
+                onClick={handleReset}
+                className="inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-secondary/80"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Start Over
+              </button>
+            </>
+          )}
         </motion.div>
 
-        {hasAnyInput && (
+        {showReflections && hasAnyInput && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
