@@ -3,12 +3,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 /** Generic full-page loading skeleton used by ProtectedRoute / AppRoutes */
 export const AppLoadingSkeleton = () => (
   <div className="flex min-h-screen flex-col bg-background">
-    {/* Header area */}
     <div className="px-4 pt-6 pb-2">
       <Skeleton className="h-7 w-32 rounded-lg" />
       <Skeleton className="mt-1.5 h-4 w-48 rounded-md" />
     </div>
-    {/* Content cards */}
     <div className="mx-auto w-full max-w-lg space-y-4 px-4 py-4">
       <Skeleton className="h-24 rounded-xl" />
       <div className="grid grid-cols-2 gap-3">
@@ -70,6 +68,189 @@ export const RelapsesSkeleton = () => (
       ))}
     </div>
     <CardListSkeleton count={3} />
+  </div>
+);
+
+/* ─── Page-specific skeletons ────────────────────────────── */
+
+/** Today page: header + streaks + sparkline grid + cards */
+export const TodaySkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <Skeleton className="h-7 w-24 rounded-lg" />
+      <Skeleton className="mt-1.5 h-4 w-40 rounded-md" />
+    </div>
+    <div className="mx-auto max-w-lg space-y-3 px-4 py-3">
+      {/* Streak badges */}
+      <Skeleton className="h-14 rounded-xl" />
+      <Skeleton className="h-10 rounded-xl" />
+      {/* Sparkline grid */}
+      <Skeleton className="h-4 w-40 rounded-md" />
+      <div className="grid grid-cols-2 gap-1.5">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 rounded-xl" />
+        ))}
+      </div>
+      {/* Quick log + cards */}
+      <Skeleton className="h-24 rounded-xl" />
+      <Skeleton className="h-20 rounded-xl" />
+    </div>
+  </div>
+);
+
+/** Track page: month nav + calendar heatmap + summary */
+export const TrackSkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-7 w-20 rounded-lg" />
+        <div className="flex gap-1 rounded-lg bg-secondary p-0.5">
+          <Skeleton className="h-7 w-7 rounded-md" />
+          <Skeleton className="h-7 w-7 rounded-md" />
+        </div>
+      </div>
+      <Skeleton className="mt-1.5 h-4 w-36 rounded-md" />
+    </div>
+    <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
+      <div className="flex items-center justify-between px-1">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+      <Skeleton className="h-72 rounded-2xl" />
+      <Skeleton className="h-28 rounded-2xl" />
+    </div>
+  </div>
+);
+
+/** Community page: trending + channels list */
+export const CommunitySkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <Skeleton className="h-7 w-32 rounded-lg" />
+      <Skeleton className="mt-1.5 h-4 w-28 rounded-md" />
+    </div>
+    <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
+      <Skeleton className="h-5 w-40 rounded-md" />
+      <div className="flex gap-2 overflow-hidden">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-24 w-44 flex-shrink-0 rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="h-5 w-32 rounded-md" />
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} className="h-16 rounded-xl" />
+      ))}
+    </div>
+  </div>
+);
+
+/** Coach page: disclaimer + 4 mode cards */
+export const CoachSkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <Skeleton className="h-7 w-28 rounded-lg" />
+      <Skeleton className="mt-1.5 h-4 w-52 rounded-md" />
+    </div>
+    <div className="mx-4 mb-4 mt-4">
+      <Skeleton className="h-12 rounded-xl" />
+    </div>
+    <div className="px-4 space-y-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-start gap-4 rounded-2xl border border-border bg-card p-5">
+          <Skeleton className="h-11 w-11 rounded-xl flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-40 rounded-md" />
+            <Skeleton className="h-3 w-full rounded-md" />
+            <Skeleton className="h-3 w-3/4 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/** Learn page: search + filters + article cards */
+export const LearnSkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <Skeleton className="h-7 w-20 rounded-lg" />
+      <Skeleton className="mt-1.5 h-4 w-48 rounded-md" />
+    </div>
+    <div className="mx-auto max-w-lg px-4 py-4 space-y-3">
+      <Skeleton className="h-10 rounded-xl" />
+      <div className="flex gap-2">
+        {["All", "Basics", "Treatment"].map((_, i) => (
+          <Skeleton key={i} className="h-8 w-20 rounded-full flex-shrink-0" />
+        ))}
+      </div>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} className="h-24 rounded-xl" />
+      ))}
+    </div>
+  </div>
+);
+
+/** Profile page: avatar + settings sections */
+export const ProfileSkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <Skeleton className="h-7 w-24 rounded-lg" />
+      <Skeleton className="mt-1.5 h-4 w-48 rounded-md" />
+    </div>
+    <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
+      <div className="card-base flex items-center gap-3">
+        <Skeleton className="h-12 w-12 rounded-full flex-shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-32 rounded-md" />
+          <Skeleton className="h-3 w-48 rounded-md" />
+        </div>
+      </div>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-16 rounded-xl" />
+      ))}
+    </div>
+  </div>
+);
+
+/** Messages page: conversation list */
+export const MessagesSkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <Skeleton className="h-7 w-28 rounded-lg" />
+      <Skeleton className="mt-1.5 h-4 w-36 rounded-md" />
+    </div>
+    <div className="mx-auto max-w-lg px-4 py-4 space-y-3">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-3.5 w-24 rounded-md" />
+            <Skeleton className="h-3 w-40 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+/** Cognitive page: streak + best scores + tabs */
+export const CognitiveSkeleton = () => (
+  <div className="animate-fade-in">
+    <div className="px-4 pt-6 pb-2">
+      <Skeleton className="h-7 w-40 rounded-lg" />
+      <Skeleton className="mt-1.5 h-4 w-36 rounded-md" />
+    </div>
+    <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
+      <Skeleton className="h-14 rounded-xl" />
+      <div className="flex gap-2">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 flex-1 rounded-xl" />
+        ))}
+      </div>
+      <Skeleton className="h-10 rounded-lg" />
+      <Skeleton className="h-48 rounded-xl" />
+    </div>
   </div>
 );
 
