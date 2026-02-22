@@ -94,13 +94,22 @@ const GroundingSessionsChart = () => {
           <span className="text-sm font-semibold text-foreground">Grounding Sessions</span>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowGoalPicker((v) => !v)}
-            className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
-          >
-            <Target className="h-3 w-3" />
-            Goal: {weeklyGoal}/wk
-          </button>
+          <TooltipProvider delayDuration={200}>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setShowGoalPicker((v) => !v)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors cursor-help"
+                >
+                  <Target className="h-3 w-3" />
+                  Goal: {weeklyGoal}/wk
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs max-w-[220px]">
+                Complete {weeklyGoal} grounding session{weeklyGoal !== 1 ? "s" : ""} per week to meet your goal. Tap to change.
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
           <span className="text-xs text-muted-foreground">8-week view</span>
         </div>
       </div>
