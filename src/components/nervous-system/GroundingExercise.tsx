@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check, History } from "lucide-react";
+import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check, History, Trash2 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,6 +50,11 @@ const GroundingExercise = () => {
     });
     setSaved(true);
   }, [user, inputs, saved]);
+
+  const deleteSession = useCallback(async (id: string) => {
+    await supabase.from("grounding_sessions").delete().eq("id", id);
+    setPastSessions((prev) => prev.filter((s) => s.id !== id));
+  }, []);
 
   const currentSense = senses[step];
 
@@ -125,9 +130,18 @@ const GroundingExercise = () => {
         ) : (
           pastSessions.map((session) => (
             <div key={session.id} className="rounded-xl bg-card p-4 shadow-soft space-y-3">
-              <p className="text-xs font-medium text-muted-foreground">
-                {format(new Date(session.completed_at), "MMM d, yyyy · h:mm a")}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {format(new Date(session.completed_at), "MMM d, yyyy · h:mm a")}
+                </p>
+                <button
+                  onClick={() => deleteSession(session.id)}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  aria-label="Delete session"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
               {(session.reflections as any[]).map((r: any, idx: number) => {
                 const sense = senses[idx] || senses[0];
                 const Icon = sense.icon;
