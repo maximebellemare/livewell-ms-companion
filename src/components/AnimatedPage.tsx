@@ -7,15 +7,16 @@ interface AnimatedPageProps {
 }
 
 const pageVariants = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
+  initial: { opacity: 0, y: 12, scale: 0.99 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -6, scale: 0.995 },
 };
 
 const pageTransition = {
-  type: "tween" as const,
-  ease: "easeOut",
-  duration: 0.25,
+  type: "spring" as const,
+  stiffness: 260,
+  damping: 28,
+  mass: 0.8,
 };
 
 const AnimatedPage = ({ children, className }: AnimatedPageProps) => (
@@ -26,6 +27,7 @@ const AnimatedPage = ({ children, className }: AnimatedPageProps) => (
     exit="exit"
     transition={pageTransition}
     className={className}
+    style={{ willChange: "opacity, transform" }}
   >
     {children}
   </motion.div>
