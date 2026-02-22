@@ -6,28 +6,32 @@ interface AnimatedPageProps {
   className?: string;
 }
 
-const pageVariants = {
-  initial: { opacity: 0, y: 12, scale: 0.99 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: -6, scale: 0.995 },
-};
-
-const pageTransition = {
-  type: "spring" as const,
-  stiffness: 260,
-  damping: 28,
-  mass: 0.8,
-};
-
 const AnimatedPage = ({ children, className }: AnimatedPageProps) => (
   <motion.div
-    variants={pageVariants}
-    initial="initial"
-    animate="animate"
-    exit="exit"
-    transition={pageTransition}
-    className={className}
+    initial={{ opacity: 0, y: 12, scale: 0.99 }}
+    animate={{
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 260,
+        damping: 28,
+        mass: 0.8,
+      },
+    }}
+    exit={{
+      opacity: 0,
+      y: -6,
+      scale: 0.995,
+      transition: {
+        type: "tween",
+        ease: "easeIn",
+        duration: 0.15,
+      },
+    }}
     style={{ willChange: "opacity, transform" }}
+    className={className}
   >
     {children}
   </motion.div>
