@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ComposedChart, Bar, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from "recharts";
+import { ComposedChart, Bar, Cell, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from "recharts";
 import { format, subDays, eachWeekOfInterval, endOfWeek, isWithinInterval } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,9 +54,9 @@ const GroundingSessionsChart = () => {
           )
         : 0;
 
-      return { week: format(weekStart, "MMM d"), sessions: count, avgMin };
+      return { week: format(weekStart, "MMM d"), sessions: count, avgMin, fill: count >= weeklyGoal ? "hsl(145 45% 45%)" : "hsl(var(--muted-foreground) / 0.3)" };
     });
-  }, [sessions]);
+  }, [sessions, weeklyGoal]);
 
   const updateGoal = async (goal: number) => {
     if (!user) return;
@@ -169,9 +169,12 @@ const GroundingSessionsChart = () => {
             <Bar
               yAxisId="left"
               dataKey="sessions"
-              fill="hsl(145 45% 45%)"
               radius={[4, 4, 0, 0]}
-            />
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={index} fill={entry.fill} />
+              ))}
+            </Bar>
             <Line
               yAxisId="right"
               type="monotone"
