@@ -37,13 +37,45 @@ export const CardListSkeleton = ({ count = 3 }: { count?: number }) => (
 /** Insights / chart-heavy skeleton */
 export const InsightsSkeleton = () => (
   <div className="space-y-4 animate-fade-in">
+    {/* Range toggle pills */}
+    <div className="flex gap-2">
+      <Skeleton className="h-9 w-28 rounded-full" />
+      <Skeleton className="h-9 w-28 rounded-full" />
+    </div>
+    {/* Stat cards grid */}
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <Skeleton key={i} className="h-24 rounded-xl" />
+        <div key={i} className="rounded-xl bg-card p-4 shadow-soft text-center space-y-2">
+          <Skeleton className="h-6 w-6 rounded-md mx-auto" />
+          <Skeleton className="h-7 w-12 rounded-md mx-auto" />
+          <Skeleton className="h-3 w-16 rounded-md mx-auto" />
+          <Skeleton className="h-5 w-14 rounded-full mx-auto" />
+        </div>
       ))}
     </div>
-    <Skeleton className="h-48 rounded-xl" />
-    <Skeleton className="h-64 rounded-xl" />
+    {/* Heatmap */}
+    <Skeleton className="h-56 rounded-2xl" />
+    {/* Weekly progress summary */}
+    <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
+      <Skeleton className="h-4 w-40 rounded-md" />
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <Skeleton className="h-5 w-5 rounded-md flex-shrink-0" />
+          <Skeleton className="h-3 w-20 rounded-md" />
+          <Skeleton className="h-3 flex-1 rounded-md" />
+          <Skeleton className="h-5 w-14 rounded-full" />
+        </div>
+      ))}
+    </div>
+    {/* Trend chart */}
+    <div className="rounded-2xl bg-card border border-border p-4 space-y-3">
+      <Skeleton className="h-4 w-32 rounded-md" />
+      <Skeleton className="h-48 rounded-xl" />
+    </div>
+    {/* AI insight card */}
+    <Skeleton className="h-28 rounded-2xl" />
+    {/* Medication adherence */}
+    <Skeleton className="h-40 rounded-2xl" />
   </div>
 );
 
@@ -191,7 +223,7 @@ export const LearnSkeleton = () => (
   </div>
 );
 
-/** Profile page: avatar + settings sections */
+/** Profile page: avatar card + nav links + settings sections */
 export const ProfileSkeleton = () => (
   <div className="animate-fade-in">
     <div className="px-4 pt-6 pb-2">
@@ -199,16 +231,46 @@ export const ProfileSkeleton = () => (
       <Skeleton className="mt-1.5 h-4 w-48 rounded-md" />
     </div>
     <div className="mx-auto max-w-lg px-4 py-4 space-y-4">
-      <div className="card-base flex items-center gap-3">
-        <Skeleton className="h-12 w-12 rounded-full flex-shrink-0" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-32 rounded-md" />
-          <Skeleton className="h-3 w-48 rounded-md" />
+      {/* User info card */}
+      <div className="card-base space-y-2">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-12 w-12 rounded-full flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-32 rounded-md" />
+            <Skeleton className="h-3 w-48 rounded-md" />
+          </div>
+        </div>
+        {/* Nav links inside card */}
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 rounded-lg" />
+        ))}
+      </div>
+      {/* Weekly goal card */}
+      <div className="card-base space-y-2">
+        <Skeleton className="h-4 w-28 rounded-md" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8 rounded-md" />
+          <Skeleton className="h-3 flex-1 rounded-full" />
+          <Skeleton className="h-4 w-12 rounded-md" />
         </div>
       </div>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-16 rounded-xl" />
-      ))}
+      {/* Display name section */}
+      <div className="card-base space-y-2">
+        <Skeleton className="h-4 w-36 rounded-md" />
+        <Skeleton className="h-10 rounded-lg" />
+        <Skeleton className="h-9 w-20 rounded-full" />
+      </div>
+      {/* MS details section */}
+      <div className="card-base space-y-2">
+        <Skeleton className="h-4 w-24 rounded-md" />
+        <Skeleton className="h-10 rounded-lg" />
+        <Skeleton className="h-10 rounded-lg" />
+      </div>
+      {/* Theme / notifications */}
+      <div className="card-base flex items-center justify-between">
+        <Skeleton className="h-4 w-28 rounded-md" />
+        <Skeleton className="h-6 w-12 rounded-full" />
+      </div>
     </div>
   </div>
 );
