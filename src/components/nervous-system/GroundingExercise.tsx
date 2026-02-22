@@ -5,6 +5,10 @@ import confetti from "canvas-confetti";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const senses = [
   { count: 5, sense: "things you can see", icon: Eye, color: "text-[hsl(var(--brand-blue))]", bg: "bg-[hsl(var(--brand-blue))]/10" },
@@ -134,13 +138,26 @@ const GroundingExercise = () => {
                 <p className="text-xs font-medium text-muted-foreground">
                   {format(new Date(session.completed_at), "MMM d, yyyy · h:mm a")}
                 </p>
-                <button
-                  onClick={() => deleteSession(session.id)}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                  aria-label="Delete session"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      aria-label="Delete session"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-xs">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete session?</AlertDialogTitle>
+                      <AlertDialogDescription>This grounding session will be permanently removed.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteSession(session.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
               {(session.reflections as any[]).map((r: any, idx: number) => {
                 const sense = senses[idx] || senses[0];
