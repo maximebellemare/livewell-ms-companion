@@ -12,6 +12,7 @@ import ReactMarkdown from "react-markdown";
 import BreathingTimer, { detectBreathingPattern } from "./BreathingTimer";
 import GroundingWidget, { detectGroundingExercise } from "./GroundingWidget";
 import CognitiveReframingWidget, { detectCognitiveReframing } from "./CognitiveReframingWidget";
+import JournalPromptWidget, { detectJournalingExercise } from "./JournalPromptWidget";
 
 interface CoachChatProps {
   mode: CoachMode;
@@ -336,6 +337,7 @@ const CoachChat = ({ mode, resumeSessionId }: CoachChatProps) => {
                   <PromptChip label="Guide me through box breathing" onTap={setInput} />
                   <PromptChip label="I need a grounding exercise" onTap={setInput} />
                   <PromptChip label="Help me reframe a negative thought" onTap={setInput} />
+                  <PromptChip label="Guide me through a journaling prompt" onTap={setInput} />
                 </>
               )}
               {mode === "planning" && (
@@ -382,6 +384,7 @@ const CoachChat = ({ mode, resumeSessionId }: CoachChatProps) => {
                       if (bp) return <BreathingTimer pattern={bp} />;
                       if (detectGroundingExercise(msg.content)) return <GroundingWidget />;
                       if (detectCognitiveReframing(msg.content)) return <CognitiveReframingWidget />;
+                      if (detectJournalingExercise(msg.content)) return <JournalPromptWidget />;
                       return null;
                     })()}
                   </>
