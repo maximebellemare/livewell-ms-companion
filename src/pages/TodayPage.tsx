@@ -649,7 +649,7 @@ const TodayPage = () => {
                   <p className="text-sm font-medium text-foreground">Exercises</p>
                   <p className="text-xs text-muted-foreground">Breathing, grounding & relaxation</p>
                 </div>
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/15 px-1.5 text-[10px] font-semibold text-primary">6</span>
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/15 px-1.5 text-[10px] font-semibold text-primary">7</span>
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
@@ -660,6 +660,7 @@ const TodayPage = () => {
               <QuickCard emoji="🖐️" title="Grounding Exercise" subtitle="5-4-3-2-1 sensory grounding" onClick={() => navigate("/coach", { state: { autoSend: "I'd like a 5-4-3-2-1 grounding exercise" } })} />
               <QuickCard emoji="💛" title="Self-Compassion" subtitle="Guided self-compassion exercise" onClick={() => navigate("/coach", { state: { autoSend: "Try a self-compassion exercise with me" } })} />
               <QuickCard emoji="🔄" title="Thought Reframing" subtitle="Reframe a negative thought" onClick={() => navigate("/coach", { state: { autoSend: "Help me reframe a negative thought" } })} />
+              <QuickCard emoji="🧠" title="Body Scan" subtitle="Guided body scan meditation" onClick={() => navigate("/coach", { state: { autoSend: "Guide me through a body scan meditation" } })} />
             </CollapsibleContent>
           </Collapsible>
         </StaggerItem>
