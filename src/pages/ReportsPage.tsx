@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useReportHistory, useAddReportHistory, useDeleteReportHistory } from "@/hooks/useReportHistory";
 import ReportPreviewDialog from "@/components/ReportPreviewDialog";
+import { useRiskScores } from "@/hooks/useRiskScores";
 
 
 const PRESETS = [
@@ -85,6 +86,7 @@ const ReportsPage = () => {
   const { data: reportHistory = [] } = useReportHistory();
   const addReportHistory = useAddReportHistory();
   const deleteReportHistory = useDeleteReportHistory();
+  const { data: riskScores = [] } = useRiskScores(12);
 
 
   /** Build the report blob (shared by generate + send flows) */
@@ -104,7 +106,7 @@ const ReportsPage = () => {
       includeSymptoms, includeMedications, includeAppointments,
       includeProfile, includeNotes, includeRelapses, includeHydration, includeRiskScore, includeTrendCharts, includeMoodTags, includePeriodComparison, includeTriggerAnalysis, aiInsight,
       entries, profile: profile || null,
-      medications, medLogs, appointments: filteredAppts, relapses,
+      medications, medLogs, appointments: filteredAppts, relapses, riskScores,
     });
   };
 

@@ -6,6 +6,7 @@ import type { Profile } from "@/hooks/useProfile";
 import type { DbMedication, DbMedicationLog } from "@/hooks/useMedications";
 import type { DbAppointment } from "@/hooks/useAppointments";
 import type { Relapse } from "@/hooks/useRelapses";
+import type { RiskScore } from "@/hooks/useRiskScores";
 import { computeRisk, computeWeeklyScores } from "@/components/relapse-risk/computeRisk";
 
 interface ReportData {
@@ -30,6 +31,7 @@ interface ReportData {
   medLogs: DbMedicationLog[];
   appointments: DbAppointment[];
   relapses?: Relapse[];
+  riskScores?: RiskScore[];
 }
 
 
@@ -404,7 +406,7 @@ export function generateReportFromData(data: ReportData): Blob {
 
   // Relapse Risk Score
   if (data.includeRiskScore && entries.length >= 4) {
-    y = checkPageBreak(doc, y, 50);
+    y = checkPageBreak(doc, y, 70);
     y = addSectionTitle(doc, "Relapse Risk Assessment", y);
 
     const endDate = parseISO(data.endDate);
@@ -423,6 +425,10 @@ export function generateReportFromData(data: ReportData): Blob {
     const risk = computeRisk(recent, older);
     const weeklyScores = computeWeeklyScores(entries, endDate);
 
+    // Use persisted DB scores for historical trend if available
+    const dbScores = data.riskScores || [];
+    const hasPersisted = dbScores.length >= 2;
+
     const levelColor: Record<string, [number, number, number]> = {
       low: [34, 139, 34],
       moderate: [218, 165, 32],
@@ -432,11 +438,17 @@ export function generateReportFromData(data: ReportData): Blob {
     const color = levelColor[risk.level] || ORANGE;
     const levelLabel = risk.level.charAt(0).toUpperCase() + risk.level.slice(1);
 
+    const trendLabel = hasPersisted
+      ? dbScores.slice(-6).map((s) => `${s.score}`).join(" → ")
+      : weeklyScores.length > 0
+        ? weeklyScores.map((s) => `${s}`).join(" → ")
+        : null;
+
     autoTable(doc, {
       startY: y, head: [], body: [
-        ["Risk Score", `${risk.score}/100`],
+        ["Current Score", `${risk.score}/100`],
         ["Risk Level", levelLabel],
-        ...(weeklyScores.length > 0 ? [["4-Week Trend", weeklyScores.map((s) => `${s}`).join(" → ")]] : []),
+        ...(trendLabel ? [["Weekly Trend", trendLabel]] : []),
       ], theme: "plain",
       styles: { fontSize: 9, cellPadding: 2.5, textColor: DARK },
       columnStyles: { 0: { fontStyle: "bold", cellWidth: 40, textColor: color }, 1: { cellWidth: "auto" } },
@@ -456,6 +468,91 @@ export function generateReportFromData(data: ReportData): Blob {
         y += 4.5;
       }
       y += 4;
+    }
+
+    // Draw persisted risk trend chart if enough data
+    if (hasPersisted) {
+      y = checkPageBreak(doc, y, 55);
+      const chartScores = dbScores.slice(-12);
+      const chartX = 24;
+      const chartW = 160;
+      const chartH = 32;
+      const chartTop = y + 4;
+      const chartBottom = chartTop + chartH;
+
+      doc.setTextColor(...DARK);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("Risk Score History", 14, y);
+
+      // Y-axis
+      doc.setTextColor(...GRAY);
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.text("100", chartX - 2, chartTop + 3, { align: "right" });
+      doc.text("50", chartX - 2, chartTop + chartH / 2 + 1, { align: "right" });
+      doc.text("0", chartX - 2, chartBottom + 1, { align: "right" });
+
+      // Grid
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.15);
+      for (let i = 0; i <= 4; i++) {
+        const gy = chartTop + (chartH / 4) * i;
+        doc.line(chartX, gy, chartX + chartW, gy);
+      }
+
+      // Risk threshold lines
+      const thresholds = [
+        { val: 30, label: "Low", color: [34, 139, 34] as [number, number, number] },
+        { val: 55, label: "Mod", color: [218, 165, 32] as [number, number, number] },
+        { val: 75, label: "Elev", color: [232, 117, 26] as [number, number, number] },
+      ];
+      for (const t of thresholds) {
+        const ty = chartBottom - (t.val / 100) * chartH;
+        doc.setDrawColor(t.color[0], t.color[1], t.color[2]);
+        doc.setLineWidth(0.2);
+        doc.setLineDashPattern?.([1.5, 1.5], 0);
+        doc.line(chartX, ty, chartX + chartW, ty);
+        doc.setFontSize(5);
+        doc.setTextColor(t.color[0], t.color[1], t.color[2]);
+        doc.text(t.label, chartX + chartW + 1, ty + 1);
+      }
+      doc.setLineDashPattern?.([], 0);
+
+      // Line
+      const xStep = chartW / Math.max(chartScores.length - 1, 1);
+      const coords = chartScores.map((s, i) => ({
+        x: chartX + i * xStep,
+        py: chartBottom - (s.score / 100) * chartH,
+      }));
+
+      doc.setDrawColor(...ORANGE);
+      doc.setLineWidth(0.6);
+      for (let i = 0; i < coords.length - 1; i++) {
+        doc.line(coords[i].x, coords[i].py, coords[i + 1].x, coords[i + 1].py);
+      }
+
+      // Data points colored by level
+      for (let i = 0; i < chartScores.length; i++) {
+        const ptColor = levelColor[chartScores[i].level] || ORANGE;
+        doc.setFillColor(ptColor[0], ptColor[1], ptColor[2]);
+        doc.circle(coords[i].x, coords[i].py, 1, "F");
+      }
+
+      // X-axis labels
+      doc.setTextColor(...GRAY);
+      doc.setFontSize(6);
+      const labelCount = Math.min(6, chartScores.length);
+      const labelStep = Math.max(1, Math.floor((chartScores.length - 1) / (labelCount - 1)));
+      for (let i = 0; i < chartScores.length; i += labelStep) {
+        doc.text(format(parseISO(chartScores[i].week_start), "M/d"), coords[i].x, chartBottom + 5, { align: "center" });
+      }
+      if ((chartScores.length - 1) % labelStep !== 0) {
+        const last = chartScores.length - 1;
+        doc.text(format(parseISO(chartScores[last].week_start), "M/d"), coords[last].x, chartBottom + 5, { align: "center" });
+      }
+
+      y = chartBottom + 10;
     }
 
     y = addSubtext(doc, "Based on 7-day symptom trends vs. prior 7 days. Not a clinical assessment.", y);
