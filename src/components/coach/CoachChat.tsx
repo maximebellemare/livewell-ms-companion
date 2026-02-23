@@ -16,6 +16,7 @@ import JournalPromptWidget, { detectJournalingExercise } from "./JournalPromptWi
 import PMRWidget, { detectPMR } from "./PMRWidget";
 import BodyScanWidget, { detectBodyScan } from "./BodyScanWidget";
 import VisualizationWidget, { detectVisualization } from "./VisualizationWidget";
+import AffirmationCardWidget, { detectAffirmation } from "./AffirmationCardWidget";
 
 interface CoachChatProps {
   mode: CoachMode;
@@ -344,6 +345,7 @@ const CoachChat = ({ mode, resumeSessionId }: CoachChatProps) => {
                    <PromptChip label="Try progressive muscle relaxation" onTap={setInput} />
                    <PromptChip label="Guide me through a body scan" onTap={setInput} />
                    <PromptChip label="Try a visualization exercise" onTap={setInput} />
+                   <PromptChip label="Show me some positive affirmations" onTap={setInput} />
                 </>
               )}
               {mode === "planning" && (
@@ -389,6 +391,7 @@ const CoachChat = ({ mode, resumeSessionId }: CoachChatProps) => {
                       if (detectPMR(msg.content)) return <PMRWidget />;
                       if (detectBodyScan(msg.content)) return <BodyScanWidget />;
                       if (detectVisualization(msg.content)) return <VisualizationWidget />;
+                      if (detectAffirmation(msg.content)) return <AffirmationCardWidget />;
                       if (detectJournalingExercise(msg.content)) return <JournalPromptWidget />;
                       if (detectCognitiveReframing(msg.content)) return <CognitiveReframingWidget />;
                       if (detectGroundingExercise(msg.content)) return <GroundingWidget />;
