@@ -79,11 +79,19 @@ const BreathingTimer = ({ pattern }: BreathingTimerProps) => {
           : 0.6
     : 0.7;
 
+  const haptic = useCallback((style: "light" | "medium" | "heavy" = "light") => {
+    if (!navigator.vibrate) return;
+    const ms = style === "heavy" ? 30 : style === "medium" ? 15 : 10;
+    navigator.vibrate(ms);
+  }, []);
+
   const advance = useCallback(() => {
+    haptic("medium");
     const nextPhase = phaseIdx + 1;
     if (nextPhase >= config.phases.length) {
       const nextCycle = cycle + 1;
       if (nextCycle >= config.cycles) {
+        haptic("heavy");
         setRunning(false);
         setDone(true);
         return;
@@ -94,7 +102,7 @@ const BreathingTimer = ({ pattern }: BreathingTimerProps) => {
       setPhaseIdx(nextPhase);
     }
     setElapsed(0);
-  }, [phaseIdx, cycle, config]);
+  }, [phaseIdx, cycle, config, haptic]);
 
   useEffect(() => {
     if (!running) return;
