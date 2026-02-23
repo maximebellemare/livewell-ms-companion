@@ -19,6 +19,18 @@ const LearnPage = () => {
   const [showUnread, setShowUnread] = useState(false);
   const [showCompleted, setShowCompleted] = useState(false);
   const [search, setSearch] = useState("");
+  const articleRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const scrollToArticle = (id: string) => {
+    setExpandedId(id);
+    markRead.mutate(id);
+    // Wait for expansion render, then scroll into view
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        articleRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    });
+  };
 
   const { data: articles = [], isLoading } = useLearnArticles();
   const { data: bookmarkIds = new Set<string>() } = useLearnBookmarkIds();
@@ -114,10 +126,7 @@ const LearnPage = () => {
                 return (
                   <button
                     key={article.id}
-                    onClick={() => {
-                      setExpandedId(article.id);
-                      markRead.mutate(article.id);
-                    }}
+                    onClick={() => scrollToArticle(article.id)}
                     className="tap-highlight-none w-full rounded-xl bg-card p-3 text-left shadow-soft hover:ring-1 hover:ring-primary/30 transition-all relative overflow-hidden"
                   >
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-secondary">
@@ -217,10 +226,7 @@ const LearnPage = () => {
         {!isLoading && !search && filter === "All" && !showBookmarked && !showUnread && (
           <RecommendedArticles
             articles={articles}
-            onSelect={(id) => {
-              setExpandedId(id);
-              markRead.mutate(id);
-            }}
+            onSelect={(id) => scrollToArticle(id)}
           />
         )}
 
@@ -238,10 +244,7 @@ const LearnPage = () => {
                 return (
                   <button
                     key={read.article_id}
-                    onClick={() => {
-                      setExpandedId(article.id);
-                      markRead.mutate(article.id);
-                    }}
+                    onClick={() => scrollToArticle(article.id)}
                     className="tap-highlight-none flex-shrink-0 w-36 rounded-xl bg-card p-3 text-left shadow-soft hover:ring-1 hover:ring-primary/30 transition-all"
                   >
                     <div className="flex items-center gap-1">
@@ -294,7 +297,7 @@ const LearnPage = () => {
             const isBookmarked = bookmarkIds.has(article.id);
 
             return (
-              <motion.div key={article.id} variants={listItemVariants} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.98 }} className="rounded-xl bg-card shadow-soft overflow-hidden relative">
+              <motion.div key={article.id} ref={(el) => { articleRefs.current[article.id] = el; }} variants={listItemVariants} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.98 }} className="rounded-xl bg-card shadow-soft overflow-hidden relative">
                 {/* Progress bar at bottom of card (when collapsed and has progress) */}
                 {!isExpanded && (progressMap[article.id] ?? 0) > 0 && (
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-secondary">
