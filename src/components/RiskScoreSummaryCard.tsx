@@ -122,12 +122,11 @@ export default function RiskScoreSummaryCard() {
     const latest = scores[scores.length - 1];
     const level = latest.level as RiskLevel;
 
-    // Only fire once per level change, skip initial mount if already seen
+    // Only fire once per level change
     if (prevLevelRef.current === level) return;
-    const isFirstMount = prevLevelRef.current === null;
     prevLevelRef.current = level;
 
-    if ((level === "elevated" || level === "high") && !isFirstMount) {
+    if (level === "elevated" || level === "high") {
       const cfg = RISK_CONFIG[level];
       toast.warning(
         level === "high" ? "🔴 High relapse risk detected" : "🔶 Elevated relapse risk",
