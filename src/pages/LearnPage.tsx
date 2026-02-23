@@ -5,7 +5,7 @@ import AnimatedList, { listItemVariants } from "@/components/AnimatedList";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import PageHeader from "@/components/PageHeader";
-import { Bookmark, BookmarkCheck, CheckCircle2, ChevronDown, ChevronUp, Search, X, Clock, EyeOff, CircleCheckBig, Trophy } from "lucide-react";
+import { Bookmark, BookmarkCheck, CheckCircle2, ChevronDown, ChevronUp, Search, X, Clock, EyeOff, CircleCheckBig, Trophy, BookOpen } from "lucide-react";
 import { useLearnArticles, useLearnBookmarkIds, useToggleLearnBookmark, useLearnReads, useMarkArticleRead } from "@/hooks/useLearnArticles";
 import { Skeleton } from "@/components/ui/skeleton";
 import ArticleBody from "@/components/learn/ArticleBody";
@@ -44,6 +44,14 @@ const LearnPage = () => {
       .filter((a) => !showCompleted || (progressMap[a.id] ?? 0) >= 1)
       .filter((a) => !q || a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
   }, [articles, filter, showBookmarked, showUnread, showCompleted, bookmarkIds, readArticleIds, progressMap, search]);
+
+  const continueReading = useMemo(() => 
+    articles.filter((a) => {
+      const p = progressMap[a.id] ?? 0;
+      return p > 0 && p < 1;
+    }).sort((a, b) => (progressMap[b.id] ?? 0) - (progressMap[a.id] ?? 0)),
+    [articles, progressMap]
+  );
 
   const completedCount = useMemo(() => articles.filter((a) => (progressMap[a.id] ?? 0) >= 1).length, [articles, progressMap]);
   const totalCount = articles.length;
@@ -88,6 +96,47 @@ const LearnPage = () => {
                 🎉 Amazing! You've completed every article. Keep learning and growing!
               </p>
             )}
+          </div>
+        )}
+
+        {/* Continue Reading */}
+        {!isLoading && !search && filter === "All" && continueReading.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-1.5 mb-2">
+              <BookOpen className="h-3.5 w-3.5 text-primary" />
+              <h2 className="text-xs font-semibold text-primary uppercase tracking-wider">Continue Reading</h2>
+            </div>
+            <div className="space-y-2">
+              {continueReading.slice(0, 3).map((article) => {
+                const progress = progressMap[article.id] ?? 0;
+                const mins = parseInt(article.read_time) || 0;
+                const remaining = Math.ceil(mins * (1 - progress));
+                return (
+                  <button
+                    key={article.id}
+                    onClick={() => {
+                      setExpandedId(article.id);
+                      markRead.mutate(article.id);
+                    }}
+                    className="tap-highlight-none w-full rounded-xl bg-card p-3 text-left shadow-soft hover:ring-1 hover:ring-primary/30 transition-all relative overflow-hidden"
+                  >
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-secondary">
+                      <div className="h-full bg-primary/60 rounded-br-xl transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[9px] font-medium uppercase tracking-wider text-primary">{article.category}</span>
+                        <p className="text-xs font-semibold text-foreground line-clamp-1">{article.title}</p>
+                      </div>
+                      <div className="flex-shrink-0 text-right">
+                        <span className="text-[10px] font-semibold text-primary">{Math.round(progress * 100)}%</span>
+                        {remaining > 0 && <p className="text-[9px] text-muted-foreground">{remaining} min left</p>}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
