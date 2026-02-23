@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronLeft, Shield, CheckCircle2, Globe, Calendar, User, Sparkles } from "lucide-react";
+import { ChevronRight, ChevronLeft, Shield, CheckCircle2, Globe, Calendar, User, Sparkles, TrendingUp, Heart, Brain, Target, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MedicalDisclaimerDialog from "@/components/MedicalDisclaimerDialog";
 import { useUpdateProfile } from "@/hooks/useProfile";
@@ -53,8 +53,7 @@ const stepMeta = [
   { emoji: "🧬", title: "MS Type" },
   { emoji: "🩺", title: "Symptoms" },
   { emoji: "🎯", title: "Goals" },
-  { emoji: "🌍", title: "Location" },
-  { emoji: "📅", title: "Age" },
+  { emoji: "🌍", title: "About You" },
   { emoji: "🌿", title: "Ready!" },
 ];
 
@@ -72,6 +71,31 @@ const slideVariants = {
     opacity: 0,
   }),
 };
+
+/** Motivational tip component shown below each step's header */
+const StepTip = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.3 }}
+    className="mt-4 mb-2 flex items-start gap-2.5 rounded-xl bg-primary/5 border border-primary/10 px-4 py-3"
+  >
+    <Icon className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+    <p className="text-xs text-muted-foreground leading-relaxed">{text}</p>
+  </motion.div>
+);
+
+/** Decorative floating dots for visual interest */
+const StepDecoration = ({ emoji, delay = 0 }: { emoji: string; delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0, y: 20 }}
+    animate={{ opacity: 1, scale: 1, y: 0 }}
+    transition={{ type: "spring", stiffness: 200, damping: 15, delay }}
+    className="absolute pointer-events-none select-none"
+  >
+    <span className="text-4xl opacity-10">{emoji}</span>
+  </motion.div>
+);
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
@@ -129,13 +153,14 @@ const OnboardingPage = () => {
   const isFirst = step === 0;
   const isConsentStep = step === 1;
   const isNameStep = step === 2;
-  const skippableSteps = [2, 3, 4, 5, 6, 7]; // Name, MS Type, Symptoms, Goals, Country, Age
+  const skippableSteps = [2, 3, 4, 5, 6]; // Name, MS Type, Symptoms, Goals, About You
   const isSkippable = skippableSteps.includes(step);
   const nextDisabled = isConsentStep && !allConsentsAccepted;
 
   const steps = [
     // 0: Welcome
-    <div key="welcome" className="flex flex-col items-center justify-center px-6 text-center">
+    <div key="welcome" className="relative flex flex-col items-center justify-center px-6 text-center">
+      <StepDecoration emoji="💜" delay={0.5} />
       <motion.span
         className="text-6xl"
         initial={{ scale: 0 }}
@@ -148,13 +173,18 @@ const OnboardingPage = () => {
       <p className="mt-3 text-base text-muted-foreground leading-relaxed max-w-xs mx-auto">
         Your personal companion for living well with Multiple Sclerosis. Let's set things up — it only takes a minute.
       </p>
-      <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="mt-8 flex items-center gap-3 text-sm text-muted-foreground"
+      >
         <span className="flex items-center gap-1.5"><span className="text-base">🔒</span> Private</span>
         <span className="text-muted-foreground/30">•</span>
         <span className="flex items-center gap-1.5"><span className="text-base">⚡</span> 1 min setup</span>
         <span className="text-muted-foreground/30">•</span>
         <span className="flex items-center gap-1.5"><span className="text-base">💜</span> Free</span>
-      </div>
+      </motion.div>
       <div className="mt-6 mx-auto max-w-sm rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
         <p className="text-xs font-semibold text-destructive mb-1">⚕️ Medical Disclaimer</p>
         <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -172,7 +202,8 @@ const OnboardingPage = () => {
       <p className="text-sm text-muted-foreground leading-relaxed">
         We take your health data seriously. Please review and accept.
       </p>
-      <div className="mt-5 space-y-2.5">
+      <StepTip icon={Shield} text="Your data is encrypted and never shared with third parties. You're always in control." />
+      <div className="mt-3 space-y-2.5">
         {consentItems.map((item, i) => (
           <motion.button
             key={item.id}
@@ -217,7 +248,8 @@ const OnboardingPage = () => {
       <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
         Pick a display name for the community. You can stay anonymous — this won't show your real name.
       </p>
-      <div className="mt-6">
+      <StepTip icon={Heart} text="Your name helps others connect with you in the community. You can always change it later." />
+      <div className="mt-4">
         <input
           type="text"
           maxLength={30}
@@ -228,19 +260,14 @@ const OnboardingPage = () => {
         />
         <p className="mt-2 text-xs text-muted-foreground">{displayName.length}/30 characters</p>
       </div>
-      <div className="mt-6 rounded-xl bg-primary/5 border border-primary/10 px-4 py-3">
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          <Sparkles className="inline h-3.5 w-3.5 text-primary mr-1" />
-          Your display name appears on community posts and comments. You can change it later in your profile.
-        </p>
-      </div>
     </div>,
 
     // 3: MS Type
     <div key="type" className="px-6">
       <h2 className="font-display text-2xl font-semibold text-foreground">🧬 Your MS Type</h2>
       <p className="mt-1 text-sm text-muted-foreground">Helps us personalize your experience.</p>
-      <div className="mt-5 space-y-2">
+      <StepTip icon={Brain} text="Knowing your MS type lets us tailor insights, articles, and risk indicators specifically for you." />
+      <div className="mt-3 space-y-2">
         {msTypes.map((type, i) => (
           <motion.button
             key={type.value}
@@ -279,7 +306,8 @@ const OnboardingPage = () => {
     <div key="symptoms" className="px-6">
       <h2 className="font-display text-2xl font-semibold text-foreground">🩺 Key Symptoms</h2>
       <p className="mt-1 text-sm text-muted-foreground">Select the symptoms that affect you most.</p>
-      <div className="mt-5 grid grid-cols-2 gap-2">
+      <StepTip icon={TrendingUp} text="Selecting your symptoms unlocks personalized tracking, trends, and smart correlations in your dashboard." />
+      <div className="mt-3 grid grid-cols-2 gap-2">
         {commonSymptoms.map((s, i) => (
           <motion.button
             key={s.value}
@@ -300,7 +328,7 @@ const OnboardingPage = () => {
       </div>
       {symptoms.length > 0 && (
         <p className="mt-3 text-xs text-primary font-medium text-center">
-          {symptoms.length} selected
+          {symptoms.length} selected — great start!
         </p>
       )}
     </div>,
@@ -309,7 +337,8 @@ const OnboardingPage = () => {
     <div key="goals" className="px-6">
       <h2 className="font-display text-2xl font-semibold text-foreground">🎯 Your Goals</h2>
       <p className="mt-1 text-sm text-muted-foreground">What would you like to improve?</p>
-      <div className="mt-5 grid grid-cols-2 gap-2">
+      <StepTip icon={Target} text="Your goals shape your daily prompts, insights, and the articles we recommend — making the app truly yours." />
+      <div className="mt-3 grid grid-cols-2 gap-2">
         {goals.map((g, i) => (
           <motion.button
             key={g.value}
@@ -330,64 +359,69 @@ const OnboardingPage = () => {
       </div>
       {selectedGoals.length > 0 && (
         <p className="mt-3 text-xs text-primary font-medium text-center">
-          {selectedGoals.length} selected
+          {selectedGoals.length} selected — you're on track! 💪
         </p>
       )}
     </div>,
 
-    // 6: Country
-    <div key="country" className="px-6">
+    // 6: About You (combined Country + Age)
+    <div key="about-you" className="px-6">
       <div className="flex items-center gap-2 mb-1">
         <Globe className="h-5 w-5 text-primary" />
-        <h2 className="font-display text-2xl font-semibold text-foreground">Where are you based?</h2>
+        <h2 className="font-display text-2xl font-semibold text-foreground">A Bit About You</h2>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">Connects you with local resources and community.</p>
-      <div className="mt-5 space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
-        {countries.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCountry(c)}
-            className={`tap-highlight-none w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition-all active:scale-[0.98] ${
-              country === c
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-card text-foreground shadow-soft"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
+      <p className="mt-1 text-sm text-muted-foreground">Completely optional — helps us connect you with local resources.</p>
+      <StepTip icon={MapPin} text="Your location connects you with nearby community members and region-specific resources. Age helps personalize health insights." />
+
+      {/* Age Range */}
+      <div className="mt-3">
+        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
+          <Calendar className="h-3.5 w-3.5 text-primary" />
+          Age Range
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {ageRanges.map((r) => (
+            <button
+              key={r}
+              onClick={() => setAgeRange(ageRange === r ? "" : r)}
+              className={`tap-highlight-none rounded-full px-4 py-2 text-sm font-medium transition-all active:scale-95 ${
+                ageRange === r
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-card text-foreground shadow-soft"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Country */}
+      <div className="mt-5">
+        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground mb-2">
+          <Globe className="h-3.5 w-3.5 text-primary" />
+          Country
+        </label>
+        <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-1 scrollbar-none">
+          {countries.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCountry(country === c ? "" : c)}
+              className={`tap-highlight-none w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium transition-all active:scale-[0.98] ${
+                country === c
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "bg-card text-foreground shadow-soft"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
     </div>,
 
-    // 7: Age Range
-    <div key="age-range" className="px-6">
-      <div className="flex items-center gap-2 mb-1">
-        <Calendar className="h-5 w-5 text-primary" />
-        <h2 className="font-display text-2xl font-semibold text-foreground">Your Age Range</h2>
-      </div>
-      <p className="mt-1 text-sm text-muted-foreground">Helps personalize insights for your age group.</p>
-      <div className="mt-5 space-y-2">
-        {ageRanges.map((r, i) => (
-          <motion.button
-            key={r}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.06 }}
-            onClick={() => setAgeRange(r)}
-            className={`tap-highlight-none w-full rounded-xl px-4 py-3.5 text-left text-sm font-medium transition-all active:scale-[0.98] ${
-              ageRange === r
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-card text-foreground shadow-soft"
-            }`}
-          >
-            {r}
-          </motion.button>
-        ))}
-      </div>
-    </div>,
-
-    // 8: Ready
-    <div key="ready" className="flex flex-col items-center justify-center px-6 text-center">
+    // 7: Ready
+    <div key="ready" className="relative flex flex-col items-center justify-center px-6 text-center">
       <motion.span
         className="text-6xl"
         initial={{ scale: 0, rotate: -20 }}
@@ -406,6 +440,8 @@ const OnboardingPage = () => {
           symptoms.length > 0 && `🩺 ${symptoms.length} symptoms`,
           selectedGoals.length > 0 && `🎯 ${selectedGoals.length} goals`,
           displayName && `👤 ${displayName}`,
+          country && `🌍 ${country}`,
+          ageRange && `📅 ${ageRange}`,
         ].filter(Boolean).map((tag, i) => (
           <motion.span
             key={i}
@@ -418,6 +454,14 @@ const OnboardingPage = () => {
           </motion.span>
         ))}
       </div>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="mt-6 text-xs text-muted-foreground leading-relaxed max-w-xs"
+      >
+        You can update any of these details later in your <strong>Profile</strong> settings.
+      </motion.p>
     </div>,
   ];
 
