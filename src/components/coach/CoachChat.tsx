@@ -17,6 +17,7 @@ import PMRWidget, { detectPMR } from "./PMRWidget";
 import BodyScanWidget, { detectBodyScan } from "./BodyScanWidget";
 import VisualizationWidget, { detectVisualization } from "./VisualizationWidget";
 import AffirmationCardWidget, { detectAffirmation } from "./AffirmationCardWidget";
+import SelfCompassionWidget, { detectSelfCompassion } from "./SelfCompassionWidget";
 
 interface CoachChatProps {
   mode: CoachMode;
@@ -346,6 +347,7 @@ const CoachChat = ({ mode, resumeSessionId }: CoachChatProps) => {
                    <PromptChip label="Guide me through a body scan" onTap={setInput} />
                    <PromptChip label="Try a visualization exercise" onTap={setInput} />
                    <PromptChip label="Show me some positive affirmations" onTap={setInput} />
+                   <PromptChip label="Guide me through a self-compassion break" onTap={setInput} />
                 </>
               )}
               {mode === "planning" && (
@@ -388,10 +390,11 @@ const CoachChat = ({ mode, resumeSessionId }: CoachChatProps) => {
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
                     {(() => {
-                      if (detectPMR(msg.content)) return <PMRWidget />;
-                      if (detectBodyScan(msg.content)) return <BodyScanWidget />;
-                      if (detectVisualization(msg.content)) return <VisualizationWidget />;
-                      if (detectAffirmation(msg.content)) return <AffirmationCardWidget />;
+                    if (detectSelfCompassion(msg.content)) return <SelfCompassionWidget />;
+                       if (detectPMR(msg.content)) return <PMRWidget />;
+                       if (detectBodyScan(msg.content)) return <BodyScanWidget />;
+                       if (detectVisualization(msg.content)) return <VisualizationWidget />;
+                       if (detectAffirmation(msg.content)) return <AffirmationCardWidget />;
                       if (detectJournalingExercise(msg.content)) return <JournalPromptWidget />;
                       if (detectCognitiveReframing(msg.content)) return <CognitiveReframingWidget />;
                       if (detectGroundingExercise(msg.content)) return <GroundingWidget />;
