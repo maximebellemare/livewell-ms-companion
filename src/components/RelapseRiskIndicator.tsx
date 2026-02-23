@@ -75,7 +75,11 @@ export default function RelapseRiskIndicator() {
   return (
     <div
       className={`rounded-xl border ${cfg.border} ${cfg.bg} p-4 animate-fade-in transition-shadow duration-700 ${
-        risk.level === "high" ? "shadow-[0_0_15px_3px_rgba(239,68,68,0.35)] animate-pulse" : ""
+        risk.level === "high"
+          ? "shadow-[0_0_15px_3px_rgba(239,68,68,0.35)] animate-pulse"
+          : risk.level === "elevated"
+            ? "shadow-[0_0_12px_2px_rgba(249,115,22,0.3)]"
+            : ""
       }`}
     >
       <div className="flex items-center gap-2 mb-2">
