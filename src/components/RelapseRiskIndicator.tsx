@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from "react";
 import { useEntriesInRange } from "@/hooks/useEntries";
 import { useProfile } from "@/hooks/useProfile";
+import { Link } from "react-router-dom";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
@@ -142,9 +143,14 @@ export default function RelapseRiskIndicator() {
         </a>
       )}
 
-      <p className="mt-2 text-[9px] text-muted-foreground">
-        Based on 14-day trends · not medical advice
-      </p>
+      <div className="mt-2 flex items-center justify-between">
+        <p className="text-[9px] text-muted-foreground">
+          Based on 14-day trends · not medical advice
+        </p>
+        <Link to="/risk-history" className="text-[9px] font-medium text-primary hover:underline">
+          View history →
+        </Link>
+      </div>
     </section>
   );
 }
