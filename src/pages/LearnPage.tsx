@@ -195,7 +195,12 @@ const LearnPage = () => {
                     }}
                     className="tap-highlight-none flex-shrink-0 w-36 rounded-xl bg-card p-3 text-left shadow-soft hover:ring-1 hover:ring-primary/30 transition-all"
                   >
-                    <span className="text-[9px] font-medium uppercase tracking-wider text-primary">{article.category}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-medium uppercase tracking-wider text-primary">{article.category}</span>
+                      {Date.now() - new Date(article.created_at).getTime() < 14 * 86400000 && (
+                        <span className="rounded-full bg-accent px-1 py-px text-[8px] font-semibold text-accent-foreground">New</span>
+                      )}
+                    </div>
                     <p className="mt-0.5 text-xs font-semibold text-foreground line-clamp-2">{article.title}</p>
                     <p className="mt-1 text-[10px] text-muted-foreground">{article.read_time}</p>
                   </button>
