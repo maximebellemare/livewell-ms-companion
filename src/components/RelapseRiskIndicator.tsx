@@ -45,12 +45,29 @@ export default function RelapseRiskIndicator() {
     return { risk: currentRisk, prevRisk: previousRisk, weeklyScores: scores };
   }, [entries]);
 
-  // Alert once per day when risk is high or elevated
+  // Check for 3+ consecutive weekly increases
+  const hasConsecutiveRise = useMemo(() => {
+    if (weeklyScores.length < 3) return false;
+    let streak = 0;
+    for (let i = 1; i < weeklyScores.length; i++) {
+      if (weeklyScores[i] > weeklyScores[i - 1]) {
+        streak++;
+        if (streak >= 3) return true;
+      } else {
+        streak = 0;
+      }
+    }
+    return false;
+  }, [weeklyScores]);
+
+  // Alert once per day when risk is high/elevated or 3+ consecutive increases
   const alertedRef = useRef(false);
   useEffect(() => {
     if (!risk || alertedRef.current) return;
+    const todayKey = format(new Date(), "yyyy-MM-dd");
+
     if (risk.level === "high" || risk.level === "elevated") {
-      const key = `relapse_risk_alert_${format(new Date(), "yyyy-MM-dd")}`;
+      const key = `relapse_risk_alert_${todayKey}`;
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, "1");
         alertedRef.current = true;
@@ -66,7 +83,20 @@ export default function RelapseRiskIndicator() {
         );
       }
     }
-  }, [risk]);
+
+    if (hasConsecutiveRise) {
+      const key = `relapse_risk_streak_alert_${todayKey}`;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, "1");
+        alertedRef.current = true;
+        toast.warning("📈 Risk score rising for 3+ weeks", {
+          description:
+            "Your relapse risk has increased for 3 or more consecutive weeks. Review your trends and consider reaching out to your neurologist.",
+          duration: 8000,
+        });
+      }
+    }
+  }, [risk, hasConsecutiveRise]);
 
   if (isLoading || !risk) return null;
 
