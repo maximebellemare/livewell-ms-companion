@@ -26,6 +26,11 @@ const LearnPage = () => {
   const { data: recentReads = [] } = useLearnReads();
   const markRead = useMarkArticleRead();
   const { data: progressMap = {} } = useLearnProgress();
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: articles.length };
+    articles.forEach((a) => { counts[a.category] = (counts[a.category] || 0) + 1; });
+    return counts;
+  }, [articles]);
   const categories = ["All", ...Array.from(new Set(articles.map((a) => a.category)))];
 
   const readArticleIds = useMemo(() => new Set(recentReads.map((r) => r.article_id)), [recentReads]);
@@ -112,7 +117,10 @@ const LearnPage = () => {
             <SelectContent>
               {categories.map((cat) => (
                 <SelectItem key={cat} value={cat}>
-                  {cat}
+                  <span className="flex items-center justify-between w-full gap-2">
+                    <span>{cat}</span>
+                    <span className="text-muted-foreground text-xs">{categoryCounts[cat] ?? 0}</span>
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
