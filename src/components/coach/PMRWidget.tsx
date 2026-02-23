@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, ChevronRight, Check, Zap, ZapOff } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 
 interface MuscleGroup {
   name: string;
@@ -24,6 +25,7 @@ type Phase = "select" | "idle" | "tense" | "release" | "done";
 
 const PMRWidget = () => {
   const [selected, setSelected] = useState<boolean[]>(ALL_MUSCLE_GROUPS.map(() => true));
+  const [difficulty, setDifficulty] = useState(1); // 0=gentle, 1=standard, 2=deep
   const [activeGroups, setActiveGroups] = useState<MuscleGroup[]>(ALL_MUSCLE_GROUPS);
   const [groupIdx, setGroupIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>("select");
@@ -54,8 +56,18 @@ const PMRWidget = () => {
   const selectAll = () => setSelected(ALL_MUSCLE_GROUPS.map(() => true));
   const selectNone = () => setSelected(ALL_MUSCLE_GROUPS.map(() => false));
 
+  const DIFFICULTY_PRESETS = [
+    { label: "Gentle", tense: 3, release: 8 },
+    { label: "Standard", tense: 5, release: 10 },
+    { label: "Deep", tense: 8, release: 15 },
+  ];
+
+  const preset = DIFFICULTY_PRESETS[difficulty];
+
   const confirmSelection = () => {
-    const groups = ALL_MUSCLE_GROUPS.filter((_, i) => selected[i]);
+    const groups = ALL_MUSCLE_GROUPS
+      .filter((_, i) => selected[i])
+      .map((g) => ({ ...g, tenseDuration: preset.tense, relaxDuration: preset.release }));
     setActiveGroups(groups);
     setCompleted(groups.map(() => false));
     setGroupIdx(0);
@@ -178,6 +190,27 @@ const PMRWidget = () => {
           <button onClick={selectAll} className="text-[11px] text-primary hover:underline">Select all</button>
           <span className="text-muted-foreground/40">·</span>
           <button onClick={selectNone} className="text-[11px] text-muted-foreground hover:text-foreground">Clear</button>
+        </div>
+
+        {/* Difficulty slider */}
+        <div className="w-full max-w-[280px] mt-2 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-medium text-foreground">Intensity</p>
+            <p className="text-[11px] text-muted-foreground">{preset.label} · {preset.tense}s tense / {preset.release}s release</p>
+          </div>
+          <Slider
+            value={[difficulty]}
+            onValueChange={(v) => setDifficulty(v[0])}
+            min={0}
+            max={2}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex justify-between text-[10px] text-muted-foreground/60">
+            <span>Gentle</span>
+            <span>Standard</span>
+            <span>Deep</span>
+          </div>
         </div>
 
         <button
