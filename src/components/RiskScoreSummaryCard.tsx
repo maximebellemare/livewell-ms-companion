@@ -4,6 +4,7 @@ import { RISK_CONFIG } from "./relapse-risk/types";
 import type { RiskLevel } from "./relapse-risk/types";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 function MiniSparkline({ scores, color }: { scores: number[]; color: string }) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -114,6 +115,36 @@ function DeltaIndicator({ delta }: { delta: number }) {
 
 export default function RiskScoreSummaryCard() {
   const { data: scores, isLoading } = useRiskScores(6);
+  const prevLevelRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!scores || scores.length === 0) return;
+    const latest = scores[scores.length - 1];
+    const level = latest.level as RiskLevel;
+
+    // Only fire once per level change, skip initial mount if already seen
+    if (prevLevelRef.current === level) return;
+    const isFirstMount = prevLevelRef.current === null;
+    prevLevelRef.current = level;
+
+    if ((level === "elevated" || level === "high") && !isFirstMount) {
+      const cfg = RISK_CONFIG[level];
+      toast.warning(
+        level === "high" ? "🔴 High relapse risk detected" : "🔶 Elevated relapse risk",
+        {
+          description: level === "high"
+            ? "Multiple symptoms are worsening — consider contacting your neurologist."
+            : "Some symptoms are trending upward. Keep monitoring closely.",
+          duration: 10000,
+          dismissible: true,
+          action: {
+            label: "View history",
+            onClick: () => { window.location.href = "/risk-history"; },
+          },
+        }
+      );
+    }
+  }, [scores]);
 
   if (isLoading || !scores || scores.length === 0) return null;
 
