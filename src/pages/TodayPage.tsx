@@ -343,11 +343,11 @@ const TodayPage = () => {
         {/* Weekly mood trend mini-chart */}
         {weekEntries.length > 0 && (
           <StaggerItem>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              <MoodSparkline entries={weekEntries} />
-              <SleepSparkline entries={weekEntries} goal={profile?.sleep_goal ?? 8} />
-              <FatigueSparkline entries={weekEntries} />
-              <PainSparkline entries={weekEntries} />
+            <div className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:pb-0">
+              <div className="min-w-[75vw] snap-start sm:min-w-0"><MoodSparkline entries={weekEntries} /></div>
+              <div className="min-w-[75vw] snap-start sm:min-w-0"><SleepSparkline entries={weekEntries} goal={profile?.sleep_goal ?? 8} /></div>
+              <div className="min-w-[75vw] snap-start sm:min-w-0"><FatigueSparkline entries={weekEntries} /></div>
+              <div className="min-w-[75vw] snap-start sm:min-w-0"><PainSparkline entries={weekEntries} /></div>
             </div>
           </StaggerItem>
         )}
