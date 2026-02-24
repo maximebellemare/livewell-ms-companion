@@ -232,7 +232,7 @@ const MedicationsPage = () => {
           <div data-tour="meds-list">
           {meds.map((med) => (
             <StaggerItem key={med.id}>
-            <div className="flex items-center gap-3 card-base mb-3">
+            <div onClick={() => { openEdit(med); localStorage.setItem("hint_meds_tap_used", "1"); }} className="flex items-center gap-3 card-base mb-3 cursor-pointer">
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent">
                 <Pill className="h-5 w-5 text-accent-foreground" />
               </div>
@@ -263,6 +263,11 @@ const MedicationsPage = () => {
             </div>
             </StaggerItem>
           ))}
+          {!localStorage.getItem("hint_meds_tap_used") && (
+            <p className="text-[10px] text-muted-foreground/50 text-center mt-1 animate-fade-in">
+              Tap a med to log it as taken
+            </p>
+          )}
           </div>
         )}
       </StaggerContainer>
