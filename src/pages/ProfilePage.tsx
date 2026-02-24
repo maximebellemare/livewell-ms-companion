@@ -537,18 +537,28 @@ const ProfilePage = () => {
             return (
               <div className="mt-3 rounded-xl bg-card border border-border p-3 space-y-2">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">Hint Status</p>
-                {HINTS.map((h) => {
-                  const isActive = !localStorage.getItem(h.key);
-                  return (
-                    <Link key={h.key} to={h.path} className="flex items-center justify-between text-xs group">
-                      <span className="text-foreground group-hover:text-primary transition-colors">{h.label} <span className="text-[9px] text-muted-foreground/50">· {h.page}</span></span>
-                      <span className={`flex items-center gap-1 text-[10px] font-medium ${isActive ? "text-brand-green" : "text-muted-foreground/50"}`}>
-                        <span className={`inline-block h-1.5 w-1.5 rounded-full ${isActive ? "bg-brand-green" : "bg-muted-foreground/30"}`} />
-                        {isActive ? "Active" : "Seen"}
-                      </span>
-                    </Link>
-                  );
-                })}
+                {Object.entries(
+                  HINTS.reduce<Record<string, typeof HINTS>>((groups, h) => {
+                    (groups[h.page] ??= []).push(h);
+                    return groups;
+                  }, {})
+                ).map(([page, hints]) => (
+                  <div key={page} className="space-y-1">
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50 pt-1">{page}</p>
+                    {hints.map((h) => {
+                      const isActive = !localStorage.getItem(h.key);
+                      return (
+                        <Link key={h.key} to={h.path} className="flex items-center justify-between text-xs group pl-2">
+                          <span className="text-foreground group-hover:text-primary transition-colors">{h.label}</span>
+                          <span className={`flex items-center gap-1 text-[10px] font-medium ${isActive ? "text-brand-green" : "text-muted-foreground/50"}`}>
+                            <span className={`inline-block h-1.5 w-1.5 rounded-full ${isActive ? "bg-brand-green" : "bg-muted-foreground/30"}`} />
+                            {isActive ? "Active" : "Seen"}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
                 <div className="flex items-center justify-between pt-1">
                   <p className="text-[10px] text-muted-foreground">
                     {active.length === HINTS.length ? "All hints active — explore the app!" : `${dismissed.length}/${HINTS.length} hints seen`}
