@@ -182,3 +182,12 @@
   0%, 100% { opacity: 1; filter: brightness(1); }
   50% { opacity: 0.92; filter: brightness(1.05); }
 }
+
+/* Hide scrollbar for horizontal swipe containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
