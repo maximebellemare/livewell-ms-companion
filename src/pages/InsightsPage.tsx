@@ -296,7 +296,10 @@ const InsightsPage = () => {
                 return (
                   <button
                     key={key}
-                    onClick={() => setActiveSymptom(activeSymptom === key ? "all" : key as SymptomKey)}
+                    onClick={() => {
+                      setActiveSymptom(activeSymptom === key ? "all" : key as SymptomKey);
+                      localStorage.setItem("hint_insights_stat_tap_used", "1");
+                    }}
                     className={`rounded-xl p-4 shadow-soft text-center transition-all border ${
                       activeSymptom === key
                         ? "bg-accent border-primary/30"
@@ -332,9 +335,11 @@ const InsightsPage = () => {
               })}
             </div>
             </StaggerItem>
-            <p className="text-[10px] text-muted-foreground text-center -mt-1">
-              Tap a card to focus that symptom
-            </p>
+            {!localStorage.getItem("hint_insights_stat_tap_used") && (
+              <p className="text-[10px] text-muted-foreground/50 text-center -mt-1 animate-fade-in">
+                Tap a stat card to isolate that symptom on the chart
+              </p>
+            )}
 
             {/* ── 30-Day Heatmap ── */}
             <StaggerItem>
