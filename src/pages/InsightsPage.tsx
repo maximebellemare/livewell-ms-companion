@@ -33,6 +33,7 @@ import RelapseFrequencyTrend from "@/components/RelapseFrequencyTrend";
 import RelapseRiskIndicator from "@/components/RelapseRiskIndicator";
 import ContactNeurologistCard from "@/components/ContactNeurologistCard";
 import GroundingSessionsChart from "@/components/GroundingSessionsChart";
+import HydrationSummaryCard from "@/components/HydrationSummaryCard";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip, Area, AreaChart, ReferenceLine,
@@ -944,6 +945,9 @@ const InsightsPage = () => {
               </div>
             )}
 
+
+            {/* ── Hydration Summary ── */}
+            <HydrationSummaryCard entries={allEntries} range={range} />
 
             {/* ── Symptom Correlation Matrix ── */}
             <SymptomCorrelationMatrix entries={allEntries} />
