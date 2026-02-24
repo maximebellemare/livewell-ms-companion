@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -397,18 +398,38 @@ const TodayPage = () => {
                       </motion.button>
                     );
                   })}
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 20, delay: pinnedMetrics.length * 0.06 }}
-                    className="flex items-center gap-1 rounded-full bg-destructive/15 text-destructive px-2.5 py-1.5 flex-shrink-0 active:scale-95 transition-transform text-[10px] font-medium hover:bg-destructive/25"
-                    onClick={() => {
-                      updateProfile.mutate({ pinned_metrics: [] } as any);
-                      toast("All pins cleared", { duration: 1500 });
-                    }}
-                  >
-                    ✕ Clear
-                  </motion.button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 20, delay: pinnedMetrics.length * 0.06 }}
+                        className="flex items-center gap-1 rounded-full bg-destructive/15 text-destructive px-2.5 py-1.5 flex-shrink-0 active:scale-95 transition-transform text-[10px] font-medium hover:bg-destructive/25"
+                      >
+                        ✕ Clear
+                      </motion.button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="max-w-xs rounded-2xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Clear all pins?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will unpin {pinnedMetrics.length} metric{pinnedMetrics.length > 1 ? "s" : ""} from your summary row.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Keep</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={() => {
+                            updateProfile.mutate({ pinned_metrics: [] } as any);
+                            toast("All pins cleared", { duration: 1500 });
+                          }}
+                        >
+                          Clear all
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </StaggerItem>
             </motion.div>
