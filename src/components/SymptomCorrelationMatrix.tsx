@@ -10,7 +10,8 @@ const METRICS = [
   { key: "mobility",    label: "Mobility",  short: "Mob" },
   { key: "spasticity",  label: "Spasticity",short: "Spas" },
   { key: "stress",      label: "Stress",    short: "Str" },
-  { key: "sleep_hours", label: "Sleep",     short: "Slp" },
+  { key: "sleep_hours",   label: "Sleep",     short: "Slp" },
+  { key: "water_glasses", label: "Hydration", short: "Hyd" },
 ] as const;
 
 type MetricKey = typeof METRICS[number]["key"];
