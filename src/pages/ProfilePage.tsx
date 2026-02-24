@@ -613,7 +613,11 @@ const ProfilePage = () => {
                 })}
                 <div className="flex items-center justify-between pt-1">
                   <p className="text-[10px] text-muted-foreground">
-                    {active.length === HINTS.length ? "All hints active — explore the app!" : `${dismissed.length}/${HINTS.length} hints seen`}
+                    {pct === 100
+                      ? <span className="inline-flex items-center gap-1 text-brand-green font-medium animate-fade-in">🎉 All hints explored — you're a pro!</span>
+                      : active.length === HINTS.length
+                        ? "All hints active — explore the app!"
+                        : `${dismissed.length}/${HINTS.length} hints seen`}
                   </p>
                   {dismissed.length > 0 && (
                     <button
