@@ -163,8 +163,8 @@ export default function GenericSparkline({
       {saved && (
         <span className="absolute top-1.5 right-1.5 text-[10px] opacity-70">📌</span>
       )}
-      <div className="flex-shrink-0 min-w-0">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-0.5 truncate">
+      <div className="flex-shrink-0">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground mb-0.5 whitespace-nowrap">
           {label} · 7-day
         </p>
         <div className="flex items-baseline gap-1">
