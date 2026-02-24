@@ -44,11 +44,19 @@ export default function SortablePinnedPill({
       ref={setNodeRef}
       style={style}
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
+      animate={
+        isDragging
+          ? { opacity: 1, scale: 1.1, rotate: [0, -2, 2, -1, 0] }
+          : { opacity: 1, scale: 1, rotate: 0 }
+      }
       exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
-      transition={{ type: "spring", stiffness: 400, damping: 20, delay: index * 0.06 }}
-      className={`flex items-center gap-1.5 rounded-full bg-secondary/60 pl-1.5 pr-1.5 py-1.5 flex-shrink-0 transition-transform duration-150 ${
-        isDragging ? "shadow-lg ring-1 ring-primary/30 scale-110" : ""
+      transition={
+        isDragging
+          ? { rotate: { duration: 0.3, ease: "easeInOut" }, scale: { duration: 0.15 } }
+          : { type: "spring", stiffness: 400, damping: 20, delay: index * 0.06 }
+      }
+      className={`flex items-center gap-1.5 rounded-full bg-secondary/60 pl-1.5 pr-1.5 py-1.5 flex-shrink-0 transition-shadow duration-150 ${
+        isDragging ? "shadow-lg ring-1 ring-primary/30" : ""
       }`}
     >
       {/* Drag handle */}
