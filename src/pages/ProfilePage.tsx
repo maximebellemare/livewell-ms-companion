@@ -558,7 +558,7 @@ const ProfilePage = () => {
                 ).map(([page, hints]) => {
                   const seenCount = hints.filter((h) => localStorage.getItem(h.key)).length;
                   return (
-                    <Collapsible key={page} defaultOpen>
+                    <Collapsible key={page}>
                       <CollapsibleTrigger className="flex w-full items-center justify-between pt-1 group/trigger">
                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50 group-hover/trigger:text-muted-foreground transition-colors">
                           {page}
