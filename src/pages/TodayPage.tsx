@@ -349,11 +349,14 @@ const TodayPage = () => {
                 <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.fatigue} /></div>
                 <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.pain} /></div>
                 <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.brain_fog} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.mobility} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.spasticity} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.stress} /></div>
                 <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={makeHydrationConfig(profile?.hydration_goal ?? 8)} /></div>
               </div>
               <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
             </div>
-            <ScrollDots containerRef={sparklineScrollRef} count={6} />
+            <ScrollDots containerRef={sparklineScrollRef} count={9} />
           </StaggerItem>
         )}
 
