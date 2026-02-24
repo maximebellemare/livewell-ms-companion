@@ -8,6 +8,7 @@ import { useLongPress } from "./sparkline/useLongPress";
 import SparklineSvg from "./sparkline/SparklineSvg";
 import DayLabels from "./sparkline/DayLabels";
 import { LongPressOverlay, SavedOverlay } from "./sparkline/Overlays";
+import { computeTrend } from "./sparkline/computeTrend";
 
 export type { SparklineConfig } from "./sparkline/types";
 
@@ -93,24 +94,7 @@ export default function GenericSparkline({
     ? plotPoints.reduce((s, p) => s + p.value, 0) / plotPoints.length
     : null;
 
-  // Trend detection
-  const firstHalf = plotPoints.filter((p) => p.x <= 3);
-  const secondHalf = plotPoints.filter((p) => p.x > 3);
-  const avgHalf = (arr: PlotPoint[]) =>
-    arr.length ? arr.reduce((s, p) => s + p.value, 0) / arr.length : null;
-  const f = avgHalf(firstHalf);
-  const s = avgHalf(secondHalf);
-
-  let trend = "→";
-  if (f !== null && s !== null) {
-    if (lowerIsBetter) {
-      if (f - s > trendThreshold) trend = "↓";
-      else if (s - f > trendThreshold) trend = "↑";
-    } else {
-      if (s - f > trendThreshold) trend = "↑";
-      else if (f - s > trendThreshold) trend = "↓";
-    }
-  }
+  const trend = computeTrend(plotPoints, lowerIsBetter, trendThreshold);
 
   const improvingTrend = lowerIsBetter ? "↓" : "↑";
   const worseningTrend = lowerIsBetter ? "↑" : "↓";

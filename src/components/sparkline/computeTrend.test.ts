@@ -1,33 +1,5 @@
 import { describe, it, expect } from "vitest";
-
-/**
- * Extracted trend detection logic matching GenericSparkline.
- * Tested in isolation for clarity.
- */
-function computeTrend(
-  plotPoints: { x: number; value: number }[],
-  lowerIsBetter: boolean,
-  trendThreshold: number,
-): "↑" | "↓" | "→" {
-  const firstHalf = plotPoints.filter((p) => p.x <= 3);
-  const secondHalf = plotPoints.filter((p) => p.x > 3);
-  const avg = (arr: typeof plotPoints) =>
-    arr.length ? arr.reduce((s, p) => s + p.value, 0) / arr.length : null;
-  const f = avg(firstHalf);
-  const s = avg(secondHalf);
-
-  let trend: "↑" | "↓" | "→" = "→";
-  if (f !== null && s !== null) {
-    if (lowerIsBetter) {
-      if (f - s > trendThreshold) trend = "↓";
-      else if (s - f > trendThreshold) trend = "↑";
-    } else {
-      if (s - f > trendThreshold) trend = "↑";
-      else if (f - s > trendThreshold) trend = "↓";
-    }
-  }
-  return trend;
-}
+import { computeTrend } from "./computeTrend";
 
 describe("computeTrend", () => {
   const threshold = 0.8;
