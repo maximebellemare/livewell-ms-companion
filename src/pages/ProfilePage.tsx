@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import confetti from "canvas-confetti";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
@@ -579,9 +580,11 @@ const ProfilePage = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden cursor-help">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                            style={{ width: `${pct}%` }}
+                          <motion.div
+                            className={`h-full rounded-full ${barColor}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ type: "spring", stiffness: 120, damping: 20, mass: 0.8 }}
                           />
                         </div>
                       </TooltipTrigger>
