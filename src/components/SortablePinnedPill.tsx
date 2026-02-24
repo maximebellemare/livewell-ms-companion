@@ -47,8 +47,8 @@ export default function SortablePinnedPill({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
       transition={{ type: "spring", stiffness: 400, damping: 20, delay: index * 0.06 }}
-      className={`flex items-center gap-1.5 rounded-full bg-secondary/60 pl-1.5 pr-1.5 py-1.5 flex-shrink-0 ${
-        isDragging ? "shadow-lg ring-1 ring-primary/30" : ""
+      className={`flex items-center gap-1.5 rounded-full bg-secondary/60 pl-1.5 pr-1.5 py-1.5 flex-shrink-0 transition-transform duration-150 ${
+        isDragging ? "shadow-lg ring-1 ring-primary/30 scale-110" : ""
       }`}
     >
       {/* Drag handle */}
