@@ -569,7 +569,7 @@ const ProfilePage = () => {
               if (dismissed.length > prevCountRef.current && pct < 100) {
                 confetti({ particleCount: 30, spread: 50, startVelocity: 20, gravity: 0.8, origin: { y: 0.5 }, scalar: 0.7, colors: ["#f59e0b", "#22c55e", "#3b82f6"] });
                 setBarGlow(true);
-                const t = setTimeout(() => setBarGlow(false), 1200);
+                const t = setTimeout(() => setBarGlow(false), 2500);
                 prevCountRef.current = dismissed.length;
                 sessionStorage.setItem(prevCountSessionKey, String(dismissed.length));
                 return () => clearTimeout(t);
