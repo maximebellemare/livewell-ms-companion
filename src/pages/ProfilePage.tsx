@@ -149,6 +149,7 @@ const ProfilePage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [hintsResetKey, setHintsResetKey] = useState(0);
 
   const handleExportData = useCallback(async (format: "json" | "csv") => {
     setExporting(true);
@@ -550,8 +551,8 @@ const ProfilePage = () => {
                       return (
                         <Link key={h.key} to={h.path} className="flex items-center justify-between text-xs group pl-2">
                           <span className="text-foreground group-hover:text-primary transition-colors">{h.label}</span>
-                          <span className={`flex items-center gap-1 text-[10px] font-medium ${isActive ? "text-brand-green" : "text-muted-foreground/50"}`}>
-                            <span className={`inline-block h-1.5 w-1.5 rounded-full ${isActive ? "bg-brand-green" : "bg-muted-foreground/30"}`} />
+                          <span key={hintsResetKey} className={`flex items-center gap-1 text-[10px] font-medium ${isActive ? "text-brand-green" : "text-muted-foreground/50"} ${hintsResetKey > 0 && isActive ? "animate-scale-in" : ""}`}>
+                            <span className={`inline-block h-1.5 w-1.5 rounded-full transition-colors duration-500 ${isActive ? "bg-brand-green" : "bg-muted-foreground/30"}`} />
                             {isActive ? "Active" : "Seen"}
                           </span>
                         </Link>
@@ -567,6 +568,7 @@ const ProfilePage = () => {
                     <button
                       onClick={() => {
                         HINTS.forEach((h) => localStorage.removeItem(h.key));
+                        setHintsResetKey((k) => k + 1);
                         toast.success("Interaction hints reset! They'll reappear as you use the app 💡");
                         confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ["#22c55e", "#f59e0b", "#3b82f6"] });
                       }}
@@ -583,6 +585,7 @@ const ProfilePage = () => {
           <button
             onClick={() => {
               ["lp_unpin_used", "hint_drag_reorder_used", "hint_coach_swipe_used", "hint_insights_stat_tap_used", "hint_meds_tap_used", "hint_journal_swipe_used"].forEach((k) => localStorage.removeItem(k));
+              setHintsResetKey((k) => k + 1);
               toast.success("Interaction hints reset! They'll reappear as you use the app 💡");
               confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ["#22c55e", "#f59e0b", "#3b82f6"] });
             }}
