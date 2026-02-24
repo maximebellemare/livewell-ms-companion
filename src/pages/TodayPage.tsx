@@ -382,26 +382,38 @@ const TodayPage = () => {
                       .filter((v: unknown): v is number => typeof v === "number");
                     const avg = vals.length ? vals.reduce((a: number, b: number) => a + b, 0) / vals.length : null;
                     return (
-                      <motion.button
+                      <motion.div
                         key={key}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
                         transition={{ type: "spring", stiffness: 400, damping: 20, delay: i * 0.06 }}
-                        className="flex items-center gap-1.5 rounded-full bg-secondary/60 px-3 py-1.5 flex-shrink-0 active:scale-95 transition-transform"
-                        onClick={() => {
-                          const el = document.getElementById(`sparkline-${key}`);
-                          el?.scrollIntoView({ behavior: "smooth", block: "center" });
-                        }}
+                        className="flex items-center gap-1.5 rounded-full bg-secondary/60 pl-3 pr-1.5 py-1.5 flex-shrink-0"
                       >
-                        <span className="text-xs">{cfg.emoji}</span>
-                        <span
-                          className="text-sm font-bold leading-none"
-                          style={{ color: avg !== null ? cfg.colorFn(avg) : "hsl(var(--muted-foreground))" }}
+                        <button
+                          className="flex items-center gap-1.5 active:scale-95 transition-transform"
+                          onClick={() => {
+                            const el = document.getElementById(`sparkline-${key}`);
+                            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                          }}
                         >
-                          {avg !== null ? avg.toFixed(1) : "—"}
-                        </span>
-                        <span className="text-[9px] text-muted-foreground">{cfg.unit}</span>
-                      </motion.button>
+                          <span className="text-xs">{cfg.emoji}</span>
+                          <span
+                            className="text-sm font-bold leading-none"
+                            style={{ color: avg !== null ? cfg.colorFn(avg) : "hsl(var(--muted-foreground))" }}
+                          >
+                            {avg !== null ? avg.toFixed(1) : "—"}
+                          </span>
+                          <span className="text-[9px] text-muted-foreground">{cfg.unit}</span>
+                        </button>
+                        <button
+                          onClick={() => togglePin(key)}
+                          className="ml-0.5 rounded-full hover:bg-muted/60 active:scale-90 transition-all p-0.5 text-muted-foreground/50 hover:text-foreground"
+                          aria-label={`Unpin ${key}`}
+                        >
+                          <span className="text-[10px] leading-none">✕</span>
+                        </button>
+                      </motion.div>
                     );
                   })}
                   <AlertDialog>
