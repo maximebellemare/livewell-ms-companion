@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import confetti from "canvas-confetti";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
@@ -7,7 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import DigestPreviewCard from "@/components/DigestPreviewCard";
 import PageHeader from "@/components/PageHeader";
 import { Link } from "react-router-dom";
-import { ChevronRight, ChevronDown, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check, Mails, Sparkles, Users, BellRing, Bell, Trash2, AlertTriangle, Globe, Calendar, Activity, Target, Stethoscope, Monitor, RotateCcw, Snowflake, MessageSquare, Thermometer, Droplets } from "lucide-react";
+import { ChevronRight, ChevronDown, Download, Shield, ExternalLink, FileText, LogOut, Moon, Sun, Mail, Check, Mails, Sparkles, Users, BellRing, Bell, Trash2, AlertTriangle, Globe, Calendar, Activity, Target, Stethoscope, Monitor, RotateCcw, Snowflake, MessageSquare, Thermometer, Droplets, X } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -560,6 +560,7 @@ const ProfilePage = () => {
             const prevCountRef = useRef(storedPrev);
             const [barGlow, setBarGlow] = useState(false);
             const halfwayKey = "hint_halfway_celebrated";
+            const [showHalfwayBanner, setShowHalfwayBanner] = useState(false);
             useEffect(() => {
               if (pct === 100 && !sessionStorage.getItem(confettiKey)) {
                 sessionStorage.setItem(confettiKey, "1");
@@ -574,6 +575,7 @@ const ProfilePage = () => {
                 confetti({ particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.6 }, colors: ["#f59e0b", "#22c55e", "#3b82f6"] });
                 if (navigator.vibrate) navigator.vibrate([50, 80, 50]);
                 setBarGlow(true);
+                setShowHalfwayBanner(true);
                 const t = setTimeout(() => setBarGlow(false), 2500);
                 return () => clearTimeout(t);
               }
@@ -591,8 +593,34 @@ const ProfilePage = () => {
               prevCountRef.current = dismissed.length;
               sessionStorage.setItem(prevCountSessionKey, String(dismissed.length));
             }, [dismissed.length, pct]);
-            return (
+             return (
               <div className="mt-3 rounded-xl bg-card border border-border p-3 space-y-2">
+                <AnimatePresence>
+                  {showHalfwayBanner && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5 mb-1">
+                        <span className="text-lg leading-none mt-0.5">🎯</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground">Halfway there!</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">You've discovered half the hidden interactions. Keep exploring to find them all!</p>
+                        </div>
+                        <button
+                          onClick={() => setShowHalfwayBanner(false)}
+                          className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                          aria-label="Dismiss"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">Hint Status</p>
