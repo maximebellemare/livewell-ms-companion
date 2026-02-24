@@ -386,8 +386,8 @@ const EnergyBudgetPage = () => {
               <motion.div
                 key={activity.id}
                 layout
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
-                  activity.completed ? "bg-primary/8" : "bg-secondary"
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
+                  activity.completed ? "bg-primary/8 opacity-60" : "bg-secondary"
                 }`}
               >
                 <button
@@ -401,11 +401,11 @@ const EnergyBudgetPage = () => {
                   {activity.completed && <Check className="h-3 w-3" />}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <span className={`text-sm ${activity.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                  <span className={`text-sm transition-all ${activity.completed ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
                     {activity.name}
                   </span>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                <span className={`text-xs whitespace-nowrap transition-all ${activity.completed ? "text-muted-foreground/50 line-through" : "text-muted-foreground"}`}>
                   {activity.spoon_cost}🥄
                 </span>
                 <button
