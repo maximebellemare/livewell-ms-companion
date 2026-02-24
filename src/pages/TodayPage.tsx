@@ -196,8 +196,11 @@ const TodayPage = () => {
       ? current.filter((k) => k !== metricKey)
       : [...current, metricKey];
     updateProfile.mutate({ pinned_metrics: next } as any);
-    toast(isUnpinning ? `Unpinned ${metricKey}` : `📌 ${metricKey} pinned`, { duration: 1500 });
-  }, [pinnedMetrics, updateProfile]);
+    const allCfgs: Record<string, any> = { ...SPARKLINE_CONFIGS, sleep: makeSleepConfig(profile?.sleep_goal ?? 8), hydration: makeHydrationConfig(profile?.hydration_goal ?? 8) };
+    const emoji = allCfgs[metricKey]?.emoji ?? "";
+    const label = metricKey.charAt(0).toUpperCase() + metricKey.slice(1);
+    toast(isUnpinning ? `${emoji} ${label} unpinned` : `📌 ${label} pinned`, { duration: 1500 });
+  }, [pinnedMetrics, updateProfile, profile]);
 
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
