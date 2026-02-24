@@ -397,6 +397,18 @@ const TodayPage = () => {
                       </motion.button>
                     );
                   })}
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20, delay: pinnedMetrics.length * 0.06 }}
+                    className="flex items-center gap-1 rounded-full bg-destructive/15 text-destructive px-2.5 py-1.5 flex-shrink-0 active:scale-95 transition-transform text-[10px] font-medium hover:bg-destructive/25"
+                    onClick={() => {
+                      updateProfile.mutate({ pinned_metrics: [] } as any);
+                      toast("All pins cleared", { duration: 1500 });
+                    }}
+                  >
+                    ✕ Clear
+                  </motion.button>
                 </div>
               </StaggerItem>
             </motion.div>
