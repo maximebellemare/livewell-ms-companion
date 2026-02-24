@@ -589,7 +589,7 @@ const ProfilePage = () => {
                       >
                         {allOpen ? "Collapse all" : "Expand all"}
                       </button>
-                      <span className="text-[10px] font-medium tabular-nums text-muted-foreground">{pct}%</span>
+                      <span className="text-[10px] font-medium tabular-nums text-muted-foreground">{pct}%{barGlow && " ✨"}</span>
                     </div>
                   </div>
                   <TooltipProvider delayDuration={200}>
