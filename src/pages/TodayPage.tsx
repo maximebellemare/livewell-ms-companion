@@ -15,14 +15,8 @@ import WeekStreakBadge from "@/components/WeekStreakBadge";
 import { useWeekStreak } from "@/hooks/useWeekStreak";
 import MondayRecapCard from "@/components/MondayRecapCard";
 import StreakMilestoneBanner from "@/components/StreakMilestoneBanner";
-import MoodSparkline from "@/components/MoodSparkline";
-import FatigueSparkline from "@/components/FatigueSparkline";
-import PainSparkline from "@/components/PainSparkline";
-import SleepSparkline from "@/components/SleepSparkline";
-import BrainFogSparkline from "@/components/BrainFogSparkline";
-import MobilitySparkline from "@/components/MobilitySparkline";
-import SpasticitySparkline from "@/components/SpasticitySparkline";
-import StressSparkline from "@/components/StressSparkline";
+import GenericSparkline from "@/components/GenericSparkline";
+import { SPARKLINE_CONFIGS, makeSleepConfig } from "@/components/sparkline/configs";
 import InlineQuickLog from "@/components/InlineQuickLog";
 
 import { Link } from "react-router-dom";
@@ -350,11 +344,11 @@ const TodayPage = () => {
           <StaggerItem>
             <div className="relative sm:contents">
               <div ref={sparklineScrollRef} className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible sm:pb-0">
-                <div className="min-w-[75vw] snap-start sm:min-w-0"><MoodSparkline entries={weekEntries} /></div>
-                <div className="min-w-[75vw] snap-start sm:min-w-0"><SleepSparkline entries={weekEntries} goal={profile?.sleep_goal ?? 8} /></div>
-                <div className="min-w-[75vw] snap-start sm:min-w-0"><FatigueSparkline entries={weekEntries} /></div>
-                <div className="min-w-[75vw] snap-start sm:min-w-0"><PainSparkline entries={weekEntries} /></div>
-                <div className="min-w-[75vw] snap-start sm:min-w-0"><BrainFogSparkline entries={weekEntries} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.mood} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={makeSleepConfig(profile?.sleep_goal ?? 8)} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.fatigue} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.pain} /></div>
+                <div className="min-w-[75vw] snap-start sm:min-w-0"><GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.brain_fog} /></div>
               </div>
               <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
             </div>
@@ -420,35 +414,35 @@ const TodayPage = () => {
         {/* 7-day sparklines */}
         <StaggerItem>
         <div data-tour="sparklines" ref={gridRef} className={`grid grid-cols-2 gap-1.5${openPanel ? " pointer-events-none" : ""}`}>
-          <MoodSparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.mood} variant="card"
             saved={savedMetric === "mood"}
             onClick={() => setOpenPanel((p) => p === "mood" ? null : "mood")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "mood" } })} />
-          <FatigueSparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.fatigue} variant="card"
             saved={savedMetric === "fatigue"}
             onClick={() => setOpenPanel((p) => p === "fatigue" ? null : "fatigue")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "fatigue" } })} />
-          <PainSparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.pain} variant="card"
             saved={savedMetric === "pain"}
             onClick={() => setOpenPanel((p) => p === "pain" ? null : "pain")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "pain" } })} />
-          <SleepSparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={makeSleepConfig(profile?.sleep_goal ?? 8)} variant="card"
             saved={savedMetric === "sleep"}
             onClick={() => setOpenPanel((p) => p === "sleep" ? null : "sleep")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "sleep_hours" } })} />
-          <BrainFogSparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.brain_fog} variant="card"
             saved={savedMetric === "brain_fog"}
             onClick={() => setOpenPanel((p) => p === "brain_fog" ? null : "brain_fog")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "brain_fog" } })} />
-          <MobilitySparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.mobility} variant="card"
             saved={savedMetric === "mobility"}
             onClick={() => setOpenPanel((p) => p === "mobility" ? null : "mobility")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "mobility" } })} />
-          <SpasticitySparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.spasticity} variant="card"
             saved={savedMetric === "spasticity"}
             onClick={() => setOpenPanel((p) => p === "spasticity" ? null : "spasticity")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "spasticity" } })} />
-          <StressSparkline entries={weekEntries} variant="card"
+          <GenericSparkline entries={weekEntries} config={SPARKLINE_CONFIGS.stress} variant="card"
             saved={savedMetric === "stress"}
             onClick={() => setOpenPanel((p) => p === "stress" ? null : "stress")}
             onLongPress={() => navigate("/insights", { state: { heatmapMetric: "stress" } })} />
