@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import SEOHead from "@/components/SEOHead";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import { format, isToday, isYesterday, startOfWeek, addDays, isFuture } from "date-fns";
@@ -43,6 +43,7 @@ const EditorCard = ({ date, entry, recentEntries = [], onFirstReflection }: Edit
   const [text, setText] = useState(entry?.notes ?? "");
   const [saved, setSaved] = useState(false);
   const saveEntry = useSaveEntry();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isDirty = text !== (entry?.notes ?? "");
 
@@ -73,6 +74,12 @@ const EditorCard = ({ date, entry, recentEntries = [], onFirstReflection }: Edit
     const prefix = text.trim() ? text + "\n\n" : "";
     setText(prefix + newText + " ");
     setSaved(false);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+        textareaRef.current.focus();
+      }
+    }, 50);
   };
 
   const handleVoiceTranscript = (transcript: string) => {
@@ -117,6 +124,7 @@ const EditorCard = ({ date, entry, recentEntries = [], onFirstReflection }: Edit
       </div>
 
       <textarea
+        ref={textareaRef}
         value={text}
         onChange={(e) => { setText(e.target.value); setSaved(false); }}
         placeholder="How are you feeling today? Write freely…"
