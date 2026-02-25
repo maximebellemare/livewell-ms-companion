@@ -7,6 +7,7 @@ import { APPOINTMENT_TYPES, getAppointmentTypeInfo, AppointmentType } from "@/li
 import { useDbAppointments, useSaveAppointment, useDeleteAppointment } from "@/hooks/useAppointments";
 import { CardListSkeleton } from "@/components/PageSkeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import TimePicker from "@/components/TimePicker";
@@ -260,7 +261,21 @@ const AppointmentsPage = () => {
                   </div>
                   <div className="flex gap-1">
                     <button onClick={() => openEdit(appt)} className="rounded-full p-2 text-muted-foreground hover:bg-secondary"><Edit2 className="h-4 w-4" /></button>
-                    <button onClick={() => handleDelete(appt.id)} className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete appointment?</AlertDialogTitle>
+                          <AlertDialogDescription>This will permanently remove "{appt.title}" from your calendar. This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(appt.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               );
