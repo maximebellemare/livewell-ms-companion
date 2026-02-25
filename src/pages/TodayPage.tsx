@@ -487,6 +487,7 @@ const TodayPage = () => {
             medStreak={medStreak}
             relapseStreak={relapseStreak}
             cogStreak={cogStreak}
+            groundingSessions={groundingSessions}
             frozeToday={frozeToday}
             freezesRemaining={freezesRemaining}
             nearBadge={(() => {

@@ -8,7 +8,7 @@ import confetti from "canvas-confetti";
 import { toast } from "@/hooks/use-toast";
 
 const MILESTONES = [7, 14, 30, 50, 100, 200, 365];
-const STREAK_NAMES = ["Daily logging", "Weekly goal", "Medication", "Relapse-free", "Cognitive"];
+const STREAK_NAMES = ["Daily logging", "Weekly goal", "Medication", "Relapse-free", "Cognitive", "Grounding"];
 
 interface CompactStreakRowProps {
   logStreak: number;
@@ -16,6 +16,7 @@ interface CompactStreakRowProps {
   medStreak: number;
   relapseStreak: number;
   cogStreak: number;
+  groundingSessions: number;
   frozeToday?: boolean;
   freezesRemaining?: number;
   nearBadge?: { emoji: string; name: string; pct: number; remaining: number; unit: string; hint: string } | null;
@@ -65,6 +66,7 @@ const CompactStreakRow = ({
   medStreak,
   relapseStreak,
   cogStreak,
+  groundingSessions,
   frozeToday = false,
   freezesRemaining = 0,
   nearBadge,
@@ -73,14 +75,14 @@ const CompactStreakRow = ({
   const prevStreaks = useRef<number[]>([]);
 
   useEffect(() => {
-    const current = [logStreak, weekStreak, medStreak, relapseStreak, cogStreak];
+    const current = [logStreak, weekStreak, medStreak, relapseStreak, cogStreak, groundingSessions];
     const prev = prevStreaks.current;
 
     if (prev.length > 0) {
       const milestoneHits: string[] = [];
       current.forEach((val, i) => {
         if (val !== prev[i] && MILESTONES.includes(val)) {
-          milestoneHits.push(`${STREAK_NAMES[i]}: ${val} ${val === 1 ? "day" : i === 1 ? "weeks" : "days"}!`);
+          milestoneHits.push(`${STREAK_NAMES[i]}: ${val} ${i === 1 ? plural(val, "week") : i === 5 ? plural(val, "session") : plural(val, "day")}!`);
         }
       });
       if (milestoneHits.length > 0) {
@@ -101,7 +103,7 @@ const CompactStreakRow = ({
     }
 
     prevStreaks.current = current;
-  }, [logStreak, weekStreak, medStreak, relapseStreak, cogStreak]);
+  }, [logStreak, weekStreak, medStreak, relapseStreak, cogStreak, groundingSessions]);
 
   return (
     <motion.div
@@ -110,15 +112,14 @@ const CompactStreakRow = ({
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
       className="rounded-xl bg-card shadow-soft flex flex-col gap-2 p-3"
     >
-      {/* Streak grid: 3 on top, 2 centered on bottom */}
+      {/* Streak grid: 3×2 */}
       <div className="grid grid-cols-3 gap-y-2 justify-items-center">
         <StreakPill emoji="🔥" value={logStreak} label="day" />
         <StreakPill emoji="📊" value={weekStreak} label="week" zeroTip="Log every day for a full week to start your week streak!" />
         <StreakPill emoji="💊" value={medStreak} label="day" zeroTip="Mark your medications as taken to build a med streak!" />
-      </div>
-      <div className="flex items-center justify-center gap-8">
         <StreakPill emoji="🛡️" value={relapseStreak} label="day" zeroTip="Days since your last relapse — stay strong!" />
         <StreakPill emoji="🧠" value={cogStreak} label="day" zeroTip="Play a cognitive game to start your brain training streak!" />
+        <StreakPill emoji="🌿" value={groundingSessions} label="session" zeroTip="Complete a grounding exercise to start tracking!" />
       </div>
 
       {/* Freeze indicator */}
