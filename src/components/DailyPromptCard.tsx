@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { PenLine, RefreshCw } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { PenLine, RefreshCw, CheckCircle2, X } from "lucide-react";
 import { PROMPTS, getDailyPrompt } from "@/lib/dailyPrompts";
 import { DailyEntry } from "@/hooks/useEntries";
 
@@ -65,6 +65,10 @@ const DailyPromptCard = ({ onUsePrompt, entry }: DailyPromptCardProps) => {
     return null;
   }, [entry]);
 
+  const [showEditor, setShowEditor] = useState(false);
+  const [reflectText, setReflectText] = useState("");
+  const reflectRef = useRef<HTMLTextAreaElement>(null);
+
   const showSymptomPrompt = symptomPrompt && useSymptom;
   const currentPrompt = showSymptomPrompt ? symptomPrompt.prompt : PROMPTS[currentIndex];
 
@@ -108,16 +112,52 @@ const DailyPromptCard = ({ onUsePrompt, entry }: DailyPromptCardProps) => {
         {currentPrompt}
       </p>
 
-      <span className="relative inline-flex">
-        <span className="absolute inset-0 rounded-lg bg-primary/20 pulse" />
-        <button
-          onClick={() => onUsePrompt(currentPrompt)}
-          className="relative inline-flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition-all active:scale-95"
-        >
-          <PenLine className="h-3 w-3" />
-          Reflect on this
-        </button>
-      </span>
+      {!showEditor ? (
+        <span className="relative inline-flex">
+          <span className="absolute inset-0 rounded-lg bg-primary/20 pulse" />
+          <button
+            onClick={() => setShowEditor(true)}
+            className="relative inline-flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition-all active:scale-95"
+          >
+            <PenLine className="h-3 w-3" />
+            Reflect on this
+          </button>
+        </span>
+      ) : (
+        <div className="space-y-2 animate-fade-in">
+          <textarea
+            ref={reflectRef}
+            value={reflectText}
+            onChange={(e) => setReflectText(e.target.value)}
+            placeholder="Write your reflection…"
+            maxLength={2000}
+            rows={3}
+            autoFocus
+            className="w-full resize-none rounded-xl bg-secondary/60 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              onClick={() => { setShowEditor(false); setReflectText(""); }}
+              className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors"
+            >
+              <X className="h-3 w-3" /> Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (reflectText.trim()) {
+                  onUsePrompt(reflectText.trim());
+                  setReflectText("");
+                  setShowEditor(false);
+                }
+              }}
+              disabled={!reflectText.trim()}
+              className="flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-xs font-semibold hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
+            >
+              <CheckCircle2 className="h-3 w-3" /> Add to journal
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

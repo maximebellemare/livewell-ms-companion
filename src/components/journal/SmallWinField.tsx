@@ -8,6 +8,7 @@ interface Props {
 const SmallWinField = ({ onSubmit }: Props) => {
   const [value, setValue] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [showInput, setShowInput] = useState(false);
 
   const handleSubmit = () => {
     if (!value.trim()) return;
@@ -25,28 +26,49 @@ const SmallWinField = ({ onSubmit }: Props) => {
       <p className="text-[10px] text-muted-foreground leading-relaxed">
         What's one thing you managed, no matter how small?
       </p>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => { setValue(e.target.value); setSubmitted(false); }}
-          placeholder="e.g. I took a short walk…"
-          maxLength={200}
-          className="flex-1 rounded-lg bg-background border border-border px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-        />
+      {!showInput ? (
         <button
-          onClick={handleSubmit}
-          disabled={!value.trim() || submitted}
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-            submitted
-              ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400"
-              : "bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-40"
-          }`}
+          onClick={() => setShowInput(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition-all active:scale-95"
         >
-          {submitted ? <Check className="h-3 w-3" /> : "Add"}
+          <Trophy className="h-3 w-3" />
+          Add a win
         </button>
-      </div>
+      ) : (
+        <div className="space-y-2 animate-fade-in">
+          <textarea
+            value={value}
+            onChange={(e) => { setValue(e.target.value); setSubmitted(false); }}
+            placeholder="e.g. I took a short walk…"
+            maxLength={200}
+            rows={2}
+            autoFocus
+            className="w-full resize-none rounded-lg bg-background border border-border px-2.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              onClick={() => { setShowInput(false); setValue(""); }}
+              className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                handleSubmit();
+                setShowInput(false);
+              }}
+              disabled={!value.trim() || submitted}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                submitted
+                  ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400"
+                  : "bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40"
+              }`}
+            >
+              {submitted ? <Check className="h-3 w-3" /> : "Save win"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
