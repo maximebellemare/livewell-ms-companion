@@ -14,7 +14,7 @@ import ThisWeekInReflection from "@/components/ThisWeekInReflection";
 import WeeklyReflectionSummary from "@/components/journal/WeeklyReflectionSummary";
 import MoodPatternNudge from "@/components/journal/MoodPatternNudge";
 import SmallWinField from "@/components/journal/SmallWinField";
-import VoiceJournalButton from "@/components/journal/VoiceJournalButton";
+
 
 
 /* ── Parse a yyyy-MM-dd string as local date (avoids UTC midnight shift) ── */
@@ -115,10 +115,6 @@ const EditorCard = ({ date, entry, recentEntries = [], onFirstReflection }: Edit
         }}
       />
 
-      {/* Voice input + textarea */}
-      <div className="flex items-center gap-2">
-        <VoiceJournalButton onTranscript={handleVoiceTranscript} />
-      </div>
 
       {showEditor && (
         <div className="space-y-2 animate-fade-in">
