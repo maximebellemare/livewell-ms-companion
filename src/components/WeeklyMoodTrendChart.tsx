@@ -271,7 +271,8 @@ const WeeklyMoodTrendChart = ({ entries }: Props) => {
               const diff = tagAvg - overallAvgMood;
               return { tag, tagAvg, diff, count: v.count };
             })
-            .sort((a, b) => b.diff - a.diff);
+            .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+            .slice(0, 3);
 
           if (tagCorrelations.length === 0) return null;
           const maxAbsDiff = Math.max(...tagCorrelations.map((t) => Math.abs(t.diff)), 1);
