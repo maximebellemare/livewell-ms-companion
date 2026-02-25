@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import SEOHead from "@/components/SEOHead";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import { format, isToday, isYesterday, startOfWeek, addDays, isFuture } from "date-fns";
@@ -153,7 +153,7 @@ interface PastEntryProps {
   entry: DailyEntry;
 }
 
-const PastEntry = ({ entry }: PastEntryProps) => {
+const PastEntry = React.forwardRef<HTMLDivElement, PastEntryProps>(({ entry }, ref) => {
   const [editing, setEditing] = useState(false);
   const handleToggle = () => {
     setEditing((e) => !e);
@@ -190,7 +190,7 @@ const PastEntry = ({ entry }: PastEntryProps) => {
   };
 
   return (
-    <div className="rounded-xl bg-card border border-border shadow-soft overflow-hidden transition-all">
+    <div ref={ref} className="rounded-xl bg-card border border-border shadow-soft overflow-hidden transition-all">
       <button
         onClick={handleToggle}
         className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-secondary/40 transition-colors text-left"
@@ -253,7 +253,8 @@ const PastEntry = ({ entry }: PastEntryProps) => {
       )}
     </div>
   );
-};
+});
+PastEntry.displayName = "PastEntry";
 
 /* ── Main page ─────────────────────────────────────────────── */
 const JournalPage = () => {
