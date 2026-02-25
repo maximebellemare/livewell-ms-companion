@@ -284,8 +284,12 @@ const WeeklyMoodTrendChart = ({ entries }: Props) => {
               <p className="text-[9px] text-muted-foreground mb-2.5">
                 Based on {allMoods.length} logged {allMoods.length === 1 ? "day" : "days"}
               </p>
-              <div className="space-y-2">
-                {tagCorrelations.map(({ tag, tagAvg, diff, count }) => {
+              {(() => {
+                const positive = tagCorrelations.filter((t) => t.diff > 0.2);
+                const negative = tagCorrelations.filter((t) => t.diff < -0.2);
+                const neutral = tagCorrelations.filter((t) => t.diff >= -0.2 && t.diff <= 0.2);
+
+                const renderSentence = ({ tag, tagAvg, diff, count }: typeof tagCorrelations[0]) => {
                   const emoji = TAG_EMOJI[tag] ?? "🏷️";
                   const isPositive = diff > 0.2;
                   const isNegative = diff < -0.2;
@@ -317,8 +321,31 @@ const WeeklyMoodTrendChart = ({ entries }: Props) => {
                       <span className="text-muted-foreground ml-1 text-[9px]">({count}×)</span>
                     </p>
                   );
-                })}
-              </div>
+                };
+
+                return (
+                  <div className="space-y-3">
+                    {positive.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-medium text-muted-foreground mb-1.5">☀️ Mood boosters</p>
+                        <div className="space-y-1.5">{positive.map(renderSentence)}</div>
+                      </div>
+                    )}
+                    {negative.length > 0 && (
+                      <div className={positive.length > 0 ? "pt-2.5 border-t border-border/50" : ""}>
+                        <p className="text-[9px] font-medium text-muted-foreground mb-1.5">🌧️ Mood dippers</p>
+                        <div className="space-y-1.5">{negative.map(renderSentence)}</div>
+                      </div>
+                    )}
+                    {neutral.length > 0 && (
+                      <div className={(positive.length > 0 || negative.length > 0) ? "pt-2.5 border-t border-border/50" : ""}>
+                        <p className="text-[9px] font-medium text-muted-foreground mb-1.5">➖ No clear effect</p>
+                        <div className="space-y-1.5">{neutral.map(renderSentence)}</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           );
         })()}
