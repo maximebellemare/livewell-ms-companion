@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
@@ -12,6 +12,8 @@ import OnboardingTooltips from "@/components/OnboardingTooltips";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, List, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEntries, DailyEntry } from "@/hooks/useEntries";
+import PullToRefresh from "@/components/PullToRefresh";
+import { useQueryClient } from "@tanstack/react-query";
 
 /* ─── helpers ────────────────────────────────────────────── */
 const SYMPTOM_KEYS: (keyof DailyEntry)[] = ["fatigue", "pain", "brain_fog", "mood", "mobility", "spasticity", "stress"];
@@ -194,6 +196,11 @@ const TrackPage = () => {
   const [month, setMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { data: entries = [], isLoading } = useEntries();
+  const queryClient = useQueryClient();
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["entries"] });
+  }, [queryClient]);
 
   const entriesByDate = useMemo(
     () => Object.fromEntries(entries.map((e) => [e.date, e])),
@@ -233,7 +240,7 @@ const TrackPage = () => {
         }
       />
 
-      <div className="mx-auto max-w-lg px-4 py-4 pb-8">
+      <PullToRefresh onRefresh={handleRefresh} className="mx-auto max-w-lg px-4 py-4 pb-8">
         {isLoading ? (
           <div className="space-y-4 animate-fade-in">
             <div className="flex items-center justify-between px-1">
@@ -411,7 +418,7 @@ const TrackPage = () => {
             </div>
           </>
         )}
-      </div>
+      </PullToRefresh>
     </>
   );
 };

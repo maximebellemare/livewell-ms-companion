@@ -9,6 +9,8 @@ import CoachChat from "@/components/coach/CoachChat";
 import CoachHistory from "@/components/coach/CoachHistory";
 import ProgramsSection from "@/components/premium/ProgramsSection";
 import { useCoach, type CoachMode } from "@/hooks/useCoach";
+import PullToRefresh from "@/components/PullToRefresh";
+import { useQueryClient } from "@tanstack/react-query";
 
 const modes: { id: CoachMode; icon: typeof Heart; label: string; description: string; color: string }[] = [
   {
@@ -43,9 +45,14 @@ const modes: { id: CoachMode; icon: typeof Heart; label: string; description: st
 
 const CoachPage = () => {
   const location = useLocation();
+  const queryClient = useQueryClient();
   const [activeMode, setActiveMode] = useState<CoachMode | null>(null);
   const [resumeSessionId, setResumeSessionId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["coach-sessions"] });
+  }, [queryClient]);
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
 
   // Auto-send support: navigate with state.autoSend to auto-open emotional mode and send a message
@@ -115,6 +122,7 @@ const CoachPage = () => {
           >
             <PageHeader title="AI Coach" subtitle="Your personal MS support companion" />
 
+            <PullToRefresh onRefresh={handleRefresh} className="px-0">
             {/* Disclaimer */}
             <StaggerContainer className="px-0">
             <StaggerItem>
@@ -180,6 +188,7 @@ const CoachPage = () => {
               </div>
             </StaggerItem>
             </StaggerContainer>
+            </PullToRefresh>
           </motion.div>
         )}
       </AnimatePresence>
