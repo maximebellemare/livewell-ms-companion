@@ -90,6 +90,9 @@ const CompactStreakRow = ({
           title: "🎉 Streak milestone!",
           description: milestoneHits.join(" · "),
         });
+        if (navigator.vibrate) {
+          navigator.vibrate([50, 30, 50]);
+        }
       }
     }
 
