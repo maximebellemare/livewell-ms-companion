@@ -38,6 +38,8 @@ import { useMedStreak } from "@/hooks/useMedStreak";
 import { useCognitiveStreak } from "@/hooks/useCognitiveStreak";
 import { useRelapseFreeStreak } from "@/hooks/useRelapseFreeStreak";
 import { useGroundingStreak } from "@/hooks/useGroundingStreak";
+import PullToRefresh from "@/components/PullToRefresh";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useBadgeProximityAlert } from "@/hooks/useBadgeProximityAlert";
 import { useRecordBadgeEvent } from "@/hooks/useBadgeEvents";
@@ -76,6 +78,7 @@ type QuickLogMetric = "mood" | "fatigue" | "pain" | "brain_fog" | "sleep" | "mob
 
 const TodayPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [fatigue, setFatigue] = useState(0);
   const [pain, setPain] = useState(0);
   const [brainFog, setBrainFog] = useState(0);
@@ -294,6 +297,12 @@ const TodayPage = () => {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["today-entry"] });
+    await queryClient.invalidateQueries({ queryKey: ["entries"] });
+    await queryClient.invalidateQueries({ queryKey: ["medications"] });
+  }, [queryClient]);
+
   if (logged) {
     return (
       <>
@@ -348,7 +357,7 @@ const TodayPage = () => {
           </Link>
         }
       />
-      <StaggerContainer className="mx-auto max-w-lg space-y-3 px-4 py-3">
+      <PullToRefresh onRefresh={handleRefresh} className="mx-auto max-w-lg space-y-3 px-4 py-3">
         {/* Pinned metrics compact summary */}
         <AnimatePresence>
           {pinnedMetrics.length > 0 && weekEntries.length > 0 && (
@@ -839,7 +848,7 @@ const TodayPage = () => {
         </StaggerItem>
         </>
         )}
-      </StaggerContainer>
+      </PullToRefresh>
 
 
       {/* Floating action button */}
