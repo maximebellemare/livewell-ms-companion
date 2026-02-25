@@ -11,6 +11,7 @@ export interface DbAppointment {
   time: string | null;
   location: string | null;
   notes: string | null;
+  reminder: string;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +49,7 @@ export const useSaveAppointment = () => {
             time: appt.time,
             location: appt.location,
             notes: appt.notes,
+            reminder: appt.reminder || "none",
           })
           .eq("id", appt.id)
           .select()
@@ -65,6 +67,7 @@ export const useSaveAppointment = () => {
             time: appt.time,
             location: appt.location,
             notes: appt.notes,
+            reminder: appt.reminder || "none",
           })
           .select()
           .single();
