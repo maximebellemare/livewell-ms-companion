@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
 import PageHeader from "@/components/PageHeader";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import TimePicker from "@/components/TimePicker";
 import SwipeableAppointmentCard from "@/components/appointments/SwipeableAppointmentCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AppointmentsPage = () => {
   const { data: appointments = [], isLoading } = useDbAppointments();
@@ -22,6 +23,8 @@ const AppointmentsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [filterType, setFilterType] = useState<AppointmentType | "all">("all");
+  const isMobile = useIsMobile();
+  const [swipeHintDismissed, setSwipeHintDismissed] = useState(() => localStorage.getItem("hint_appt_swipe_used") === "1");
 
   const appointmentDates = useMemo(() => {
     return appointments.map((a) => parseISO(a.date));
@@ -245,14 +248,26 @@ const AppointmentsPage = () => {
               </button>
             </div>
           ) : (
-            filteredAppointments.map((appt) => (
-              <SwipeableAppointmentCard
-                key={appt.id}
-                appt={appt}
-                showDate={viewMode === "list"}
-                onEdit={() => openEdit(appt)}
-                onDelete={() => handleDelete(appt.id)}
-              />
+            filteredAppointments.map((appt, idx) => (
+              <div key={appt.id}>
+                <SwipeableAppointmentCard
+                  appt={appt}
+                  showDate={viewMode === "list"}
+                  onEdit={() => openEdit(appt)}
+                  onDelete={() => handleDelete(appt.id)}
+                />
+                {idx === 0 && isMobile && !swipeHintDismissed && (
+                  <p
+                    className="mt-1.5 text-center text-[11px] text-muted-foreground/60 animate-fade-in cursor-pointer select-none"
+                    onClick={() => {
+                      localStorage.setItem("hint_appt_swipe_used", "1");
+                      setSwipeHintDismissed(true);
+                    }}
+                  >
+                    ← Swipe left to edit or delete
+                  </p>
+                )}
+              </div>
             ))
           )}
         </div>
