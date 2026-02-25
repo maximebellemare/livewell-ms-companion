@@ -274,76 +274,46 @@ const WeeklyMoodTrendChart = ({ entries }: Props) => {
           return (
             <div className="mt-4 pt-3 border-t border-border">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-                Mood tag impact
+                How your feelings affect mood
               </p>
               <p className="text-[9px] text-muted-foreground mb-2.5">
-                Average mood when tag is logged vs overall ({overallAvgMood.toFixed(1)})
+                Your average mood is {overallAvgMood.toFixed(1)}/10 — here's how each feeling compares
               </p>
               <div className="space-y-2">
-                <TooltipProvider delayDuration={200}>
                 {tagCorrelations.map(({ tag, tagAvg, diff, count }) => {
                   const isPositive = diff > 0.2;
                   const isNegative = diff < -0.2;
-                  const barPct = Math.min((Math.abs(diff) / maxAbsDiff) * 100, 100);
+                  const color = TAG_COLORS[tag] ?? "hsl(var(--muted-foreground))";
+
+                  let description: string;
+                  if (isPositive) {
+                    description = diff >= 1
+                      ? `Your best mood days — ${tagAvg.toFixed(1)} avg`
+                      : `Tends to lift your mood — ${tagAvg.toFixed(1)} avg`;
+                  } else if (isNegative) {
+                    description = diff <= -1
+                      ? `Tougher days — ${tagAvg.toFixed(1)} avg`
+                      : `Slightly lowers mood — ${tagAvg.toFixed(1)} avg`;
+                  } else {
+                    description = `No clear effect — ${tagAvg.toFixed(1)} avg`;
+                  }
 
                   return (
-                    <UITooltip key={tag}>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-2 cursor-help">
-                          <span className="text-xs w-20 truncate text-foreground font-medium">{tag}</span>
-                          <div className="flex-1 flex items-center gap-1">
-                            {/* Diverging bar from center */}
-                            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden relative">
-                              {isPositive && (
-                                <div
-                                  className="absolute left-1/2 h-full rounded-r-full transition-all"
-                                  style={{
-                                    width: `${barPct / 2}%`,
-                                    backgroundColor: "hsl(145 45% 45%)",
-                                  }}
-                                />
-                              )}
-                              {isNegative && (
-                                <div
-                                  className="absolute right-1/2 h-full rounded-l-full transition-all"
-                                  style={{
-                                    width: `${barPct / 2}%`,
-                                    backgroundColor: "hsl(0 72% 51%)",
-                                  }}
-                                />
-                              )}
-                              {!isPositive && !isNegative && (
-                                <div
-                                  className="absolute left-1/2 -translate-x-1/2 h-full w-0.5 rounded-full"
-                                  style={{ backgroundColor: "hsl(var(--muted-foreground))" }}
-                                />
-                              )}
-                            </div>
-                          </div>
-                          <span
-                            className="text-[10px] font-semibold w-12 text-right"
-                            style={{
-                              color: isPositive ? "hsl(145 45% 45%)" :
-                                     isNegative ? "hsl(0 72% 51%)" :
-                                     "hsl(var(--muted-foreground))",
-                            }}
-                          >
-                            {diff > 0 ? "+" : ""}{diff.toFixed(1)}
-                          </span>
-                          <span className="text-[9px] text-muted-foreground w-8 text-right">{count}×</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs max-w-[240px]">
-                        {isPositive
-                          ? `When you tag "${tag}", your mood averages ${tagAvg.toFixed(1)}/10 — ${Math.abs(diff).toFixed(1)} points above your overall average.`
-                          : isNegative
-                          ? `When you tag "${tag}", your mood averages ${tagAvg.toFixed(1)}/10 — ${Math.abs(diff).toFixed(1)} points below your overall average.`
-                          : `When you tag "${tag}", your mood averages ${tagAvg.toFixed(1)}/10 — close to your overall average.`}
-                      </TooltipContent>
-                    </UITooltip>
+                    <div key={tag} className="flex items-center gap-2.5">
+                      <span
+                        className="flex items-center justify-center h-5 w-5 rounded-full text-[10px] flex-shrink-0"
+                        style={{ backgroundColor: `${color}20`, color }}
+                      >
+                        {isPositive ? "↑" : isNegative ? "↓" : "–"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground leading-tight">{tag}</p>
+                        <p className="text-[10px] text-muted-foreground leading-tight">{description}</p>
+                      </div>
+                      <span className="text-[9px] text-muted-foreground flex-shrink-0">{count}×</span>
+                    </div>
                   );
                 })}
-                </TooltipProvider>
               </div>
             </div>
           );
