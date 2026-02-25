@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Trophy, Check } from "lucide-react";
+import VoiceMicButton from "@/components/journal/VoiceMicButton";
 
 interface Props {
   onSubmit: (win: string) => void;
@@ -27,13 +28,19 @@ const SmallWinField = ({ onSubmit }: Props) => {
         What's one thing you managed, no matter how small?
       </p>
       {!showInput ? (
-        <button
-          onClick={() => setShowInput(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition-all active:scale-95"
-        >
-          <Trophy className="h-3 w-3" />
-          Add a win
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowInput(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition-all active:scale-95"
+          >
+            <Trophy className="h-3 w-3" />
+            Add a win
+          </button>
+          <VoiceMicButton onTranscript={(t) => {
+            setValue((prev) => (prev ? prev + " " : "") + t);
+            setShowInput(true);
+          }} />
+        </div>
       ) : (
         <div className="space-y-2 animate-fade-in">
           <textarea

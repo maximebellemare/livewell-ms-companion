@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import { PenLine, RefreshCw, CheckCircle2, X } from "lucide-react";
+import VoiceMicButton from "@/components/journal/VoiceMicButton";
 import { PROMPTS, getDailyPrompt } from "@/lib/dailyPrompts";
 import { DailyEntry } from "@/hooks/useEntries";
 
@@ -113,16 +114,22 @@ const DailyPromptCard = ({ onUsePrompt, entry }: DailyPromptCardProps) => {
       </p>
 
       {!showEditor ? (
-        <span className="relative inline-flex">
-          <span className="absolute inset-0 rounded-lg bg-primary/20 pulse" />
-          <button
-            onClick={() => setShowEditor(true)}
-            className="relative inline-flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition-all active:scale-95"
-          >
-            <PenLine className="h-3 w-3" />
-            Reflect on this
-          </button>
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="relative inline-flex">
+            <span className="absolute inset-0 rounded-lg bg-primary/20 pulse" />
+            <button
+              onClick={() => setShowEditor(true)}
+              className="relative inline-flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 px-3 py-1.5 text-xs font-semibold text-primary transition-all active:scale-95"
+            >
+              <PenLine className="h-3 w-3" />
+              Reflect on this
+            </button>
+          </span>
+          <VoiceMicButton onTranscript={(t) => {
+            setReflectText((prev) => (prev ? prev + " " : "") + t);
+            setShowEditor(true);
+          }} />
+        </div>
       ) : (
         <div className="space-y-2 animate-fade-in">
           <textarea
