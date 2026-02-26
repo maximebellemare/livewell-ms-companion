@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, ShoppingCart, Copy, ChevronDown, ChevronRight, Printer } from "lucide-react";
+import { Check, ShoppingCart, Copy, ChevronDown, ChevronRight, Printer, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   useDietPlans, useUserDietPlan,
@@ -77,11 +77,19 @@ export default function GroceryList() {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [customItems, setCustomItems] = useState<string[]>([]);
+  const [newItem, setNewItem] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const plan = plans.find(p => p.id === userPlan?.plan_id);
 
   const ingredients: IngredientItem[] = useMemo(() => {
-    if (!plan || !userPlan?.weekly_selections) return [];
+    if (!plan || !userPlan?.weekly_selections) return customItems.map(item => ({
+      key: `custom:${item.toLowerCase().trim()}`,
+      label: item,
+      count: 1,
+      category: classifyIngredient(item.toLowerCase().trim()),
+    }));
 
     const getDisplayRecipe = (original: Recipe): Recipe =>
       userPlan.swapped_recipes[original.id] || original;
@@ -112,15 +120,23 @@ export default function GroceryList() {
       }
     }
 
+    // Add custom items
+    for (const item of customItems) {
+      const key = `custom:${item.toLowerCase().trim()}`;
+      if (!ingredientMap.has(key)) {
+        ingredientMap.set(key, { count: 1, raw: item });
+      }
+    }
+
     return Array.from(ingredientMap.entries())
       .map(([key, val]) => ({
         key,
         label: val.raw,
         count: val.count,
-        category: classifyIngredient(key),
+        category: classifyIngredient(key.replace(/^custom:/, "")),
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [plan, userPlan]);
+  }, [plan, userPlan, customItems]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, IngredientItem[]>();
@@ -139,22 +155,39 @@ export default function GroceryList() {
   }, [ingredients]);
 
   if (!plan || !userPlan) {
-    return (
-      <div className="rounded-xl bg-card border border-border p-4 shadow-soft text-center">
-        <ShoppingCart className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">Select a diet plan and fill your weekly planner to generate a grocery list.</p>
-      </div>
-    );
+    // Still allow custom items even without a plan — but show hint
+    if (customItems.length === 0) {
+      return (
+        <div className="rounded-xl bg-card border border-border p-4 shadow-soft text-center">
+          <ShoppingCart className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Select a diet plan and fill your weekly planner to generate a grocery list.</p>
+        </div>
+      );
+    }
   }
 
-  if (ingredients.length === 0) {
-    return (
-      <div className="rounded-xl bg-card border border-border p-4 shadow-soft text-center">
-        <ShoppingCart className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">Add meals to your weekly planner to auto-generate your grocery list.</p>
-      </div>
-    );
-  }
+  const addCustomItem = () => {
+    const trimmed = newItem.trim();
+    if (!trimmed) return;
+    if (customItems.some(i => i.toLowerCase() === trimmed.toLowerCase())) {
+      toast.error("Item already added");
+      return;
+    }
+    setCustomItems(prev => [...prev, trimmed]);
+    setNewItem("");
+    toast.success(`Added "${trimmed}"`);
+    inputRef.current?.focus();
+  };
+
+  const removeCustomItem = (item: string) => {
+    setCustomItems(prev => prev.filter(i => i !== item));
+    const key = `custom:${item.toLowerCase().trim()}`;
+    setCheckedItems(prev => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  };
 
   const toggle = (key: string) => {
     setCheckedItems(prev => {
@@ -255,17 +288,29 @@ export default function GroceryList() {
                       <div className="pl-4 space-y-0.5">
                         {items.map(item => {
                           const done = checkedItems.has(item.key);
+                          const isCustom = item.key.startsWith("custom:");
                           return (
-                            <button key={item.key} onClick={() => toggle(item.key)}
-                              className={`w-full flex items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors ${done ? "opacity-50" : "hover:bg-secondary/50"}`}>
-                              <div className={`flex-shrink-0 h-4.5 w-4.5 rounded border-2 flex items-center justify-center transition-all ${done ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
-                                {done && <Check className="h-3 w-3" />}
-                              </div>
-                              <span className={`text-sm flex-1 ${done ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                                {item.label}
-                              </span>
-                              {item.count > 1 && <span className="text-[10px] text-muted-foreground bg-secondary rounded-full px-1.5">×{item.count}</span>}
-                            </button>
+                            <div key={item.key} className="flex items-center gap-0.5">
+                              <button onClick={() => toggle(item.key)}
+                                className={`flex-1 flex items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors ${done ? "opacity-50" : "hover:bg-secondary/50"}`}>
+                                <div className={`flex-shrink-0 h-4.5 w-4.5 rounded border-2 flex items-center justify-center transition-all ${done ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
+                                  {done && <Check className="h-3 w-3" />}
+                                </div>
+                                <span className={`text-sm flex-1 ${done ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                                  {item.label}
+                                </span>
+                                {item.count > 1 && <span className="text-[10px] text-muted-foreground bg-secondary rounded-full px-1.5">×{item.count}</span>}
+                              </button>
+                              {isCustom && (
+                                <button
+                                  onClick={() => removeCustomItem(item.label)}
+                                  className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                  title="Remove custom item"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
@@ -275,6 +320,27 @@ export default function GroceryList() {
               </div>
             );
           })}
+          {/* Add custom item */}
+          <form
+            onSubmit={e => { e.preventDefault(); addCustomItem(); }}
+            className="flex items-center gap-2 pt-1 border-t border-border mt-1"
+          >
+            <Plus className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={newItem}
+              onChange={e => setNewItem(e.target.value)}
+              placeholder="Add custom item…"
+              maxLength={100}
+              className="flex-1 text-sm bg-transparent border-none outline-none placeholder:text-muted-foreground/50 text-foreground"
+            />
+            {newItem.trim() && (
+              <button type="submit" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                Add
+              </button>
+            )}
+          </form>
         </div>
       )}
     </motion.div>
