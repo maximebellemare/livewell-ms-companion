@@ -41,6 +41,9 @@ const MedicationChecklist = () => {
           </span>
         )}
       </div>
+      {!allDone && (
+        <p className="text-[10px] text-muted-foreground">Tap ✓ if you took it, ✗ if you skipped it.</p>
+      )}
       {meds.map((med) => {
         const status = getLogStatus(med.id);
         return (
