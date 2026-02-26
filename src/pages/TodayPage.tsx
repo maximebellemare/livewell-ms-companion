@@ -833,6 +833,9 @@ const TodayPage = () => {
 
         {!alreadyLogged && <StaggerItem><SuggestedNextCards /></StaggerItem>}
 
+        {/* Medication checklist */}
+        <StaggerItem><MedicationChecklist /></StaggerItem>
+
         {/* Section: Full Check-In — merged symptoms + mood/sleep/notes */}
         <StaggerItem>
           <Collapsible defaultOpen={!alreadyLogged}>
@@ -980,9 +983,6 @@ const TodayPage = () => {
             </CollapsibleContent>
           </Collapsible>
         </StaggerItem>
-
-        {/* Medication checklist */}
-        <StaggerItem><MedicationChecklist /></StaggerItem>
 
         {/* Log button */}
         <StaggerItem>
