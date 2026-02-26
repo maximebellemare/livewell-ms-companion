@@ -10,7 +10,7 @@ import SequenceRecallGame from "@/components/cognitive/SequenceRecallGame";
 import StroopChallengeGame from "@/components/cognitive/StroopChallengeGame";
 import WordScrambleGame from "@/components/cognitive/WordScrambleGame";
 import SymbolDigitGame from "@/components/cognitive/SymbolDigitGame";
-import NBackGame from "@/components/cognitive/NBackGame";
+
 import TrailMakingGame from "@/components/cognitive/TrailMakingGame";
 import PatternRecognitionGame from "@/components/cognitive/PatternRecognitionGame";
 import GoNoGoGame from "@/components/cognitive/GoNoGoGame";
@@ -26,7 +26,7 @@ const GAMES = [
   { id: "stroop", label: "Stroop Challenge", icon: <Palette className="h-5 w-5" />, emoji: "🎨", desc: "Tap the ink color — not what it says!", component: <StroopChallengeGame /> },
   { id: "scramble", label: "Word Scramble", icon: <Type className="h-5 w-5" />, emoji: "📝", desc: "Unscramble letters to form a word.", component: <WordScrambleGame /> },
   { id: "symbol", label: "Symbol Digit", icon: <Grid3X3 className="h-5 w-5" />, emoji: "🔣", desc: "Match symbols to digits — mirrors the SDMT clinical test.", component: <SymbolDigitGame /> },
-  { id: "nback", label: "N-Back", icon: <LayoutGrid className="h-5 w-5" />, emoji: "🧠", desc: "Tap when the letter matches N steps ago.", component: <NBackGame /> },
+  
   { id: "trails", label: "Trail Making", icon: <Link className="h-5 w-5" />, emoji: "🔗", desc: "Connect numbers/letters in order.", component: <TrailMakingGame /> },
   { id: "pattern", label: "Pattern Recognition", icon: <Eye className="h-5 w-5" />, emoji: "👁", desc: "Spot the odd one out in each grid.", component: <PatternRecognitionGame /> },
   { id: "gonogo", label: "Go / No-Go", icon: <Target className="h-5 w-5" />, emoji: "🎯", desc: "Tap for green, hold for red.", component: <GoNoGoGame /> },
@@ -39,7 +39,7 @@ const GAME_TYPE_MAP: Record<string, { icon: React.ReactNode; label: string }> = 
   stroop_challenge: { icon: <Palette className="h-4 w-4 text-primary" />, label: "Stroop" },
   word_scramble: { icon: <Type className="h-4 w-4 text-primary" />, label: "Scramble" },
   symbol_digit: { icon: <Grid3X3 className="h-4 w-4 text-primary" />, label: "Symbol" },
-  n_back: { icon: <LayoutGrid className="h-4 w-4 text-primary" />, label: "N-Back" },
+  
   trail_making: { icon: <Link className="h-4 w-4 text-primary" />, label: "Trails" },
   pattern_recognition: { icon: <Eye className="h-4 w-4 text-primary" />, label: "Pattern" },
   go_no_go: { icon: <Target className="h-4 w-4 text-primary" />, label: "Go/No-Go" },
