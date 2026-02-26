@@ -8,6 +8,9 @@ export interface Recipe {
   meal: string;
   ingredients: string[];
   instructions: string;
+  prep_time?: string;
+  servings?: number;
+  calories?: number;
 }
 
 export interface DietPlan {
@@ -25,14 +28,25 @@ export interface DietPlan {
   sort_order: number;
 }
 
+// Weekly selections: { "monday": { "breakfast": "recipe_id", "lunch": "recipe_id", ... }, ... }
+export type WeeklySelections = Record<string, Record<string, string>>;
+
 export interface UserDietPlan {
   id: string;
   user_id: string;
   plan_id: string;
   active: boolean;
-  swapped_recipes: Record<string, Recipe>; // original recipe id -> swapped recipe
+  swapped_recipes: Record<string, Recipe>;
+  weekly_selections: WeeklySelections;
   created_at: string;
 }
+
+export const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+export const MEALS = ["breakfast", "lunch", "dinner", "snack"] as const;
+export const DAY_LABELS: Record<string, string> = {
+  monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu",
+  friday: "Fri", saturday: "Sat", sunday: "Sun",
+};
 
 export function useDietPlans() {
   const { user } = useAuth();
@@ -68,12 +82,11 @@ export function useUserDietPlan() {
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
+      const d = data as any;
       return {
-        ...(data as any),
-        swapped_recipes:
-          typeof (data as any).swapped_recipes === "string"
-            ? JSON.parse((data as any).swapped_recipes)
-            : (data as any).swapped_recipes,
+        ...d,
+        swapped_recipes: typeof d.swapped_recipes === "string" ? JSON.parse(d.swapped_recipes) : d.swapped_recipes,
+        weekly_selections: typeof d.weekly_selections === "string" ? JSON.parse(d.weekly_selections) : (d.weekly_selections ?? {}),
       } as UserDietPlan;
     },
     enabled: !!user,
@@ -85,16 +98,14 @@ export function useSelectDietPlan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (planId: string) => {
-      // Deactivate existing selections
       await supabase
         .from("user_diet_plans" as any)
         .update({ active: false } as any)
         .eq("user_id", user!.id)
         .eq("active", true);
-      // Insert new
       const { error } = await supabase
         .from("user_diet_plans" as any)
-        .insert({ user_id: user!.id, plan_id: planId, active: true, swapped_recipes: {} } as any);
+        .insert({ user_id: user!.id, plan_id: planId, active: true, swapped_recipes: {}, weekly_selections: {} } as any);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["user-diet-plan"] }),
@@ -118,14 +129,10 @@ export function useDeselectDietPlan() {
 }
 
 export function useSwapRecipe() {
-  const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      userDietPlanId,
-      originalRecipeId,
-      newRecipe,
-      currentSwaps,
+      userDietPlanId, originalRecipeId, newRecipe, currentSwaps,
     }: {
       userDietPlanId: string;
       originalRecipeId: string;
@@ -144,13 +151,10 @@ export function useSwapRecipe() {
 }
 
 export function useResetRecipeSwap() {
-  const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      userDietPlanId,
-      originalRecipeId,
-      currentSwaps,
+      userDietPlanId, originalRecipeId, currentSwaps,
     }: {
       userDietPlanId: string;
       originalRecipeId: string;
@@ -168,12 +172,29 @@ export function useResetRecipeSwap() {
   });
 }
 
+export function useUpdateWeeklySelections() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      userDietPlanId, weekly_selections,
+    }: {
+      userDietPlanId: string;
+      weekly_selections: WeeklySelections;
+    }) => {
+      const { error } = await supabase
+        .from("user_diet_plans" as any)
+        .update({ weekly_selections } as any)
+        .eq("id", userDietPlanId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["user-diet-plan"] }),
+  });
+}
+
 export function useAISwapSuggestions() {
   return useMutation({
     mutationFn: async ({
-      recipe,
-      dietName,
-      mealType,
+      recipe, dietName, mealType,
     }: {
       recipe: Recipe;
       dietName: string;
