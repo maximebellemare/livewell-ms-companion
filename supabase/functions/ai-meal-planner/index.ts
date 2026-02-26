@@ -139,9 +139,15 @@ IMPORTANT: Tailor meals to address the user's specific symptom profile:
 ## Available Recipes
 ${JSON.stringify(recipes.map((r: any) => ({ id: r.id, name: r.name, meal: r.meal })), null, 2)}
 
-Return a JSON object with two keys:
+Return a JSON object with three keys:
 1. "plan" — mapping each day to meal assignments using recipe IDs or "custom:Meal Name"
 2. "reasoning" — an array of 3-5 short explanations (max 120 chars each) about WHY specific meals were chosen, linking them to the user's symptoms, medications, or energy level. Use this format: "Meal Name — benefit for symptom/condition"
+3. "daily_nutrition" — an object mapping each day to estimated nutrition:
+   { "calories": number, "omega3_mg": number, "anti_inflammatory_score": number (1-10), "top_nutrients": ["nutrient1", "nutrient2"] }
+   - calories: estimated total daily calories from all 4 meals
+   - omega3_mg: estimated omega-3 fatty acids in milligrams
+   - anti_inflammatory_score: 1-10 rating of how anti-inflammatory the day's meals are (10 = most anti-inflammatory)
+   - top_nutrients: 2-3 key nutrients that day's meals are especially rich in (e.g. "Vitamin D", "Iron", "Magnesium")
 
 Format:
 {
@@ -150,7 +156,11 @@ Format:
     "Turmeric Salmon Bowl — omega-3s to ease brain fog",
     "Golden Milk Oats — anti-inflammatory turmeric for pain relief",
     "Simple wraps on low-energy days — quick prep to conserve spoons"
-  ]
+  ],
+  "daily_nutrition": {
+    "monday": { "calories": 1650, "omega3_mg": 2200, "anti_inflammatory_score": 8, "top_nutrients": ["Omega-3", "Turmeric", "Vitamin D"] },
+    "tuesday": { "calories": 1580, "omega3_mg": 900, "anti_inflammatory_score": 7, "top_nutrients": ["Iron", "Fiber", "B-vitamins"] }
+  }
 }
 
 Rules:
@@ -209,8 +219,9 @@ Rules:
     // Support both nested { plan, reasoning } and flat plan object
     const plan = parsed.plan || parsed;
     const reasoning = parsed.reasoning || [];
+    const daily_nutrition = parsed.daily_nutrition || {};
 
-    return new Response(JSON.stringify({ plan, reasoning }), {
+    return new Response(JSON.stringify({ plan, reasoning, daily_nutrition }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

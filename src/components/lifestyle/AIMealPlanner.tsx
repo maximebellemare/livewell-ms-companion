@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Loader2, Wand2, Brain, Pill, Zap, TrendingUp, Lightbulb } from "lucide-react";
+import { Sparkles, Loader2, Wand2, Brain, Pill, Zap, TrendingUp, Lightbulb, Flame, Fish, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium } from "@/hooks/usePremium";
@@ -11,6 +11,19 @@ import {
   type Recipe, type WeeklySelections,
 } from "@/hooks/useDietPlans";
 
+interface DayNutrition {
+  calories: number;
+  omega3_mg: number;
+  anti_inflammatory_score: number;
+  top_nutrients: string[];
+}
+
+const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+const DAY_LABELS: Record<string, string> = {
+  monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu",
+  friday: "Fri", saturday: "Sat", sunday: "Sun",
+};
+
 export default function AIMealPlanner() {
   const { isPremium } = usePremium();
   const { data: plans = [] } = useDietPlans();
@@ -20,6 +33,8 @@ export default function AIMealPlanner() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [preferences, setPreferences] = useState("");
   const [reasoning, setReasoning] = useState<string[]>([]);
+  const [dailyNutrition, setDailyNutrition] = useState<Record<string, DayNutrition>>({});
+  const [selectedNutrDay, setSelectedNutrDay] = useState(0);
 
   const plan = plans.find(p => p.id === userPlan?.plan_id);
 
@@ -39,6 +54,7 @@ export default function AIMealPlanner() {
   const handleGenerate = async () => {
     setIsGenerating(true);
     setReasoning([]);
+    setDailyNutrition({});
     try {
       const { data, error } = await supabase.functions.invoke("ai-meal-planner", {
         body: {
@@ -59,6 +75,10 @@ export default function AIMealPlanner() {
       if (data.reasoning?.length) {
         setReasoning(data.reasoning);
       }
+      if (data.daily_nutrition && Object.keys(data.daily_nutrition).length > 0) {
+        setDailyNutrition(data.daily_nutrition);
+        setSelectedNutrDay(0);
+      }
 
       toast.success("Personalized meal plan generated! 🎉");
     } catch (e: any) {
@@ -74,6 +94,20 @@ export default function AIMealPlanner() {
   if (profile?.symptoms?.length) signals.push({ icon: TrendingUp, label: `${profile.symptoms.length} symptoms tracked` });
   if (profile?.medications?.length) signals.push({ icon: Pill, label: `${profile.medications.length} medications` });
   signals.push({ icon: Zap, label: "Energy-aware" });
+
+  // Nutrition helpers
+  const nutritionDays = DAYS.filter(d => dailyNutrition[d]);
+  const currentDay = nutritionDays[selectedNutrDay];
+  const currentNutr = currentDay ? dailyNutrition[currentDay] : null;
+
+  const weeklyAvg = nutritionDays.length > 0 ? {
+    calories: Math.round(nutritionDays.reduce((s, d) => s + (dailyNutrition[d]?.calories || 0), 0) / nutritionDays.length),
+    omega3: Math.round(nutritionDays.reduce((s, d) => s + (dailyNutrition[d]?.omega3_mg || 0), 0) / nutritionDays.length),
+    antiInflam: (nutritionDays.reduce((s, d) => s + (dailyNutrition[d]?.anti_inflammatory_score || 0), 0) / nutritionDays.length).toFixed(1),
+  } : null;
+
+  const scoreColor = (score: number) =>
+    score >= 8 ? "text-green-500" : score >= 5 ? "text-yellow-500" : "text-red-400";
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
@@ -123,6 +157,92 @@ export default function AIMealPlanner() {
           Uses your symptoms, medications, energy level & recent trends to tailor meals.
         </p>
       </div>
+
+      {/* Daily Nutrition Breakdown */}
+      <AnimatePresence>
+        {nutritionDays.length > 0 && currentNutr && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35 }}
+            className="rounded-2xl bg-gradient-to-br from-green-500/10 via-card to-card p-4 border border-green-500/15 shadow-soft"
+          >
+            {/* Header with day nav */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/15">
+                  <Flame className="h-3.5 w-3.5 text-green-500" />
+                </div>
+                <h4 className="text-xs font-semibold text-foreground">Daily Nutrition</h4>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setSelectedNutrDay(p => Math.max(0, p - 1))}
+                  disabled={selectedNutrDay === 0}
+                  className="p-0.5 rounded hover:bg-secondary/60 disabled:opacity-30 transition-colors"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+                <span className="text-[11px] font-medium text-foreground min-w-[28px] text-center">
+                  {DAY_LABELS[currentDay]}
+                </span>
+                <button
+                  onClick={() => setSelectedNutrDay(p => Math.min(nutritionDays.length - 1, p + 1))}
+                  disabled={selectedNutrDay === nutritionDays.length - 1}
+                  className="p-0.5 rounded hover:bg-secondary/60 disabled:opacity-30 transition-colors"
+                >
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+
+            {/* Metric cards */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="rounded-xl bg-secondary/40 p-2.5 text-center">
+                <Flame className="h-3.5 w-3.5 text-orange-400 mx-auto mb-1" />
+                <p className="text-sm font-bold text-foreground">{currentNutr.calories}</p>
+                <p className="text-[9px] text-muted-foreground">Calories</p>
+              </div>
+              <div className="rounded-xl bg-secondary/40 p-2.5 text-center">
+                <Fish className="h-3.5 w-3.5 text-blue-400 mx-auto mb-1" />
+                <p className="text-sm font-bold text-foreground">{currentNutr.omega3_mg >= 1000 ? `${(currentNutr.omega3_mg / 1000).toFixed(1)}g` : `${currentNutr.omega3_mg}mg`}</p>
+                <p className="text-[9px] text-muted-foreground">Omega-3</p>
+              </div>
+              <div className="rounded-xl bg-secondary/40 p-2.5 text-center">
+                <Shield className="h-3.5 w-3.5 text-green-400 mx-auto mb-1" />
+                <p className={`text-sm font-bold ${scoreColor(currentNutr.anti_inflammatory_score)}`}>
+                  {currentNutr.anti_inflammatory_score}/10
+                </p>
+                <p className="text-[9px] text-muted-foreground">Anti-inflam.</p>
+              </div>
+            </div>
+
+            {/* Top nutrients */}
+            {currentNutr.top_nutrients?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {currentNutr.top_nutrients.map(n => (
+                  <span key={n} className="rounded-full bg-green-500/10 border border-green-500/20 px-2 py-0.5 text-[10px] text-green-400 font-medium">
+                    {n}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Weekly average bar */}
+            {weeklyAvg && (
+              <div className="rounded-lg bg-secondary/30 px-3 py-2 flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground font-medium">Weekly avg</span>
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                  <span>{weeklyAvg.calories} cal</span>
+                  <span className="text-blue-400">{weeklyAvg.omega3 >= 1000 ? `${(weeklyAvg.omega3 / 1000).toFixed(1)}g` : `${weeklyAvg.omega3}mg`} ω-3</span>
+                  <span className={scoreColor(parseFloat(weeklyAvg.antiInflam))}>{weeklyAvg.antiInflam}/10 AI</span>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Reasoning summary card */}
       <AnimatePresence>
