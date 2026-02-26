@@ -44,13 +44,7 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      logStep("No Stripe customer found");
-      // Sync to profiles: not subscribed
-      await supabaseClient.from("profiles").update({
-        is_premium: false,
-        premium_until: null,
-      }).eq("user_id", user.id);
-
+      logStep("No Stripe customer found – skipping profile update");
       return new Response(JSON.stringify({ subscribed: false }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
