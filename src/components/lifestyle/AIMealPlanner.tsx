@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Loader2, Wand2, Brain, Pill, Zap, TrendingUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Loader2, Wand2, Brain, Pill, Zap, TrendingUp, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium } from "@/hooks/usePremium";
@@ -19,6 +19,7 @@ export default function AIMealPlanner() {
   const updateWeekly = useUpdateWeeklySelections();
   const [isGenerating, setIsGenerating] = useState(false);
   const [preferences, setPreferences] = useState("");
+  const [reasoning, setReasoning] = useState<string[]>([]);
 
   const plan = plans.find(p => p.id === userPlan?.plan_id);
 
@@ -37,6 +38,7 @@ export default function AIMealPlanner() {
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setReasoning([]);
     try {
       const { data, error } = await supabase.functions.invoke("ai-meal-planner", {
         body: {
@@ -53,6 +55,11 @@ export default function AIMealPlanner() {
         userDietPlanId: userPlan.id,
         weekly_selections: generatedPlan,
       });
+
+      if (data.reasoning?.length) {
+        setReasoning(data.reasoning);
+      }
+
       toast.success("Personalized meal plan generated! 🎉");
     } catch (e: any) {
       toast.error(e.message || "Failed to generate meal plan");
@@ -116,6 +123,42 @@ export default function AIMealPlanner() {
           Uses your symptoms, medications, energy level & recent trends to tailor meals.
         </p>
       </div>
+
+      {/* Reasoning summary card */}
+      <AnimatePresence>
+        {reasoning.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35 }}
+            className="rounded-2xl bg-gradient-to-br from-accent/60 via-card to-card p-4 border border-primary/10 shadow-soft"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15">
+                <Lightbulb className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <h4 className="text-xs font-semibold text-foreground">Why these meals?</h4>
+            </div>
+            <ul className="space-y-2">
+              {reasoning.map((reason, i) => (
+                <motion.li
+                  key={i}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-start gap-2 text-xs text-muted-foreground"
+                >
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[9px] font-bold text-primary">
+                    {i + 1}
+                  </span>
+                  <span>{reason}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
