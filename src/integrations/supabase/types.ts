@@ -1556,6 +1556,7 @@ export type Database = {
           swapped_recipes: Json
           updated_at: string
           user_id: string
+          weekly_selections: Json
         }
         Insert: {
           active?: boolean
@@ -1565,6 +1566,7 @@ export type Database = {
           swapped_recipes?: Json
           updated_at?: string
           user_id: string
+          weekly_selections?: Json
         }
         Update: {
           active?: boolean
@@ -1574,6 +1576,7 @@ export type Database = {
           swapped_recipes?: Json
           updated_at?: string
           user_id?: string
+          weekly_selections?: Json
         }
         Relationships: [
           {
