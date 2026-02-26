@@ -27,7 +27,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Settings, CheckCircle2, PenLine, ChevronDown } from "lucide-react";
 import MedicationChecklist from "@/components/MedicationChecklist";
-import DailyPromptCard from "@/components/DailyPromptCard";
+
 import RiskScoreSummaryCard from "@/components/RiskScoreSummaryCard";
 import RiskAlertBanner from "@/components/RiskAlertBanner";
 
