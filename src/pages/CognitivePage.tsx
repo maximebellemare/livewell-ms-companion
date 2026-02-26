@@ -29,6 +29,14 @@ const CognitivePage = () => {
       <SEOHead title="Cognitive Games" description="Exercise your brain with fun mini-games and track cognitive trends." />
       <PageHeader title="Cognitive Games" subtitle="Train your brain 🧠" showBack />
       <PullToRefresh onRefresh={handleRefresh} className="mx-auto max-w-lg px-4 py-4 space-y-4 animate-fade-in">
+        {/* MS cognitive health explainer */}
+        <div className="rounded-2xl bg-gradient-to-br from-primary/8 via-accent/40 to-card p-4 border border-primary/10">
+          <h3 className="text-sm font-semibold text-foreground mb-1.5">Why brain games for MS?</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Up to 65% of people with MS experience cognitive changes — especially in memory, processing speed, and attention. Regular cognitive exercise can help build <strong className="text-foreground font-medium">neuroplasticity</strong>, strengthen neural pathways, and maintain mental sharpness over time. Think of it as physiotherapy for your brain.
+          </p>
+        </div>
+
         <CognitiveStreakBadge />
         {/* Best scores summary */}
         {bestScores && Object.keys(bestScores).length > 0 && (
