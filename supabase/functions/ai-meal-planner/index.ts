@@ -139,9 +139,19 @@ IMPORTANT: Tailor meals to address the user's specific symptom profile:
 ## Available Recipes
 ${JSON.stringify(recipes.map((r: any) => ({ id: r.id, name: r.name, meal: r.meal })), null, 2)}
 
-Return a JSON object mapping each day to meal assignments. Use recipe IDs from the available list. For variety, suggest custom meals using "custom:Meal Name" format.
+Return a JSON object with two keys:
+1. "plan" — mapping each day to meal assignments using recipe IDs or "custom:Meal Name"
+2. "reasoning" — an array of 3-5 short explanations (max 120 chars each) about WHY specific meals were chosen, linking them to the user's symptoms, medications, or energy level. Use this format: "Meal Name — benefit for symptom/condition"
 
-Format: { "monday": { "breakfast": "recipe_id_or_custom:name", "lunch": "...", "dinner": "...", "snack": "..." }, ... }
+Format:
+{
+  "plan": { "monday": { "breakfast": "recipe_id_or_custom:name", "lunch": "...", "dinner": "...", "snack": "..." }, ... },
+  "reasoning": [
+    "Turmeric Salmon Bowl — omega-3s to ease brain fog",
+    "Golden Milk Oats — anti-inflammatory turmeric for pain relief",
+    "Simple wraps on low-energy days — quick prep to conserve spoons"
+  ]
+}
 
 Rules:
 - Cover all 7 days (monday through sunday)
@@ -150,6 +160,7 @@ Rules:
 - Adapt meal complexity to the user's energy level
 - Vary meals across the week for nutritional diversity
 - Use available recipe IDs when appropriate, custom meals for variety
+- The reasoning entries should reference the user's ACTUAL symptoms, medications, and energy
 - Return ONLY valid JSON, no markdown or explanation`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -186,16 +197,20 @@ Rules:
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content || "";
 
-    let plan;
+    let parsed;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
-      plan = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
+      parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
     } catch {
       console.error("Failed to parse AI response:", content);
       throw new Error("Failed to generate meal plan");
     }
 
-    return new Response(JSON.stringify({ plan }), {
+    // Support both nested { plan, reasoning } and flat plan object
+    const plan = parsed.plan || parsed;
+    const reasoning = parsed.reasoning || [];
+
+    return new Response(JSON.stringify({ plan, reasoning }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
