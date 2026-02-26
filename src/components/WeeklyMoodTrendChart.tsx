@@ -1,10 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format, parseISO, startOfWeek, endOfWeek, eachWeekOfInterval, subDays } from "date-fns";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip, ReferenceLine, Cell,
 } from "recharts";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ChevronDown } from "lucide-react";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Entry {
@@ -57,6 +57,73 @@ const CustomTooltip = ({ active, payload }: any) => {
     </div>
   );
 };
+
+interface TagCorrelation {
+  tag: string;
+  tagAvg: number;
+  diff: number;
+  count: number;
+}
+
+const CollapsibleGroup = ({
+  label,
+  items,
+  renderSentence,
+  defaultOpen = true,
+  className = "",
+}: {
+  label: string;
+  items: TagCorrelation[];
+  renderSentence: (t: TagCorrelation) => React.ReactNode;
+  defaultOpen?: boolean;
+  className?: string;
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+  if (items.length === 0) return null;
+  return (
+    <div className={className}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 w-full text-left text-[9px] font-medium text-muted-foreground mb-1.5 hover:text-foreground transition-colors"
+      >
+        <ChevronDown className={`h-3 w-3 shrink-0 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
+        {label}
+        <span className="ml-auto text-[8px] opacity-60">{items.length}</span>
+      </button>
+      {open && <div className="space-y-1.5 pl-4">{items.map(renderSentence)}</div>}
+    </div>
+  );
+};
+
+const CollapsibleMoodGroups = ({
+  positive,
+  negative,
+  neutral,
+  renderSentence,
+}: {
+  positive: TagCorrelation[];
+  negative: TagCorrelation[];
+  neutral: TagCorrelation[];
+  renderSentence: (t: TagCorrelation) => React.ReactNode;
+}) => (
+  <div className="space-y-3">
+    <CollapsibleGroup label="☀️ Mood boosters" items={positive} renderSentence={renderSentence} />
+    <CollapsibleGroup
+      label="🌧️ Mood dippers"
+      items={negative}
+      renderSentence={renderSentence}
+      className={positive.length > 0 ? "pt-2.5 border-t border-border/50" : ""}
+    />
+    <CollapsibleGroup
+      label="➖ No clear effect"
+      items={neutral}
+      renderSentence={renderSentence}
+      defaultOpen={false}
+      className={positive.length > 0 || negative.length > 0 ? "pt-2.5 border-t border-border/50" : ""}
+    />
+  </div>
+);
 
 const WeeklyMoodTrendChart = ({ entries }: Props) => {
   const data = useMemo(() => {
@@ -324,26 +391,7 @@ const WeeklyMoodTrendChart = ({ entries }: Props) => {
                 };
 
                 return (
-                  <div className="space-y-3">
-                    {positive.length > 0 && (
-                      <div>
-                        <p className="text-[9px] font-medium text-muted-foreground mb-1.5">☀️ Mood boosters</p>
-                        <div className="space-y-1.5">{positive.map(renderSentence)}</div>
-                      </div>
-                    )}
-                    {negative.length > 0 && (
-                      <div className={positive.length > 0 ? "pt-2.5 border-t border-border/50" : ""}>
-                        <p className="text-[9px] font-medium text-muted-foreground mb-1.5">🌧️ Mood dippers</p>
-                        <div className="space-y-1.5">{negative.map(renderSentence)}</div>
-                      </div>
-                    )}
-                    {neutral.length > 0 && (
-                      <div className={(positive.length > 0 || negative.length > 0) ? "pt-2.5 border-t border-border/50" : ""}>
-                        <p className="text-[9px] font-medium text-muted-foreground mb-1.5">➖ No clear effect</p>
-                        <div className="space-y-1.5">{neutral.map(renderSentence)}</div>
-                      </div>
-                    )}
-                  </div>
+                  <CollapsibleMoodGroups positive={positive} negative={negative} neutral={neutral} renderSentence={renderSentence} />
                 );
               })()}
             </div>
