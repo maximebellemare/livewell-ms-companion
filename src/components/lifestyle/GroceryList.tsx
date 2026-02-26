@@ -10,7 +10,7 @@ import {
 
 // ── Category classification ──
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  "🥬 Produce": [
+  "🥬 Fruits & Vegetables": [
     "lettuce","arugula","spinach","kale","greens","broccoli","cauliflower","cabbage",
     "carrot","celery","cucumber","tomato","pepper","onion","garlic","ginger","avocado",
     "zucchini","squash","sweet potato","potato","mushroom","corn","peas","beans","beet",
