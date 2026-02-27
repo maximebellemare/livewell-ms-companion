@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Loader2, Wand2, Brain, Pill, Zap, TrendingUp, Lightbulb, Flame, Fish, Shield, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react";
+import { Sparkles, Loader2, Wand2, Brain, Pill, Zap, TrendingUp, Lightbulb, Flame, Fish, Shield, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, RefreshCw, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium } from "@/hooks/usePremium";
@@ -240,6 +240,19 @@ export default function AIMealPlanner() {
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 mb-3"
           maxLength={200}
         />
+
+        {(profile?.excluded_ingredients ?? []).length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 mb-3">
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Ban className="h-2.5 w-2.5" /> Excluding:
+            </span>
+            {(profile?.excluded_ingredients ?? []).map((ing, i) => (
+              <span key={i} className="text-[10px] font-medium bg-destructive/10 text-destructive border border-destructive/20 px-1.5 py-0.5 rounded-full">
+                {ing}
+              </span>
+            ))}
+          </div>
+        )}
 
         <button
           onClick={handleGenerate}
