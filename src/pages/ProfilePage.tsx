@@ -1194,6 +1194,7 @@ const ProfilePage = () => {
             {mounted && (
               <ThemeToggle />
             )}
+            <p className="text-[11px] text-muted-foreground/70 mt-1">System mode automatically matches your device's light or dark setting.</p>
           </div>
 
           <NotificationToggle />
