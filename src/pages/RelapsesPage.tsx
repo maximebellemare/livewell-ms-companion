@@ -29,6 +29,7 @@ import RelapseFreeStreakBanner from "@/components/relapses/RelapseFreeStreakBann
 import RelapseStatsDashboard from "@/components/relapses/RelapseStatsDashboard";
 import RelapseFilters, { RelapseFilterState } from "@/components/relapses/RelapseFilters";
 import ExportRelapseHistory from "@/components/relapses/ExportRelapseHistory";
+import RelapseMonthlyTrendChart from "@/components/relapses/RelapseMonthlyTrendChart";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -519,6 +520,11 @@ const RelapsesPage = () => {
         {/* Stats dashboard */}
         <StaggerItem>
           <RelapseStatsDashboard />
+        </StaggerItem>
+
+        {/* Monthly trend chart */}
+        <StaggerItem>
+          <RelapseMonthlyTrendChart />
         </StaggerItem>
 
         {/* Actions row */}
