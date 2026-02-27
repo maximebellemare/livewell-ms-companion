@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import PremiumInsightPreview from "@/components/premium/PremiumInsightPreview";
 import { motion } from "framer-motion";
-import { Brain, Sparkles, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { Brain, Sparkles, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, Zap, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 interface ForecastActivity {
@@ -57,8 +57,15 @@ interface Props {
 }
 
 const ForecastContent = ({ onApplyBudget, onAddActivity }: Props) => {
-  const { data: forecast, isLoading, error } = useForecast();
+  const { data: forecast, isLoading, error, isFetching } = useForecast();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["energy-forecast", user?.id] });
+    toast("Refreshing forecast…");
+  };
 
   if (isLoading) {
     return (
@@ -108,6 +115,14 @@ const ForecastContent = ({ onApplyBudget, onAddActivity }: Props) => {
             <p className="text-xs text-muted-foreground">{forecast.reasoning}</p>
           </div>
         </div>
+        <button
+          onClick={handleRefresh}
+          disabled={isFetching}
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-95 transition-all disabled:opacity-50"
+          aria-label="Refresh forecast"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
+        </button>
       </div>
 
       {/* Main prediction */}
