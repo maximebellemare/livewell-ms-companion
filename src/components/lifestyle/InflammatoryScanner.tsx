@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ScanSearch, Loader2, AlertTriangle, ShieldCheck, ShieldAlert, ShieldX, ArrowRight } from "lucide-react";
+import { ScanSearch, Loader2, ShieldCheck, ShieldAlert, ShieldX, ArrowRight, Ban, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium } from "@/hooks/usePremium";
+import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { useMealLogs } from "@/hooks/useMealLogs";
 import PremiumGate from "@/components/PremiumGate";
 
 interface ScanFlag {
@@ -36,18 +39,24 @@ const severityDot = { high: "bg-red-500", medium: "bg-amber-500", low: "bg-muted
 
 export default function InflammatoryScanner() {
   const { isPremium } = usePremium();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: mealLogs = [] } = useMealLogs(3);
   const [mealInput, setMealInput] = useState("");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [excludingIngredient, setExcludingIngredient] = useState<string | null>(null);
 
   if (!isPremium) return <PremiumGate feature="Inflammatory Food Scanner" compact />;
 
-  const handleScan = async () => {
-    if (!mealInput.trim()) { toast.error("Enter a meal or ingredients to scan"); return; }
+  const handleScan = async (meal?: string) => {
+    const input = meal || mealInput.trim();
+    if (!input) { toast.error("Enter a meal or ingredients to scan"); return; }
+    if (meal) setMealInput(input);
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("inflammatory-scanner", {
-        body: { meal_name: mealInput.trim() },
+        body: { meal_name: input },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -58,6 +67,28 @@ export default function InflammatoryScanner() {
       setIsLoading(false);
     }
   };
+
+  const handleExclude = async (ingredient: string) => {
+    const trimmed = ingredient.trim().toLowerCase();
+    const current = profile?.excluded_ingredients ?? [];
+    if (current.some(i => i.toLowerCase() === trimmed)) {
+      toast.info(`"${trimmed}" is already excluded`);
+      return;
+    }
+    setExcludingIngredient(trimmed);
+    try {
+      const { error } = await supabase.from("profiles").update({ excluded_ingredients: [...current, trimmed] }).eq("user_id", user!.id);
+      if (error) throw error;
+      toast.success(`"${trimmed}" excluded from future AI meal plans`);
+    } catch {
+      toast.error("Failed to exclude ingredient");
+    } finally {
+      setExcludingIngredient(null);
+    }
+  };
+
+  // Deduplicate recent meals for quick-scan chips
+  const recentMeals = Array.from(new Set(mealLogs.map(l => l.name))).slice(0, 6);
 
   return (
     <div className="space-y-3">
@@ -78,11 +109,32 @@ export default function InflammatoryScanner() {
             placeholder="e.g. Grilled chicken with pasta and cheese sauce"
             className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
             maxLength={200} />
-          <button onClick={handleScan} disabled={isLoading || !mealInput.trim()}
+          <button onClick={() => handleScan()} disabled={isLoading || !mealInput.trim()}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60 transition-all">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Scan"}
           </button>
         </div>
+
+        {/* Quick-scan chips from recent meals */}
+        {recentMeals.length > 0 && (
+          <div className="mt-2.5 space-y-1">
+            <p className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+              <UtensilsCrossed className="h-2.5 w-2.5" /> Quick scan from diary:
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {recentMeals.map((meal) => (
+                <button
+                  key={meal}
+                  onClick={() => handleScan(meal)}
+                  disabled={isLoading}
+                  className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-primary/15 hover:text-primary active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {meal}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -103,22 +155,35 @@ export default function InflammatoryScanner() {
             {result.flags?.length > 0 && (
               <div className="space-y-1.5">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">⚠️ Inflammatory Flags</p>
-                {result.flags.map((flag, i) => (
-                  <div key={i} className="rounded-lg bg-card border border-border p-3 shadow-soft">
-                    <div className="flex items-start gap-2">
-                      <span className={`h-2 w-2 rounded-full mt-1.5 flex-shrink-0 ${severityDot[flag.severity]}`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">{flag.ingredient}</p>
-                        <p className="text-xs text-muted-foreground">{flag.concern}</p>
-                        {flag.alternative && (
-                          <p className="text-xs text-primary mt-1 flex items-center gap-1">
-                            <ArrowRight className="h-3 w-3" /> Try: {flag.alternative}
-                          </p>
-                        )}
+                {result.flags.map((flag, i) => {
+                  const alreadyExcluded = (profile?.excluded_ingredients ?? []).some(
+                    ing => ing.toLowerCase() === flag.ingredient.toLowerCase()
+                  );
+                  return (
+                    <div key={i} className="rounded-lg bg-card border border-border p-3 shadow-soft">
+                      <div className="flex items-start gap-2">
+                        <span className={`h-2 w-2 rounded-full mt-1.5 flex-shrink-0 ${severityDot[flag.severity]}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground">{flag.ingredient}</p>
+                          <p className="text-xs text-muted-foreground">{flag.concern}</p>
+                          {flag.alternative && (
+                            <p className="text-xs text-primary mt-1 flex items-center gap-1">
+                              <ArrowRight className="h-3 w-3" /> Try: {flag.alternative}
+                            </p>
+                          )}
+                          <button
+                            onClick={() => handleExclude(flag.ingredient)}
+                            disabled={alreadyExcluded || excludingIngredient === flag.ingredient.toLowerCase()}
+                            className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive hover:bg-destructive/20 disabled:opacity-50 transition-all"
+                          >
+                            <Ban className="h-2.5 w-2.5" />
+                            {alreadyExcluded ? "Already excluded" : "Exclude from future plans"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
