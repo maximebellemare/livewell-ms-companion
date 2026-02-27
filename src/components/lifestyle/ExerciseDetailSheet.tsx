@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { X, MessageCircle, Loader2, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { X, MessageCircle, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 
@@ -38,8 +38,7 @@ export default function ExerciseDetailSheet({ exercise, onClose, msType }: Props
   const mg = MUSCLE_GROUP_ANIMATIONS[exercise.muscle_group || "full_body"] || MUSCLE_GROUP_ANIMATIONS.full_body;
 
   const askCoach = async () => {
-    setLoadingAi(null);
-    setLoadingAi(true as any);
+    setLoadingAi(true);
     setAiExplanation(null);
     try {
       const { data, error } = await supabase.functions.invoke("exercise-correlation", {
@@ -70,7 +69,7 @@ Keep it friendly, concise, and practical.`,
   };
 
   return (
-    <AnimatePresence>
+    <>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -186,6 +185,6 @@ Keep it friendly, concise, and practical.`,
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </>
   );
 }
