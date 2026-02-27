@@ -796,6 +796,101 @@ export type Database = {
         }
         Relationships: []
       }
+      fitness_plans: {
+        Row: {
+          abilities: string[]
+          created_at: string
+          equipment: string[]
+          fitness_level: string
+          goals: string[]
+          has_gym: boolean
+          id: string
+          is_active: boolean
+          limitations: string | null
+          plan_data: Json
+          preferred_time_of_day: string | null
+          session_duration: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          weekly_frequency: string | null
+        }
+        Insert: {
+          abilities?: string[]
+          created_at?: string
+          equipment?: string[]
+          fitness_level?: string
+          goals?: string[]
+          has_gym?: boolean
+          id?: string
+          is_active?: boolean
+          limitations?: string | null
+          plan_data?: Json
+          preferred_time_of_day?: string | null
+          session_duration?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+          weekly_frequency?: string | null
+        }
+        Update: {
+          abilities?: string[]
+          created_at?: string
+          equipment?: string[]
+          fitness_level?: string
+          goals?: string[]
+          has_gym?: boolean
+          id?: string
+          is_active?: boolean
+          limitations?: string | null
+          plan_data?: Json
+          preferred_time_of_day?: string | null
+          session_duration?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          weekly_frequency?: string | null
+        }
+        Relationships: []
+      }
+      fitness_workout_logs: {
+        Row: {
+          completed_at: string
+          day_name: string
+          id: string
+          notes: string | null
+          plan_id: string
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          day_name: string
+          id?: string
+          notes?: string | null
+          plan_id: string
+          rating?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          day_name?: string
+          id?: string
+          notes?: string | null
+          plan_id?: string
+          rating?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fitness_workout_logs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "fitness_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grounding_sessions: {
         Row: {
           completed_at: string

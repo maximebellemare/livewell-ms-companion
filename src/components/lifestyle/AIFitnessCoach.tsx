@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Dumbbell, Loader2, Sparkles, ChevronLeft, RotateCcw } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Dumbbell, Loader2, Sparkles, ChevronLeft, RotateCcw, Save, Check, Trash2, ChevronDown, ChevronUp, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ExerciseLog } from "@/hooks/useLifestyleTracking";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   exerciseLogs: ExerciseLog[];
@@ -59,42 +60,158 @@ const ABILITY_OPTIONS = [
   { label: "TRX / Suspension", emoji: "🔗" },
 ];
 
-const TIME_OPTIONS = [
-  { label: "15 min/session", value: "15min_session" },
-  { label: "30 min/session", value: "30min_session" },
-  { label: "45 min/session", value: "45min_session" },
-  { label: "1 hour/session", value: "60min_session" },
-  { label: "1× per week", value: "1_day_week" },
-  { label: "2-3× per week", value: "2-3_days_week" },
-  { label: "3-4× per week", value: "3-4_days_week" },
-  { label: "4-5× per week", value: "4-5_days_week" },
-  { label: "5-6× per week", value: "5-6_days_week" },
-  { label: "Every day", value: "7_days_week" },
+const DURATION_OPTIONS = [
+  { label: "15 min", value: "15min" },
+  { label: "30 min", value: "30min" },
+  { label: "45 min", value: "45min" },
+  { label: "1 hour", value: "60min" },
+  { label: "1.5 hours", value: "90min" },
+  { label: "2 hours", value: "120min" },
 ];
+
+const FREQUENCY_OPTIONS = [
+  { label: "1× / week", value: "1x_week" },
+  { label: "2-3× / week", value: "2-3x_week" },
+  { label: "3-4× / week", value: "3-4x_week" },
+  { label: "4-5× / week", value: "4-5x_week" },
+  { label: "5-6× / week", value: "5-6x_week" },
+  { label: "Every day", value: "7x_week" },
+];
+
+const FITNESS_LEVELS = [
+  { label: "Beginner", value: "beginner", desc: "New to exercise or returning after a long break" },
+  { label: "Intermediate", value: "intermediate", desc: "Exercise regularly, comfortable with most movements" },
+  { label: "Advanced", value: "advanced", desc: "Very active, looking for challenging workouts" },
+];
+
+const EQUIPMENT_OPTIONS = [
+  { label: "None", emoji: "🚫" },
+  { label: "Dumbbells", emoji: "🏋️" },
+  { label: "Resistance bands", emoji: "🔴" },
+  { label: "Yoga mat", emoji: "🧘" },
+  { label: "Pull-up bar", emoji: "🪜" },
+  { label: "Kettlebell", emoji: "🔔" },
+  { label: "Exercise ball", emoji: "⚽" },
+  { label: "Foam roller", emoji: "🧴" },
+  { label: "Jump rope", emoji: "🪢" },
+  { label: "Bench", emoji: "🪑" },
+  { label: "TRX straps", emoji: "🔗" },
+  { label: "Full gym", emoji: "🏢" },
+];
+
+const TIME_OF_DAY_OPTIONS = [
+  { label: "Early morning", value: "early_morning", emoji: "🌅" },
+  { label: "Morning", value: "morning", emoji: "☀️" },
+  { label: "Afternoon", value: "afternoon", emoji: "🌤️" },
+  { label: "Evening", value: "evening", emoji: "🌇" },
+  { label: "Flexible", value: "flexible", emoji: "🔄" },
+];
+
+interface WorkoutExercise {
+  name: string;
+  sets?: string;
+  reps?: string;
+  rest?: string;
+  instruction?: string;
+}
+
+interface DaySchedule {
+  day: string;
+  workout_name: string;
+  duration: string;
+  exercises: WorkoutExercise[];
+  warmup: string;
+  cooldown: string;
+  notes: string;
+}
 
 interface TrainingPlan {
   overview: string;
-  weekly_schedule: { day: string; workout: string; duration: string; notes: string }[];
+  weekly_schedule: DaySchedule[];
   tips: string[];
   progression: string;
   caution: string | null;
 }
 
-type Step = "goals" | "abilities" | "details" | "result";
+interface SavedPlan {
+  id: string;
+  title: string;
+  created_at: string;
+  is_active: boolean;
+  plan_data: TrainingPlan;
+  goals: string[];
+}
+
+type Step = "home" | "goals" | "abilities" | "details" | "result";
+
+// Pill button helper
+function Pill({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
+        selected ? "bg-primary text-primary-foreground shadow-sm" : "bg-secondary text-foreground hover:bg-muted"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }: Props) {
-  const [step, setStep] = useState<Step>("goals");
+  const { user } = useAuth();
+  const [step, setStep] = useState<Step>("home");
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [selectedAbilities, setSelectedAbilities] = useState<string[]>([]);
-  const [timeAvailable, setTimeAvailable] = useState("");
+  const [sessionDuration, setSessionDuration] = useState("");
+  const [weeklyFrequency, setWeeklyFrequency] = useState("");
+  const [fitnessLevel, setFitnessLevel] = useState("beginner");
   const [hasGym, setHasGym] = useState<boolean | null>(null);
+  const [equipment, setEquipment] = useState<string[]>([]);
+  const [limitations, setLimitations] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedPlans, setSavedPlans] = useState<SavedPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const [completedDays, setCompletedDays] = useState<Set<string>>(new Set());
+  const [viewingSavedPlan, setViewingSavedPlan] = useState<SavedPlan | null>(null);
 
   const toggleItem = (list: string[], item: string, setter: (v: string[]) => void) => {
     setter(list.includes(item) ? list.filter((i) => i !== item) : [...list, item]);
   };
+
+  // Load saved plans
+  const loadSavedPlans = useCallback(async () => {
+    if (!user) return;
+    setLoadingPlans(true);
+    const { data } = await (supabase
+      .from("fitness_plans") as any)
+      .select("id, title, created_at, is_active, plan_data, goals")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setSavedPlans(data as unknown as SavedPlan[]);
+    setLoadingPlans(false);
+  }, [user]);
+
+  useEffect(() => { loadSavedPlans(); }, [loadSavedPlans]);
+
+  // Load today's completed workouts for active plan
+  const loadCompletedDays = useCallback(async (planId: string) => {
+    if (!user) return;
+    const today = new Date().toISOString().split("T")[0];
+    const { data } = await (supabase
+      .from("fitness_workout_logs") as any)
+      .select("day_name")
+      .eq("user_id", user.id)
+      .eq("plan_id", planId)
+      .gte("completed_at", today + "T00:00:00");
+    if (data) setCompletedDays(new Set(data.map((d) => d.day_name)));
+  }, [user]);
 
   const generate = async () => {
     setLoading(true);
@@ -110,8 +227,13 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
           coachInput: {
             goals: selectedGoals,
             abilities: selectedAbilities,
-            timeAvailable,
+            sessionDuration,
+            weeklyFrequency,
+            fitnessLevel,
             hasGym,
+            equipment,
+            limitations,
+            preferredTime,
             additionalNotes,
           },
         },
@@ -120,6 +242,7 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
       if (data?.error) throw new Error(data.error);
       setPlan(data);
       setStep("result");
+      setViewingSavedPlan(null);
     } catch (e: any) {
       toast.error(e.message || "Failed to generate plan");
     } finally {
@@ -127,14 +250,84 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
     }
   };
 
+  const savePlan = async () => {
+    if (!user || !plan) return;
+    setSaving(true);
+    try {
+      // Deactivate other plans
+      await (supabase.from("fitness_plans") as any).update({ is_active: false }).eq("user_id", user.id);
+
+      const title = selectedGoals.slice(0, 2).join(" & ") || "My Training Plan";
+      const { error } = await (supabase.from("fitness_plans") as any).insert({
+        user_id: user.id,
+        title,
+        goals: selectedGoals,
+        abilities: selectedAbilities,
+        session_duration: sessionDuration,
+        weekly_frequency: weeklyFrequency,
+        fitness_level: fitnessLevel,
+        has_gym: hasGym ?? false,
+        equipment,
+        limitations,
+        preferred_time_of_day: preferredTime,
+        plan_data: plan,
+        is_active: true,
+      });
+      if (error) throw error;
+      toast.success("Plan saved! Track your workouts from the home screen.");
+      loadSavedPlans();
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save plan");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deletePlan = async (id: string) => {
+    if (!user) return;
+    await (supabase.from("fitness_plans") as any).delete().eq("id", id).eq("user_id", user.id);
+    setSavedPlans((prev) => prev.filter((p) => p.id !== id));
+    if (viewingSavedPlan?.id === id) {
+      setViewingSavedPlan(null);
+      setStep("home");
+    }
+    toast.success("Plan deleted");
+  };
+
+  const markDayComplete = async (planId: string, dayName: string) => {
+    if (!user) return;
+    if (completedDays.has(dayName)) return;
+    await (supabase.from("fitness_workout_logs") as any).insert({
+      user_id: user.id,
+      plan_id: planId,
+      day_name: dayName,
+    });
+    setCompletedDays((prev) => new Set(prev).add(dayName));
+    toast.success(`${dayName} workout done! 💪`);
+  };
+
+  const viewSavedPlan = (sp: SavedPlan) => {
+    setViewingSavedPlan(sp);
+    setPlan(sp.plan_data);
+    setStep("result");
+    loadCompletedDays(sp.id);
+  };
+
   const reset = () => {
     setStep("goals");
     setSelectedGoals([]);
     setSelectedAbilities([]);
-    setTimeAvailable("");
+    setSessionDuration("");
+    setWeeklyFrequency("");
+    setFitnessLevel("beginner");
     setHasGym(null);
+    setEquipment([]);
+    setLimitations("");
+    setPreferredTime("");
     setAdditionalNotes("");
     setPlan(null);
+    setViewingSavedPlan(null);
+    setExpandedDay(null);
   };
 
   return (
@@ -144,30 +337,62 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
         <h3 className="font-display text-sm font-semibold text-foreground">AI Fitness Coach</h3>
       </div>
 
+      {/* Home: saved plans + create new */}
+      {step === "home" && (
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">Get a personalized training plan tailored to your MS, goals, and lifestyle.</p>
+
+          <button
+            onClick={() => { reset(); setStep("goals"); }}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-all"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Create New Plan
+          </button>
+
+          {loadingPlans ? (
+            <div className="flex justify-center py-3"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+          ) : savedPlans.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <ClipboardList className="h-3.5 w-3.5" /> Saved Plans
+              </h4>
+              {savedPlans.map((sp) => (
+                <div key={sp.id} className="rounded-lg bg-secondary/50 p-2.5 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <button onClick={() => viewSavedPlan(sp)} className="text-xs font-semibold text-foreground hover:text-primary text-left flex-1">
+                      {sp.title}
+                      {sp.is_active && <span className="ml-1.5 text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">Active</span>}
+                    </button>
+                    <button onClick={() => deletePlan(sp.id)} className="text-muted-foreground hover:text-destructive p-1">
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {sp.goals.slice(0, 3).join(", ")} · {new Date(sp.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Step: Goals */}
       {step === "goals" && (
         <div className="space-y-3">
-          <p className="text-xs text-muted-foreground">What are your fitness goals?</p>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setStep("home")} className="text-muted-foreground hover:text-foreground"><ChevronLeft className="h-4 w-4" /></button>
+            <p className="text-xs text-muted-foreground">What are your fitness goals?</p>
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {GOAL_OPTIONS.map((g) => (
-              <button
-                key={g.label}
-                onClick={() => toggleItem(selectedGoals, g.label, setSelectedGoals)}
-                className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-                  selectedGoals.includes(g.label)
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-secondary text-foreground hover:bg-muted"
-                }`}
-              >
+              <Pill key={g.label} selected={selectedGoals.includes(g.label)} onClick={() => toggleItem(selectedGoals, g.label, setSelectedGoals)}>
                 <span>{g.emoji}</span> {g.label}
-              </button>
+              </Pill>
             ))}
           </div>
-          <button
-            onClick={() => setStep("abilities")}
-            disabled={selectedGoals.length === 0}
-            className="w-full rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all"
-          >
+          <button onClick={() => setStep("abilities")} disabled={selectedGoals.length === 0}
+            className="w-full rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all">
             Next →
           </button>
         </div>
@@ -177,31 +402,18 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
       {step === "abilities" && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <button onClick={() => setStep("goals")} className="text-muted-foreground hover:text-foreground">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
+            <button onClick={() => setStep("goals")} className="text-muted-foreground hover:text-foreground"><ChevronLeft className="h-4 w-4" /></button>
             <p className="text-xs text-muted-foreground">What exercises can you do comfortably?</p>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {ABILITY_OPTIONS.map((a) => (
-              <button
-                key={a.label}
-                onClick={() => toggleItem(selectedAbilities, a.label, setSelectedAbilities)}
-                className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-                  selectedAbilities.includes(a.label)
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-secondary text-foreground hover:bg-muted"
-                }`}
-              >
+              <Pill key={a.label} selected={selectedAbilities.includes(a.label)} onClick={() => toggleItem(selectedAbilities, a.label, setSelectedAbilities)}>
                 <span>{a.emoji}</span> {a.label}
-              </button>
+              </Pill>
             ))}
           </div>
-          <button
-            onClick={() => setStep("details")}
-            disabled={selectedAbilities.length === 0}
-            className="w-full rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all"
-          >
+          <button onClick={() => setStep("details")} disabled={selectedAbilities.length === 0}
+            className="w-full rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all">
             Next →
           </button>
         </div>
@@ -211,69 +423,108 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
       {step === "details" && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <button onClick={() => setStep("abilities")} className="text-muted-foreground hover:text-foreground">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <p className="text-xs text-muted-foreground">A few more details</p>
+            <button onClick={() => setStep("abilities")} className="text-muted-foreground hover:text-foreground"><ChevronLeft className="h-4 w-4" /></button>
+            <p className="text-xs text-muted-foreground">Tell us more about you</p>
           </div>
 
+          {/* Fitness Level */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-foreground">Time available</label>
-            <div className="flex flex-wrap gap-1.5">
-              {TIME_OPTIONS.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() => setTimeAvailable(t.value)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-                    timeAvailable === t.value
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-secondary text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {t.label}
+            <label className="text-xs font-medium text-foreground">Fitness level</label>
+            <div className="space-y-1">
+              {FITNESS_LEVELS.map((fl) => (
+                <button key={fl.value} onClick={() => setFitnessLevel(fl.value)}
+                  className={`w-full text-left rounded-lg px-3 py-2 transition-all ${
+                    fitnessLevel === fl.value ? "bg-primary text-primary-foreground shadow-sm" : "bg-secondary text-foreground hover:bg-muted"
+                  }`}>
+                  <span className="text-xs font-semibold">{fl.label}</span>
+                  <p className={`text-[10px] ${fitnessLevel === fl.value ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{fl.desc}</p>
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Session Duration */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-foreground">Do you have access to a gym?</label>
+            <label className="text-xs font-medium text-foreground">Session duration</label>
+            <div className="flex flex-wrap gap-1.5">
+              {DURATION_OPTIONS.map((d) => (
+                <Pill key={d.value} selected={sessionDuration === d.value} onClick={() => setSessionDuration(d.value)}>
+                  {d.label}
+                </Pill>
+              ))}
+            </div>
+          </div>
+
+          {/* Weekly Frequency */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">How often per week?</label>
+            <div className="flex flex-wrap gap-1.5">
+              {FREQUENCY_OPTIONS.map((f) => (
+                <Pill key={f.value} selected={weeklyFrequency === f.value} onClick={() => setWeeklyFrequency(f.value)}>
+                  {f.label}
+                </Pill>
+              ))}
+            </div>
+          </div>
+
+          {/* Gym Access */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">Gym access?</label>
             <div className="flex gap-2">
-              {[
-                { label: "Yes, gym access", val: true },
-                { label: "No, home only", val: false },
-              ].map((opt) => (
-                <button
-                  key={String(opt.val)}
-                  onClick={() => setHasGym(opt.val)}
+              {[{ label: "🏢 Yes, gym", val: true }, { label: "🏠 No, home only", val: false }].map((opt) => (
+                <button key={String(opt.val)} onClick={() => setHasGym(opt.val)}
                   className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-                    hasGym === opt.val
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-secondary text-foreground hover:bg-muted"
-                  }`}
-                >
+                    hasGym === opt.val ? "bg-primary text-primary-foreground shadow-sm" : "bg-secondary text-foreground hover:bg-muted"
+                  }`}>
                   {opt.label}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Equipment at home */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-foreground">Anything else? (optional)</label>
-            <Textarea
-              value={additionalNotes}
-              onChange={(e) => setAdditionalNotes(e.target.value)}
-              placeholder="E.g. I have knee issues, I prefer morning workouts, I get fatigued easily in the heat..."
-              className="min-h-[60px] text-xs"
-              maxLength={500}
-            />
+            <label className="text-xs font-medium text-foreground">Equipment available</label>
+            <div className="flex flex-wrap gap-1.5">
+              {EQUIPMENT_OPTIONS.map((e) => (
+                <Pill key={e.label} selected={equipment.includes(e.label)} onClick={() => toggleItem(equipment, e.label, setEquipment)}>
+                  <span>{e.emoji}</span> {e.label}
+                </Pill>
+              ))}
+            </div>
           </div>
 
-          <button
-            onClick={generate}
-            disabled={loading || !timeAvailable || hasGym === null}
-            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all"
-          >
+          {/* Preferred time of day */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">Preferred workout time</label>
+            <div className="flex flex-wrap gap-1.5">
+              {TIME_OF_DAY_OPTIONS.map((t) => (
+                <Pill key={t.value} selected={preferredTime === t.value} onClick={() => setPreferredTime(t.value)}>
+                  <span>{t.emoji}</span> {t.label}
+                </Pill>
+              ))}
+            </div>
+          </div>
+
+          {/* Limitations / injuries */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">Injuries or limitations (optional)</label>
+            <Textarea value={limitations} onChange={(e) => setLimitations(e.target.value)}
+              placeholder="E.g. bad knees, lower back pain, limited grip strength…"
+              className="min-h-[50px] text-xs" maxLength={300} />
+          </div>
+
+          {/* Additional notes */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">Anything else? (optional)</label>
+            <Textarea value={additionalNotes} onChange={(e) => setAdditionalNotes(e.target.value)}
+              placeholder="E.g. I get fatigued in heat, prefer low-impact, training for an event…"
+              className="min-h-[50px] text-xs" maxLength={500} />
+          </div>
+
+          <button onClick={generate}
+            disabled={loading || !sessionDuration || !weeklyFrequency || hasGym === null}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all">
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
             {loading ? "Creating your plan…" : "Generate My Plan"}
           </button>
@@ -287,16 +538,75 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
 
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-foreground">📅 Weekly Schedule</h4>
-            {plan.weekly_schedule.map((day, i) => (
-              <div key={i} className="rounded-lg bg-primary/5 p-2.5 space-y-0.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-foreground">{day.day}</span>
-                  <span className="text-[10px] text-muted-foreground">{day.duration}</span>
+            {plan.weekly_schedule.map((day, i) => {
+              const isExpanded = expandedDay === i;
+              const isDone = completedDays.has(day.day);
+              const activePlanId = viewingSavedPlan?.id;
+
+              return (
+                <div key={i} className={`rounded-lg p-2.5 space-y-1 transition-all ${isDone ? "bg-primary/10 border border-primary/20" : "bg-primary/5"}`}>
+                  <button onClick={() => setExpandedDay(isExpanded ? null : i)} className="w-full flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {isDone && <Check className="h-3.5 w-3.5 text-primary" />}
+                      <span className={`text-xs font-semibold ${isDone ? "text-primary" : "text-foreground"}`}>{day.day}</span>
+                      <span className="text-[10px] text-muted-foreground">{day.workout_name || day.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground">{day.duration}</span>
+                      {isExpanded ? <ChevronUp className="h-3 w-3 text-muted-foreground" /> : <ChevronDown className="h-3 w-3 text-muted-foreground" />}
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="space-y-2 pt-1.5 border-t border-border/50 mt-1.5">
+                      {/* Warmup */}
+                      {day.warmup && (
+                        <div className="text-[10px] text-muted-foreground">
+                          <span className="font-semibold text-foreground">🔥 Warm-up:</span> {day.warmup}
+                        </div>
+                      )}
+
+                      {/* Exercises with sets/reps */}
+                      {day.exercises?.length > 0 && (
+                        <div className="space-y-1.5">
+                          {day.exercises.map((ex, j) => (
+                            <div key={j} className="rounded-md bg-background/50 p-2 space-y-0.5">
+                              <p className="text-xs font-semibold text-foreground">{ex.name}</p>
+                              {(ex.sets || ex.reps || ex.rest) && (
+                                <div className="flex gap-2 text-[10px] text-muted-foreground">
+                                  {ex.sets && <span>{ex.sets} sets</span>}
+                                  {ex.reps && <span>· {ex.reps}</span>}
+                                  {ex.rest && <span>· Rest: {ex.rest}</span>}
+                                </div>
+                              )}
+                              {ex.instruction && <p className="text-[10px] text-muted-foreground italic">{ex.instruction}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Cooldown */}
+                      {day.cooldown && (
+                        <div className="text-[10px] text-muted-foreground">
+                          <span className="font-semibold text-foreground">❄️ Cool-down:</span> {day.cooldown}
+                        </div>
+                      )}
+
+                      {/* Notes */}
+                      {day.notes && <p className="text-[10px] text-muted-foreground italic">💡 {day.notes}</p>}
+
+                      {/* Mark complete */}
+                      {activePlanId && !isDone && (
+                        <button onClick={() => markDayComplete(activePlanId, day.day)}
+                          className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground hover:opacity-90 transition-all">
+                          <Check className="h-3 w-3" /> Mark as Done
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-foreground">{day.workout}</p>
-                {day.notes && <p className="text-[10px] text-muted-foreground italic">{day.notes}</p>}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {plan.tips.length > 0 && (
@@ -318,25 +628,29 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
           )}
 
           {plan.caution && (
-            <div className="rounded-lg bg-amber-500/10 px-3 py-2">
-              <p className="text-xs text-amber-700 dark:text-amber-400">⚠️ {plan.caution}</p>
+            <div className="rounded-lg bg-destructive/10 px-3 py-2">
+              <p className="text-xs text-destructive">⚠️ {plan.caution}</p>
             </div>
           )}
 
-          <div className="flex gap-2">
-            <button
-              onClick={generate}
-              disabled={loading}
-              className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-secondary px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-all"
-            >
-              {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-              Regenerate
-            </button>
-            <button
-              onClick={reset}
-              className="inline-flex items-center gap-1 rounded-lg bg-secondary px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-all"
-            >
-              <RotateCcw className="h-3 w-3" /> Start Over
+          <div className="flex flex-wrap gap-2">
+            {!viewingSavedPlan && (
+              <button onClick={savePlan} disabled={saving}
+                className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60 transition-all">
+                {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                {saving ? "Saving…" : "Save Plan"}
+              </button>
+            )}
+            {!viewingSavedPlan && (
+              <button onClick={generate} disabled={loading}
+                className="inline-flex items-center justify-center gap-1 rounded-lg bg-secondary px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-all">
+                {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                Regenerate
+              </button>
+            )}
+            <button onClick={() => { setStep("home"); setViewingSavedPlan(null); setPlan(null); }}
+              className="inline-flex items-center gap-1 rounded-lg bg-secondary px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-all">
+              <RotateCcw className="h-3 w-3" /> {viewingSavedPlan ? "Back" : "Start Over"}
             </button>
           </div>
         </div>
