@@ -37,6 +37,7 @@ import {
   useFrequentActivities,
   useUpdateActivityCost,
   useReorderActivities,
+  useRestoreActivity,
 } from "@/hooks/useEnergyBudget";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,6 +101,7 @@ const EnergyBudgetPage = () => {
   const deleteActivity = useDeleteActivity();
   const updateActivityCost = useUpdateActivityCost();
   const reorderActivities = useReorderActivities();
+  const restoreActivity = useRestoreActivity();
   const { data: history = [] } = useEnergyHistory(7);
   const { data: frequentActivities = [] } = useFrequentActivities(6);
   const [editingCostId, setEditingCostId] = useState<string | null>(null);
@@ -522,7 +524,20 @@ const EnergyBudgetPage = () => {
                     key={activity.id}
                     activity={activity}
                     onToggle={() => toggleActivity.mutate({ id: activity.id, completed: !activity.completed })}
-                    onDelete={() => deleteActivity.mutate(activity.id)}
+                    onDelete={() => {
+                      const snapshot = { budget_id: activity.budget_id, name: activity.name, spoon_cost: activity.spoon_cost, completed: activity.completed, sort_order: activity.sort_order };
+                      deleteActivity.mutate(activity.id, {
+                        onSuccess: () => {
+                          toast(`"${snapshot.name}" deleted`, {
+                            action: {
+                              label: "Undo",
+                              onClick: () => restoreActivity.mutate(snapshot),
+                            },
+                            duration: 5000,
+                          });
+                        },
+                      });
+                    }}
                     onUpdateCost={(cost) => updateActivityCost.mutate({ id: activity.id, spoon_cost: cost })}
                     editingCostId={editingCostId}
                     setEditingCostId={setEditingCostId}
