@@ -530,6 +530,11 @@ const RelapsesPage = () => {
         {/* Monthly trend chart */}
         <StaggerItem>
           <RelapseMonthlyTrendChart selectedMonth={selectedMonth} onMonthSelect={setSelectedMonth} />
+          {selectedMonth && (
+            <p className="text-xs text-muted-foreground mt-2">
+              <span className="font-medium text-foreground">{filteredRelapses.length}</span> relapse{filteredRelapses.length !== 1 ? "s" : ""} in {selectedMonth.label}
+            </p>
+          )}
         </StaggerItem>
 
         {/* Actions row */}
