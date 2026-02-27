@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { startOfWeek, addDays, format, isToday } from "date-fns";
 import {
   ChevronDown, ChevronRight, Check, ArrowLeft, Shuffle,
   UtensilsCrossed, ShieldCheck, ShieldAlert, ShieldX, Sparkles,
@@ -252,6 +253,21 @@ function WeeklyPlannerSection({ plan, userPlan }: { plan: DietPlan; userPlan: No
   const totalSlots = DAYS.length * MEALS.length;
   const mealEmojis: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snack: "🍎" };
 
+  // Current week dates (Monday-based)
+  const weekDates = useMemo(() => {
+    const monday = startOfWeek(new Date(), { weekStartsOn: 1 });
+    return DAYS.map((day, i) => {
+      const date = addDays(monday, i);
+      return { day, date, dayNum: format(date, "d"), isToday: isToday(date) };
+    });
+  }, []);
+
+  const weekRange = useMemo(() => {
+    const monday = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const sunday = addDays(monday, 6);
+    return `${format(monday, "MMM d")} – ${format(sunday, "MMM d")}`;
+  }, []);
+
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
       {/* Progress */}
@@ -259,7 +275,7 @@ function WeeklyPlannerSection({ plan, userPlan }: { plan: DietPlan; userPlan: No
         <Calendar className="h-4 w-4 text-primary" />
         <div className="flex-1">
           <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-            <span>Weekly plan progress</span>
+            <span>{weekRange}</span>
             <span>{filledCount}/{totalSlots} meals planned</span>
           </div>
           <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
@@ -270,14 +286,16 @@ function WeeklyPlannerSection({ plan, userPlan }: { plan: DietPlan; userPlan: No
 
       {/* Day tabs */}
       <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
-        {DAYS.map((day) => {
+        {weekDates.map(({ day, dayNum, isToday: today }) => {
           const dayMeals = selections[day] || {};
           const dayCount = Object.keys(dayMeals).length;
           return (
             <button key={day} onClick={() => { setSelectedDay(day); setPickingSlot(null); }}
-              className={`flex-shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition-all ${selectedDay === day ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+              className={`flex-shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition-all relative ${selectedDay === day ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
               <span className="block">{DAY_LABELS[day]}</span>
-              {dayCount > 0 && <span className="block text-[9px] mt-0.5 opacity-80">{dayCount}/{MEALS.length}</span>}
+              <span className={`block text-[9px] mt-0.5 ${selectedDay === day ? "opacity-80" : "opacity-60"}`}>{dayNum}</span>
+              {dayCount > 0 && <span className={`block text-[9px] mt-0.5 ${selectedDay === day ? "opacity-80" : "opacity-60"}`}>{dayCount}/{MEALS.length}</span>}
+              {today && <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-card" />}
             </button>
           );
         })}
