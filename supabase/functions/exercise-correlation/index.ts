@@ -17,14 +17,18 @@ serve(async (req) => {
     let prompt: string;
 
     if (mode === "fitness_coach") {
-
       prompt = `You are a certified personal fitness coach specializing in MS (Multiple Sclerosis) patients.
-Create a personalized weekly training plan based on the following:
+Create a detailed, personalized weekly training plan based on the following:
 
 **User's Goals:** ${JSON.stringify(coachInput?.goals || [])}
 **Exercises they can do:** ${JSON.stringify(coachInput?.abilities || [])}
-**Time available:** ${coachInput?.timeAvailable || "Not specified"}
+**Session duration:** ${coachInput?.sessionDuration || "Not specified"}
+**Weekly frequency:** ${coachInput?.weeklyFrequency || "Not specified"}
+**Fitness level:** ${coachInput?.fitnessLevel || "beginner"}
 **Gym access:** ${coachInput?.hasGym === true ? "Yes" : coachInput?.hasGym === false ? "No, home workouts only" : "Not specified"}
+**Equipment available:** ${JSON.stringify(coachInput?.equipment || [])}
+**Injuries/limitations:** ${coachInput?.limitations || "None reported"}
+**Preferred workout time:** ${coachInput?.preferredTime || "Flexible"}
 **Additional notes:** ${coachInput?.additionalNotes || "None"}
 
 **MS Type:** ${msType || "Not specified"}
@@ -33,26 +37,40 @@ Create a personalized weekly training plan based on the following:
 
 CRITICAL GUIDELINES:
 - ONLY recommend exercises from the abilities they listed
-- If no gym, use bodyweight, resistance bands, or household items only
+- Match the weekly_schedule to their weekly frequency (rest days on non-workout days)
+- Each session should match their chosen session duration
+- Adapt difficulty to their fitness level
+- If no gym, ONLY use their listed equipment or bodyweight
 - Account for MS fatigue: include rest days and lower-intensity options
 - Consider heat sensitivity common in MS
 - If high fatigue in recent symptoms, reduce intensity
-- Include warm-up and cool-down recommendations
-- Make it progressive but safe
+- Respect any injuries/limitations listed
+- If they prefer a specific time of day, tailor warmup/cooldown accordingly (e.g., morning = longer warmup)
+
+IMPORTANT: For each workout day, provide SPECIFIC exercises with sets, reps, and rest times.
 
 Respond with ONLY valid JSON:
 {
   "overview": "2-3 sentence personalized overview of the plan and why it suits them",
   "weekly_schedule": [
-    { "day": "Monday", "workout": "Description of workout", "duration": "e.g. 30 minutes", "notes": "Any MS-specific tips for this session" },
-    { "day": "Tuesday", "workout": "...", "duration": "...", "notes": "..." }
+    {
+      "day": "Monday",
+      "workout_name": "e.g. Upper Body Strength",
+      "duration": "e.g. 30 minutes",
+      "warmup": "Specific warmup instructions (2-3 min)",
+      "exercises": [
+        { "name": "Exercise name", "sets": "3", "reps": "10-12", "rest": "60s", "instruction": "Brief form tip or MS-specific modification" }
+      ],
+      "cooldown": "Specific cooldown instructions (2-3 min)",
+      "notes": "Any MS-specific tips for this session"
+    }
   ],
-  "tips": ["3-5 actionable tips specific to their goals and MS"],
-  "progression": "How to progress over the next 4-6 weeks",
+  "tips": ["4-6 actionable tips specific to their goals, fitness level, and MS"],
+  "progression": "Detailed 4-6 week progression plan with specific milestones",
   "caution": "Any important MS-specific caution, or null if none"
 }
 
-Include 7 days (Mon-Sun), with at least 1-2 rest or active recovery days.`;
+Include ALL 7 days (Mon-Sun). Non-workout days should have workout_name "Rest Day" or "Active Recovery" with appropriate light activities.`;
     } else if (mode === "daily_suggestion") {
       prompt = `You are an MS wellness specialist. Based on recent exercise and symptom data, suggest ONE exercise for today.
 
