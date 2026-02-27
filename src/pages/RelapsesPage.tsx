@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { format, parseISO, differenceInDays } from "date-fns";
 import SEOHead from "@/components/SEOHead";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
@@ -25,6 +25,10 @@ import {
   Heart,
   Clock,
 } from "lucide-react";
+import RelapseFreeStreakBanner from "@/components/relapses/RelapseFreeStreakBanner";
+import RelapseStatsDashboard from "@/components/relapses/RelapseStatsDashboard";
+import RelapseFilters, { RelapseFilterState } from "@/components/relapses/RelapseFilters";
+import ExportRelapseHistory from "@/components/relapses/ExportRelapseHistory";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -426,8 +430,33 @@ const RelapsesPage = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<RelapseFilterState>({
+    severity: null,
+    status: "all",
+    search: "",
+  });
 
   const editingRelapse = relapses?.find((r) => r.id === editingId);
+
+  const filteredRelapses = useMemo(() => {
+    if (!relapses) return [];
+    return relapses.filter((r) => {
+      if (filters.severity && r.severity !== filters.severity) return false;
+      if (filters.status === "recovered" && !r.is_recovered) return false;
+      if (filters.status === "ongoing" && r.is_recovered) return false;
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        const matches =
+          r.symptoms.some((s) => s.toLowerCase().includes(q)) ||
+          r.triggers.some((t) => t.toLowerCase().includes(q)) ||
+          (r.notes?.toLowerCase().includes(q)) ||
+          (r.treatment?.toLowerCase().includes(q)) ||
+          r.severity.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+      return true;
+    });
+  }, [relapses, filters]);
 
   const handleRefresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["relapses"] });
@@ -482,27 +511,38 @@ const RelapsesPage = () => {
       <SEOHead title="Relapses" description="Log and monitor your MS relapses, triggers and recovery timeline." />
       <PageHeader title="Relapses" subtitle="Track your MS flare-ups" showBack />
       <PullToRefresh onRefresh={handleRefresh} className="mx-auto max-w-lg px-4 py-4 space-y-4 pb-28">
-        {/* Summary strip */}
+        {/* Streak banner */}
         <StaggerItem>
-        <div className="flex gap-3" data-tour="relapses-summary">
-          <div className="flex-1 rounded-xl bg-card p-3 shadow-soft text-center">
-            <p className="text-2xl font-bold text-foreground">{totalRelapses}</p>
-            <p className="text-[11px] text-muted-foreground">Total Relapses</p>
-          </div>
-          <div className="flex-1 rounded-xl bg-card p-3 shadow-soft text-center">
-            <p className="text-2xl font-bold text-foreground">{activeRelapses}</p>
-            <p className="text-[11px] text-muted-foreground">Ongoing</p>
-          </div>
-          {relapses && relapses.length > 0 && (
-            <div className="flex-1 rounded-xl bg-card p-3 shadow-soft text-center">
-              <p className="text-2xl font-bold text-foreground">
-                {format(parseISO(relapses[0].start_date), "MMM yyyy")}
-              </p>
-              <p className="text-[11px] text-muted-foreground">Last Relapse</p>
-            </div>
-          )}
-        </div>
+          <RelapseFreeStreakBanner />
         </StaggerItem>
+
+        {/* Stats dashboard */}
+        <StaggerItem>
+          <RelapseStatsDashboard />
+        </StaggerItem>
+
+        {/* Actions row */}
+        <StaggerItem>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{totalRelapses}</span> total
+              {activeRelapses > 0 && (
+                <>
+                  <span className="text-border">·</span>
+                  <span className="font-medium text-foreground">{activeRelapses}</span> ongoing
+                </>
+              )}
+            </div>
+            <ExportRelapseHistory />
+          </div>
+        </StaggerItem>
+
+        {/* Filters */}
+        {totalRelapses > 0 && (
+          <StaggerItem>
+            <RelapseFilters filters={filters} onChange={setFilters} />
+          </StaggerItem>
+        )}
 
         {/* Add button */}
         <StaggerItem>
@@ -541,17 +581,23 @@ const RelapsesPage = () => {
         {relapses && relapses.length > 0 ? (
           <StaggerItem>
           <div className="space-y-3" data-tour="relapses-list">
-            {relapses.map((relapse) =>
-              editingId === relapse.id ? null : (
-                <RelapseCard
-                  key={relapse.id}
-                  relapse={relapse}
-                  onEdit={() => {
-                    setShowForm(false);
-                    setEditingId(relapse.id);
-                  }}
-                  onDelete={() => handleDelete(relapse.id)}
-                />
+            {filteredRelapses.length === 0 ? (
+              <div className="rounded-xl bg-card p-6 shadow-soft text-center">
+                <p className="text-sm text-muted-foreground">No relapses match your filters</p>
+              </div>
+            ) : (
+              filteredRelapses.map((relapse) =>
+                editingId === relapse.id ? null : (
+                  <RelapseCard
+                    key={relapse.id}
+                    relapse={relapse}
+                    onEdit={() => {
+                      setShowForm(false);
+                      setEditingId(relapse.id);
+                    }}
+                    onDelete={() => handleDelete(relapse.id)}
+                  />
+                )
               )
             )}
           </div>
