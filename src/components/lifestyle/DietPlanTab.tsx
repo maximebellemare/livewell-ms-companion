@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -6,7 +6,10 @@ import {
   ChevronDown, ChevronRight, Check, ArrowLeft, Shuffle,
   UtensilsCrossed, ShieldCheck, ShieldAlert, ShieldX, Sparkles,
   RotateCcw, Loader2, Clock, Users, Flame, X, Calendar,
+  ThumbsUp, ThumbsDown,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useDietPlans, useUserDietPlan, useSelectDietPlan, useDeselectDietPlan,
   useSwapRecipe, useResetRecipeSwap, useAISwapSuggestions, useUpdateWeeklySelections,
@@ -185,13 +188,31 @@ function ActivePlanView({ plan, userPlan }: { plan: DietPlan; userPlan: NonNulla
 
 // ── Weekly Planner Section ──
 function WeeklyPlannerSection({ plan, userPlan }: { plan: DietPlan; userPlan: NonNullable<ReturnType<typeof useUserDietPlan>["data"]> }) {
+  const { user } = useAuth();
   const [selectedDay, setSelectedDay] = useState<string>(DAYS[0]);
   const [pickingSlot, setPickingSlot] = useState<string | null>(null);
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [customMealInput, setCustomMealInput] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState<string | null>(null); // meal type with custom input open
+  const [showCustomInput, setShowCustomInput] = useState<string | null>(null);
+  const [mealRatings, setMealRatings] = useState<Record<string, "up" | "down">>({});
   const updateWeekly = useUpdateWeeklySelections();
   const selections = userPlan.weekly_selections || {};
+
+  // Fetch meal ratings for indicator badges
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("meal_ratings")
+      .select("meal_name, rating")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, "up" | "down"> = {};
+          data.forEach((r: any) => { map[r.meal_name] = r.rating; });
+          setMealRatings(map);
+        }
+      });
+  }, [user?.id]);
 
   const getDisplayRecipe = (original: Recipe): Recipe => userPlan.swapped_recipes[original.id] || original;
 
@@ -268,6 +289,7 @@ function WeeklyPlannerSection({ plan, userPlan }: { plan: DietPlan; userPlan: No
           const assignedId = selections[selectedDay]?.[meal];
           const assignedRecipe = assignedId ? recipeById(assignedId) : undefined;
           const isPicking = pickingSlot === meal;
+          const rating = assignedRecipe ? mealRatings[assignedRecipe.name] : undefined;
 
           return (
             <div key={meal} className="rounded-xl bg-card border border-border shadow-soft overflow-hidden">
@@ -280,10 +302,22 @@ function WeeklyPlannerSection({ plan, userPlan }: { plan: DietPlan; userPlan: No
                   {assignedId?.startsWith("custom:") ? (
                     <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
                       ✏️ {assignedRecipe.name}
+                      {rating && (
+                        rating === "up"
+                          ? <ThumbsUp className="h-3 w-3 text-green-500" />
+                          : <ThumbsDown className="h-3 w-3 text-red-400" />
+                      )}
                     </p>
                   ) : (
                     <button onClick={() => setViewingRecipe(assignedRecipe)} className="w-full text-left">
-                      <p className="text-sm font-medium text-foreground">{assignedRecipe.name}</p>
+                      <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                        {assignedRecipe.name}
+                        {rating && (
+                          rating === "up"
+                            ? <ThumbsUp className="h-3 w-3 text-green-500 shrink-0" />
+                            : <ThumbsDown className="h-3 w-3 text-red-400 shrink-0" />
+                        )}
+                      </p>
                       <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
                         {assignedRecipe.prep_time && <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" />{assignedRecipe.prep_time}</span>}
                         {assignedRecipe.calories && <span className="flex items-center gap-0.5"><Flame className="h-3 w-3" />{assignedRecipe.calories} cal</span>}
