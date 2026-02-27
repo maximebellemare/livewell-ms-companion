@@ -96,7 +96,7 @@ export default function InflammatoryScanner() {
     if (!file) return;
     setIsCapturing(true);
     try {
-      // Convert to base64
+      // Convert to base64 data URL
       const reader = new FileReader();
       const base64 = await new Promise<string>((resolve, reject) => {
         reader.onload = () => resolve(reader.result as string);
@@ -104,11 +104,10 @@ export default function InflammatoryScanner() {
         reader.readAsDataURL(file);
       });
 
-      // Use vision AI to identify the meal
+      // Send image directly to vision AI for identification + analysis
       const { data, error } = await supabase.functions.invoke("inflammatory-scanner", {
         body: {
-          meal_name: "Photo scan — identify this meal",
-          meal_notes: "The user uploaded a photo of their meal. Based on the image description, identify the meal and ingredients.",
+          image_base64: base64,
           ms_type: profile?.ms_type || null,
           symptoms: profile?.symptoms || [],
           medications: profile?.medications || [],
@@ -116,12 +115,22 @@ export default function InflammatoryScanner() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
-      // For now, prompt user to describe since we can't send images to the current endpoint
-      toast.info("📸 Photo captured! Please describe what's in the photo for best results.");
-      setMealInput("Photo: " + (file.name || "meal photo"));
+
+      const mealName = data.identified_meal || "Photo scan";
+      setMealInput(mealName);
+      setResult(data);
+      // Save to history
+      saveScan.mutate({
+        meal_name: mealName,
+        overall_score: data.overall_score,
+        overall_label: data.overall_label,
+        summary: data.summary || null,
+        flags: data.flags || [],
+        positives: data.positives || [],
+      });
+      toast.success(`📸 Identified: ${mealName}`);
     } catch (err: any) {
-      toast.error("Failed to process photo");
+      toast.error(err.message || "Failed to process photo");
     } finally {
       setIsCapturing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
