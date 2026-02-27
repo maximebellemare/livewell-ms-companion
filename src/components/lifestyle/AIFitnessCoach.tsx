@@ -592,9 +592,7 @@ export default function AIFitnessCoach({ exerciseLogs, symptomEntries, msType }:
                                 </div>
                               )}
                               {ex.instruction && <p className="text-[10px] text-muted-foreground italic">{ex.instruction}</p>}
-                              {ex.steps && ex.steps.length > 0 && (
-                                <p className="text-[10px] text-primary font-medium mt-0.5">Tap for step-by-step guide →</p>
-                              )}
+                              <p className="text-[10px] text-primary font-medium mt-0.5">Tap for guide & demo →</p>
                             </button>
                           ))}
                         </div>
