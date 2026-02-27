@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import AIWeightInsights from "@/components/lifestyle/AIWeightInsights";
+import PremiumGate from "@/components/PremiumGate";
 
 const today = format(new Date(), "yyyy-MM-dd");
 
@@ -278,12 +279,14 @@ export default function WeightTab() {
       )}
 
       {/* Recent Entries */}
-      {/* AI Insights */}
-      <AIWeightInsights
-        weightLogs={logs}
-        symptomEntries={entries}
-        profile={profile ? { ms_type: profile.ms_type, height_cm: profile.height_cm, goal_weight: profile.goal_weight, goal_weight_unit: profile.goal_weight_unit } : null}
-      />
+      {/* AI Insights - Premium Only */}
+      <PremiumGate feature="AI Weight Insights" compact>
+        <AIWeightInsights
+          weightLogs={logs}
+          symptomEntries={entries}
+          profile={profile ? { ms_type: profile.ms_type, height_cm: profile.height_cm, goal_weight: profile.goal_weight, goal_weight_unit: profile.goal_weight_unit } : null}
+        />
+      </PremiumGate>
 
       {/* Recent Entries */}
       {logs.length > 0 && (
