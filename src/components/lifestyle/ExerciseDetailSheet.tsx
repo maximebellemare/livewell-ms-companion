@@ -30,38 +30,38 @@ const MUSCLE_GROUP_ANIMATIONS: Record<string, { emoji: string; label: string; co
   flexibility: { emoji: "🧘", label: "Flexibility", colors: "from-teal-500/20 to-cyan-500/20" },
 };
 
-interface IllustrationImages {
+interface IllustrationResult {
   sequenceUrl: string | null;
-  startUrl: string | null;
-  endUrl: string | null;
+  curatedUrl: string | null;
+  source: "wger" | "ai" | null;
 }
 
-async function fetchExerciseImages(name: string, muscleGroup?: string): Promise<IllustrationImages> {
+async function fetchExerciseImages(name: string, muscleGroup?: string): Promise<IllustrationResult> {
   try {
     const { data, error } = await supabase.functions.invoke("exercise-illustration", {
       body: { name, muscle_group: muscleGroup },
     });
-    if (error) return { sequenceUrl: null, startUrl: null, endUrl: null };
+    if (error) return { sequenceUrl: null, curatedUrl: null, source: null };
     return {
       sequenceUrl: data?.sequenceUrl || null,
-      startUrl: data?.startUrl || null,
-      endUrl: data?.endUrl || null,
+      curatedUrl: data?.curatedUrl || null,
+      source: data?.source || null,
     };
   } catch {
-    return { sequenceUrl: null, startUrl: null, endUrl: null };
+    return { sequenceUrl: null, curatedUrl: null, source: null };
   }
 }
 
 export default function ExerciseDetailSheet({ exercise, onClose, msType }: Props) {
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
-  const [images, setImages] = useState<IllustrationImages>({ sequenceUrl: null, startUrl: null, endUrl: null });
+  const [images, setImages] = useState<IllustrationResult>({ sequenceUrl: null, curatedUrl: null, source: null });
   const [imageLoading, setImageLoading] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => {
     if (!exercise) return;
-    setImages({ sequenceUrl: null, startUrl: null, endUrl: null });
+    setImages({ sequenceUrl: null, curatedUrl: null, source: null });
     setImageFailed(false);
     setImageLoading(true);
     setAiExplanation(null);
@@ -69,14 +69,14 @@ export default function ExerciseDetailSheet({ exercise, onClose, msType }: Props
     fetchExerciseImages(exercise.name, exercise.muscle_group).then((result) => {
       setImages(result);
       setImageLoading(false);
-      if (!result.sequenceUrl && !result.startUrl && !result.endUrl) setImageFailed(true);
+      if (!result.sequenceUrl && !result.curatedUrl) setImageFailed(true);
     });
   }, [exercise?.name]);
 
   if (!exercise) return null;
 
   const mg = MUSCLE_GROUP_ANIMATIONS[exercise.muscle_group || "full_body"] || MUSCLE_GROUP_ANIMATIONS.full_body;
-  const hasImages = (images.sequenceUrl || images.startUrl || images.endUrl) && !imageFailed;
+  const hasImages = (images.sequenceUrl || images.curatedUrl) && !imageFailed;
 
   const askCoach = async () => {
     setLoadingAi(true);
@@ -146,14 +146,26 @@ Keep it friendly, concise, and practical.`,
             </button>
           </div>
 
+          {/* Image area */}
           <div className={`rounded-xl bg-gradient-to-br ${mg.colors} p-3 min-h-[140px]`}>
             {imageLoading ? (
               <div className="flex flex-col items-center justify-center gap-2 min-h-[140px]">
                 <Loader2 className="h-6 w-6 animate-spin text-foreground/50" />
-                <p className="text-[10px] text-foreground/50">Generating exercise sequence…</p>
+                <p className="text-[10px] text-foreground/50">Finding exercise illustration…</p>
               </div>
             ) : hasImages ? (
-              images.sequenceUrl ? (
+              images.curatedUrl ? (
+                /* Curated image from wger.de */
+                <div className="space-y-1">
+                  <img
+                    src={images.curatedUrl}
+                    alt={`${exercise.name} demonstration`}
+                    className="max-h-[220px] w-auto mx-auto rounded-lg object-contain"
+                    onError={() => setImageFailed(true)}
+                  />
+                </div>
+              ) : images.sequenceUrl ? (
+                /* AI-generated sequence */
                 <div className="space-y-2">
                   <img
                     src={images.sequenceUrl}
@@ -167,41 +179,7 @@ Keep it friendly, concise, and practical.`,
                     <span>End</span>
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 text-center space-y-1">
-                    <p className="text-[9px] font-semibold text-foreground/60 uppercase tracking-wide">Start</p>
-                    {images.startUrl ? (
-                      <img
-                        src={images.startUrl}
-                        alt={`${exercise.name} – starting position`}
-                        className="max-h-[160px] w-auto mx-auto rounded-lg object-contain"
-                        onError={() => setImageFailed(true)}
-                      />
-                    ) : (
-                      <div className="h-[120px] flex items-center justify-center text-3xl">{mg.emoji}</div>
-                    )}
-                  </div>
-
-                  <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                    <ArrowRight className="h-5 w-5 text-foreground/40" />
-                  </div>
-
-                  <div className="flex-1 text-center space-y-1">
-                    <p className="text-[9px] font-semibold text-foreground/60 uppercase tracking-wide">End</p>
-                    {images.endUrl ? (
-                      <img
-                        src={images.endUrl}
-                        alt={`${exercise.name} – end position`}
-                        className="max-h-[160px] w-auto mx-auto rounded-lg object-contain"
-                        onError={() => setImageFailed(true)}
-                      />
-                    ) : (
-                      <div className="h-[120px] flex items-center justify-center text-3xl">{mg.emoji}</div>
-                    )}
-                  </div>
-                </div>
-              )
+              ) : null
             ) : (
               <div className="text-center space-y-1 flex flex-col items-center justify-center min-h-[140px]">
                 {imageFailed && (
@@ -222,10 +200,11 @@ Keep it friendly, concise, and practical.`,
             )}
           </div>
 
+          {/* Source badge */}
           {hasImages && (
             <div className="flex justify-center">
               <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-medium text-primary">
-                ✨ AI-generated
+                {images.source === "wger" ? "📸 Curated" : "✨ AI-generated"}
               </span>
             </div>
           )}

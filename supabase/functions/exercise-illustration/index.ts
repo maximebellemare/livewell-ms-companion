@@ -17,6 +17,62 @@ function slugify(name: string): string {
     .slice(0, 80);
 }
 
+// ── Step 1: Try wger.de open exercise database (real curated images) ──
+async function searchWger(exerciseName: string): Promise<string | null> {
+  try {
+    // Simplify the name for search (remove MS-specific modifiers)
+    const searchTerm = exerciseName
+      .replace(/\b(modified|assisted|seated|standing|wall|chair|band|light|ms-safe|gentle)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const searchUrl = `https://wger.de/api/v2/exercise/search/?term=${encodeURIComponent(searchTerm)}&language=english&format=json`;
+    const searchRes = await fetch(searchUrl, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!searchRes.ok) return null;
+    const searchData = await searchRes.json();
+    const suggestions = searchData?.suggestions || [];
+    if (suggestions.length === 0) return null;
+
+    // Normalize for comparison
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normalizedSearch = normalize(searchTerm);
+
+    // Find best match: prefer exact/close name matches that have images
+    for (const suggestion of suggestions) {
+      const name = suggestion?.value || suggestion?.data?.name || "";
+      const image = suggestion?.data?.image;
+      if (!image) continue;
+
+      const normalizedName = normalize(name);
+      // Check if the names are related (one contains the other)
+      if (normalizedName.includes(normalizedSearch) || normalizedSearch.includes(normalizedName)) {
+        const fullUrl = image.startsWith("http") ? image : `https://wger.de${image}`;
+        console.log(`exercise-illustration wger hit: "${exerciseName}" → "${name}"`);
+        return fullUrl;
+      }
+    }
+
+    // Fallback: first suggestion with an image (looser match)
+    const firstWithImage = suggestions.find((s: any) => s?.data?.image);
+    if (firstWithImage) {
+      const image = firstWithImage.data.image;
+      const fullUrl = image.startsWith("http") ? image : `https://wger.de${image}`;
+      console.log(`exercise-illustration wger loose hit: "${exerciseName}" → "${firstWithImage.value}"`);
+      return fullUrl;
+    }
+
+    return null;
+  } catch (e) {
+    console.log(`exercise-illustration wger search failed: ${e}`);
+    return null;
+  }
+}
+
+// ── Step 2: AI-generated illustration fallback ──
 async function generateAndUploadSequence(
   supabase: any,
   apiKey: string,
@@ -53,7 +109,6 @@ async function generateAndUploadSequence(
   if (!aiRes.ok) {
     const errText = await aiRes.text();
     console.error("AI gateway error:", aiRes.status, errText);
-
     if (aiRes.status === 429) throw new Error("Rate limited, try again shortly");
     if (aiRes.status === 402) throw new Error("AI credits exhausted");
     throw new Error(`AI generation failed: ${aiRes.status}`);
@@ -75,7 +130,7 @@ async function generateAndUploadSequence(
 
   if (uploadError) {
     console.error("upload error:", uploadError.message);
-    return imageDataUrl; // fallback
+    return imageDataUrl; // fallback to inline
   }
 
   const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
@@ -89,15 +144,32 @@ serve(async (req) => {
     const { name, muscle_group } = await req.json();
     if (!name || typeof name !== "string") throw new Error("Exercise name is required");
 
+    const slug = slugify(name);
+    const mgLabel = muscle_group || "full body";
+
+    // ── Step 1: Try wger.de curated images first ──
+    const wgerUrl = await searchWger(name);
+    if (wgerUrl) {
+      return new Response(
+        JSON.stringify({
+          sequenceUrl: null,
+          curatedUrl: wgerUrl,
+          startUrl: null,
+          endUrl: null,
+          cached: false,
+          source: "wger",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── Step 2: AI-generated fallback ──
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
-
-    const slug = slugify(name);
-    const mgLabel = muscle_group || "full body";
 
     const prompt = `Create a clean 2-panel instructional fitness illustration for the exercise "${name}" targeting ${mgLabel}.
 Layout requirements:
@@ -116,14 +188,16 @@ Style:
 
     const sequenceUrl = await generateAndUploadSequence(supabase, LOVABLE_API_KEY, slug, prompt);
 
-    console.log("exercise-illustration done", slug, { sequence: !!sequenceUrl });
+    console.log("exercise-illustration done", slug, { source: "ai", sequence: !!sequenceUrl });
 
     return new Response(
       JSON.stringify({
         sequenceUrl,
+        curatedUrl: null,
         startUrl: null,
         endUrl: null,
         cached: false,
+        source: "ai",
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -133,7 +207,7 @@ Style:
     const status = message.includes("Rate limited") ? 429 : message.includes("credits") ? 402 : 500;
 
     return new Response(
-      JSON.stringify({ sequenceUrl: null, startUrl: null, endUrl: null, error: message }),
+      JSON.stringify({ sequenceUrl: null, curatedUrl: null, startUrl: null, endUrl: null, error: message }),
       { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
