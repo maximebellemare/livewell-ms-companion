@@ -60,12 +60,16 @@ const ABILITY_OPTIONS = [
 ];
 
 const TIME_OPTIONS = [
-  { label: "15 min/day", value: "15min_daily" },
-  { label: "30 min/day", value: "30min_daily" },
-  { label: "45 min/day", value: "45min_daily" },
-  { label: "1 hour/day", value: "60min_daily" },
-  { label: "2-3 days/week", value: "2-3_days_week" },
-  { label: "4-5 days/week", value: "4-5_days_week" },
+  { label: "15 min/session", value: "15min_session" },
+  { label: "30 min/session", value: "30min_session" },
+  { label: "45 min/session", value: "45min_session" },
+  { label: "1 hour/session", value: "60min_session" },
+  { label: "1× per week", value: "1_day_week" },
+  { label: "2-3× per week", value: "2-3_days_week" },
+  { label: "3-4× per week", value: "3-4_days_week" },
+  { label: "4-5× per week", value: "4-5_days_week" },
+  { label: "5-6× per week", value: "5-6_days_week" },
+  { label: "Every day", value: "7_days_week" },
 ];
 
 interface TrainingPlan {
