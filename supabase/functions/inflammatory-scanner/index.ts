@@ -12,13 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { meal_name, meal_notes, ingredients, ms_type, symptoms, medications } = await req.json();
+    const { meal_name, meal_notes, ingredients, image_base64, ms_type, symptoms, medications } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    if (!meal_name && !ingredients?.length) {
-      return new Response(JSON.stringify({ error: "Provide a meal name or ingredients to scan." }),
+    if (!meal_name && !ingredients?.length && !image_base64) {
+      return new Response(JSON.stringify({ error: "Provide a meal name, ingredients, or photo to scan." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -30,6 +30,8 @@ serve(async (req) => {
     if (personalContext) personalContext = `\n\nPERSONALIZED CONTEXT (use to tailor your analysis):${personalContext}\nConsider drug-food interactions and symptom-specific triggers.`;
 
     const systemPrompt = `You are an MS inflammatory food specialist. Analyze the given meal or ingredients and flag items that may trigger or worsen inflammation, particularly for people with Multiple Sclerosis.
+
+${image_base64 ? "The user has provided a PHOTO of their meal. First identify exactly what food items are visible, then analyze each for inflammatory properties. Start your analysis by naming the dish/foods you see." : ""}
 
 Consider MS-specific inflammatory triggers:
 - Saturated fats, trans fats, refined sugars
@@ -44,6 +46,7 @@ Also highlight anti-inflammatory ingredients present.
 
 Return a JSON object:
 {
+  "identified_meal": "name of the meal/foods identified (especially useful for photo scans)",
   "overall_score": "green" | "yellow" | "red",
   "overall_label": "Anti-inflammatory" | "Moderate" | "Inflammatory",
   "summary": "One sentence overall assessment",
@@ -66,10 +69,22 @@ Return a JSON object:
 
 Return ONLY the JSON, no markdown fences.`;
 
-    const userPrompt = `Scan this meal for inflammatory triggers:
+    // Build user message content (text or multimodal)
+    let userContent: any;
+
+    if (image_base64) {
+      // Multimodal: image + text
+      const textPart = `Identify the food in this photo and scan it for inflammatory triggers.${meal_notes ? `\nUser notes: ${meal_notes}` : ""}`;
+      userContent = [
+        { type: "text", text: textPart },
+        { type: "image_url", image_url: { url: image_base64 } },
+      ];
+    } else {
+      userContent = `Scan this meal for inflammatory triggers:
 Meal: ${meal_name || "Unknown"}
 ${meal_notes ? `Notes: ${meal_notes}` : ""}
 ${ingredients?.length ? `Ingredients: ${ingredients.join(", ")}` : ""}`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -78,10 +93,10 @@ ${ingredients?.length ? `Ingredients: ${ingredients.join(", ")}` : ""}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: image_base64 ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userContent },
         ],
         stream: false,
       }),
