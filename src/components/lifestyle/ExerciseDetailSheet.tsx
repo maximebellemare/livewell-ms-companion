@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X, MessageCircle, Loader2, ImageOff, ArrowRight } from "lucide-react";
+import { X, MessageCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
@@ -12,7 +12,6 @@ interface ExerciseInfo {
   rest?: string;
   instruction?: string;
   steps?: string[];
-  muscle_group?: string;
 }
 
 interface Props {
@@ -21,62 +20,11 @@ interface Props {
   msType?: string | null;
 }
 
-const MUSCLE_GROUP_ANIMATIONS: Record<string, { emoji: string; label: string; colors: string }> = {
-  upper_body: { emoji: "💪", label: "Upper Body", colors: "from-blue-500/20 to-indigo-500/20" },
-  lower_body: { emoji: "🦵", label: "Lower Body", colors: "from-green-500/20 to-emerald-500/20" },
-  core: { emoji: "🎯", label: "Core", colors: "from-orange-500/20 to-amber-500/20" },
-  full_body: { emoji: "🏋️", label: "Full Body", colors: "from-purple-500/20 to-pink-500/20" },
-  cardio: { emoji: "❤️", label: "Cardio", colors: "from-red-500/20 to-rose-500/20" },
-  flexibility: { emoji: "🧘", label: "Flexibility", colors: "from-teal-500/20 to-cyan-500/20" },
-};
-
-interface IllustrationResult {
-  sequenceUrl: string | null;
-  curatedUrl: string | null;
-  source: "wger" | "ai" | null;
-}
-
-async function fetchExerciseImages(name: string, muscleGroup?: string): Promise<IllustrationResult> {
-  try {
-    const { data, error } = await supabase.functions.invoke("exercise-illustration", {
-      body: { name, muscle_group: muscleGroup },
-    });
-    if (error) return { sequenceUrl: null, curatedUrl: null, source: null };
-    return {
-      sequenceUrl: data?.sequenceUrl || null,
-      curatedUrl: data?.curatedUrl || null,
-      source: data?.source || null,
-    };
-  } catch {
-    return { sequenceUrl: null, curatedUrl: null, source: null };
-  }
-}
-
 export default function ExerciseDetailSheet({ exercise, onClose, msType }: Props) {
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
-  const [images, setImages] = useState<IllustrationResult>({ sequenceUrl: null, curatedUrl: null, source: null });
-  const [imageLoading, setImageLoading] = useState(false);
-  const [imageFailed, setImageFailed] = useState(false);
-
-  useEffect(() => {
-    if (!exercise) return;
-    setImages({ sequenceUrl: null, curatedUrl: null, source: null });
-    setImageFailed(false);
-    setImageLoading(true);
-    setAiExplanation(null);
-
-    fetchExerciseImages(exercise.name, exercise.muscle_group).then((result) => {
-      setImages(result);
-      setImageLoading(false);
-      if (!result.sequenceUrl && !result.curatedUrl) setImageFailed(true);
-    });
-  }, [exercise?.name]);
 
   if (!exercise) return null;
-
-  const mg = MUSCLE_GROUP_ANIMATIONS[exercise.muscle_group || "full_body"] || MUSCLE_GROUP_ANIMATIONS.full_body;
-  const hasImages = (images.sequenceUrl || images.curatedUrl) && !imageFailed;
 
   const askCoach = async () => {
     setLoadingAi(true);
@@ -123,15 +71,15 @@ Keep it friendly, concise, and practical.`,
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed inset-x-0 bottom-0 z-50 w-full max-w-lg mx-auto bg-card rounded-t-2xl shadow-lg max-h-[85vh] overflow-y-auto"
+        className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-card shadow-lg"
       >
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        <div className="flex justify-center pb-1 pt-3">
+          <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
         </div>
 
-        <div className="px-4 pb-6 space-y-4">
+        <div className="space-y-4 px-4 pb-6">
           <div className="flex items-start justify-between">
-            <div className="space-y-1 flex-1">
+            <div className="flex-1 space-y-1">
               <h3 className="text-base font-bold text-foreground">{exercise.name}</h3>
               {(exercise.sets || exercise.reps) && (
                 <p className="text-xs text-muted-foreground">
@@ -146,71 +94,8 @@ Keep it friendly, concise, and practical.`,
             </button>
           </div>
 
-          {/* Image area */}
-          <div className={`rounded-xl bg-gradient-to-br ${mg.colors} p-3 min-h-[140px]`}>
-            {imageLoading ? (
-              <div className="flex flex-col items-center justify-center gap-2 min-h-[140px]">
-                <Loader2 className="h-6 w-6 animate-spin text-foreground/50" />
-                <p className="text-[10px] text-foreground/50">Finding exercise illustration…</p>
-              </div>
-            ) : hasImages ? (
-              images.curatedUrl ? (
-                /* Curated image from wger.de */
-                <div className="space-y-1">
-                  <img
-                    src={images.curatedUrl}
-                    alt={`${exercise.name} demonstration`}
-                    className="max-h-[220px] w-auto mx-auto rounded-lg object-contain"
-                    onError={() => setImageFailed(true)}
-                  />
-                </div>
-              ) : images.sequenceUrl ? (
-                /* AI-generated sequence */
-                <div className="space-y-2">
-                  <img
-                    src={images.sequenceUrl}
-                    alt={`${exercise.name} start and end positions`}
-                    className="max-h-[220px] w-auto mx-auto rounded-lg object-contain"
-                    onError={() => setImageFailed(true)}
-                  />
-                  <div className="flex items-center justify-center gap-4 text-[9px] font-semibold uppercase tracking-wide text-foreground/60">
-                    <span>Start</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                    <span>End</span>
-                  </div>
-                </div>
-              ) : null
-            ) : (
-              <div className="text-center space-y-1 flex flex-col items-center justify-center min-h-[140px]">
-                {imageFailed && (
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <ImageOff className="h-3 w-3 text-foreground/40" />
-                    <p className="text-[9px] text-foreground/40">Illustrations unavailable</p>
-                  </div>
-                )}
-                <motion.div
-                  animate={{ scale: [1, 1.15, 1], rotate: [0, 3, -3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-4xl"
-                >
-                  {mg.emoji}
-                </motion.div>
-                <p className="text-[10px] font-semibold text-foreground/70">{mg.label}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Source badge */}
-          {hasImages && (
-            <div className="flex justify-center">
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-medium text-primary">
-                {images.source === "wger" ? "📸 Curated" : "✨ AI-generated"}
-              </span>
-            </div>
-          )}
-
           {exercise.instruction && (
-            <div className="rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
+            <div className="rounded-lg border border-primary/10 bg-primary/5 px-3 py-2">
               <p className="text-xs text-foreground">
                 <span className="font-semibold">💡 Form tip:</span> {exercise.instruction}
               </p>
@@ -222,11 +107,11 @@ Keep it friendly, concise, and practical.`,
               <h4 className="text-xs font-semibold text-foreground">📋 Step-by-Step</h4>
               <div className="space-y-1.5">
                 {exercise.steps.map((step, i) => (
-                  <div key={i} className="flex gap-2 items-start">
-                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <div key={i} className="flex items-start gap-2">
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <span className="text-[10px] font-bold">{i + 1}</span>
                     </div>
-                    <p className="text-xs text-foreground leading-relaxed flex-1">{step}</p>
+                    <p className="flex-1 text-xs leading-relaxed text-foreground">{step}</p>
                   </div>
                 ))}
               </div>
@@ -237,7 +122,7 @@ Keep it friendly, concise, and practical.`,
             <button
               onClick={askCoach}
               disabled={loadingAi}
-              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-secondary px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-60 transition-all"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-secondary px-4 py-2.5 text-xs font-semibold text-foreground transition-all hover:bg-muted disabled:opacity-60"
             >
               {loadingAi ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -251,9 +136,9 @@ Keep it friendly, concise, and practical.`,
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="rounded-lg bg-secondary/50 p-3 overflow-hidden"
+                className="overflow-hidden rounded-lg bg-secondary/50 p-3"
               >
-                <div className="prose prose-sm max-w-none text-xs text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_p]:text-xs [&_li]:text-xs [&_strong]:text-foreground">
+                <div className="prose prose-sm max-w-none text-xs text-foreground [&_h1]:text-sm [&_h2]:text-xs [&_h3]:text-xs [&_li]:text-xs [&_p]:text-xs [&_strong]:text-foreground">
                   <ReactMarkdown>{aiExplanation}</ReactMarkdown>
                 </div>
               </motion.div>
