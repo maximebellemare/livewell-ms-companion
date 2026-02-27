@@ -107,7 +107,6 @@ serve(async (req) => {
     const likedMeals = ratings.filter((r: any) => r.rating === "up").map((r: any) => r.meal_name);
     const dislikedMeals = ratings.filter((r: any) => r.rating === "down").map((r: any) => r.meal_name);
     const excludedIngredients: string[] = profile?.excluded_ingredients || [];
-    const dislikedMeals = ratings.filter((r: any) => r.rating === "down").map((r: any) => r.meal_name);
 
     const isSingleDay = !!single_day;
     const dayScope = isSingleDay ? `ONLY for ${single_day}` : "for the full week (monday through sunday)";
@@ -139,8 +138,8 @@ ${preferences || "None specified"}
 ${likedMeals.length > 0 ? `Liked meals (include more of these): ${likedMeals.join(", ")}` : "No liked meals yet"}
 ${dislikedMeals.length > 0 ? `Disliked meals (AVOID these or similar): ${dislikedMeals.join(", ")}` : "No disliked meals yet"}
 
-## EXCLUDED INGREDIENTS (CRITICAL — NEVER include these in any meal or recipe!)
-${excludedIngredients.length > 0 ? excludedIngredients.map(i => `- ${i}`).join("\n") : "- None excluded"}
+## EXCLUDED INGREDIENTS (ABSOLUTE RULE — NEVER use these in ANY meal, recipe, or ingredient list! This overrides all other recommendations!)
+${excludedIngredients.length > 0 ? excludedIngredients.map(i => `- ❌ ${i} — BANNED, do NOT include`).join("\n") : "- None excluded"}
 
 ## Nutrition Strategy Based on Symptoms
 IMPORTANT: Tailor meals to address the user's specific symptom profile:
