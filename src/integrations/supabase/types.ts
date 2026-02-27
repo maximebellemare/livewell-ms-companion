@@ -861,6 +861,118 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_comments: {
+        Row: {
+          body: string
+          created_at: string
+          display_name: string
+          id: string
+          is_anonymous: boolean
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_anonymous?: boolean
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_anonymous?: boolean
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_posts: {
+        Row: {
+          body: string
+          category: Database["public"]["Enums"]["feedback_category"]
+          comments_count: number
+          created_at: string
+          display_name: string
+          id: string
+          is_anonymous: boolean
+          status: Database["public"]["Enums"]["feedback_status"]
+          title: string
+          updated_at: string
+          upvotes_count: number
+          user_id: string
+        }
+        Insert: {
+          body: string
+          category?: Database["public"]["Enums"]["feedback_category"]
+          comments_count?: number
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_anonymous?: boolean
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title: string
+          updated_at?: string
+          upvotes_count?: number
+          user_id: string
+        }
+        Update: {
+          body?: string
+          category?: Database["public"]["Enums"]["feedback_category"]
+          comments_count?: number
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_anonymous?: boolean
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title?: string
+          updated_at?: string
+          upvotes_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feedback_upvotes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_upvotes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fitness_plans: {
         Row: {
           abilities: string[]
@@ -2040,6 +2152,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      feedback_category: "feature" | "ui" | "bug" | "integration" | "other"
+      feedback_status: "new" | "planned" | "in_progress" | "done" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2168,6 +2282,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      feedback_category: ["feature", "ui", "bug", "integration", "other"],
+      feedback_status: ["new", "planned", "in_progress", "done", "declined"],
     },
   },
 } as const

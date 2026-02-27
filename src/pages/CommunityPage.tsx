@@ -3,7 +3,7 @@ import SEOHead from "@/components/SEOHead";
 import PullToRefresh from "@/components/PullToRefresh";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import { Link } from "react-router-dom";
-import { Bookmark, Shield } from "lucide-react";
+import { Bookmark, Shield, Lightbulb } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -17,6 +17,7 @@ import { PostDetail } from "@/components/community/PostDetail";
 import { TrendingPosts } from "@/components/community/TrendingPosts";
 import { WeeklyHighlights } from "@/components/community/WeeklyHighlights";
 import { SavedPosts } from "@/components/community/SavedPosts";
+import { FeedbackBoard } from "@/components/feedback/FeedbackBoard";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ const CommunityPage = () => {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showSaved, setShowSaved] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   // Fetch premium users for badge display
   const { data: premiumUsers = new Set<string>() } = useQuery({
@@ -51,15 +53,26 @@ const CommunityPage = () => {
   }, [queryClient]);
 
   const savedAction = (
-    <Button
-      variant={showSaved ? "default" : "ghost"}
-      size="sm"
-      className="gap-1.5"
-      onClick={() => { setShowSaved(!showSaved); setSelectedChannel(null); setSelectedPost(null); }}
-    >
-      <Bookmark className={`h-4 w-4 ${showSaved ? "fill-primary-foreground" : ""}`} />
-      <span className="text-xs">Saved</span>
-    </Button>
+    <div className="flex gap-1">
+      <Button
+        variant={showFeedback ? "default" : "ghost"}
+        size="sm"
+        className="gap-1.5"
+        onClick={() => { setShowFeedback(!showFeedback); setShowSaved(false); setSelectedChannel(null); setSelectedPost(null); }}
+      >
+        <Lightbulb className={`h-4 w-4 ${showFeedback ? "fill-primary-foreground" : ""}`} />
+        <span className="text-xs">Ideas</span>
+      </Button>
+      <Button
+        variant={showSaved ? "default" : "ghost"}
+        size="sm"
+        className="gap-1.5"
+        onClick={() => { setShowSaved(!showSaved); setShowFeedback(false); setSelectedChannel(null); setSelectedPost(null); }}
+      >
+        <Bookmark className={`h-4 w-4 ${showSaved ? "fill-primary-foreground" : ""}`} />
+        <span className="text-xs">Saved</span>
+      </Button>
+    </div>
   );
 
   return (
@@ -84,6 +97,8 @@ const CommunityPage = () => {
             communityRoles={communityRoles}
             premiumUsers={premiumUsers}
           />
+        ) : showFeedback ? (
+          <FeedbackBoard onBack={() => setShowFeedback(false)} roles={roles} />
         ) : showSaved ? (
           <SavedPosts
             channels={channels}
