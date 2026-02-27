@@ -39,6 +39,9 @@ const SYMPTOM_OPTIONS = [
 const GOAL_OPTIONS = [
   "Better sleep", "More energy", "Improved mobility", "Stable mood",
   "Sharper cognition", "Reduce pain", "Stay active", "Manage stress",
+  "Build strength", "Lose weight", "Eat healthier", "Drink more water",
+  "Reduce fatigue", "Improve balance", "Social connection", "Mindfulness",
+  "Track symptoms", "Medication adherence", "Fewer relapses", "Work productivity",
 ];
 
 const Section = ({
