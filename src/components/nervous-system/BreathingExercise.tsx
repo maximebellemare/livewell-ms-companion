@@ -96,9 +96,11 @@ const BreathingExercise = () => {
       if (totalElapsed === 0) {
         setCountdown(selectedPattern.phases[0].duration);
         setPhaseIndex(0);
+        sound.onStart();
+        sound.startAmbientLoop();
       }
     }
-  }, [isRunning, selectedPattern, finished, stop, totalElapsed]);
+  }, [isRunning, selectedPattern, finished, stop, totalElapsed, sound]);
 
   useEffect(() => {
     if (!isRunning) return;
