@@ -568,6 +568,7 @@ const ProfilePage = () => {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-3 mt-3">
         <div data-tour="profile-ms-details" className="card-base space-y-3">
+          <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
             <p className="text-sm font-medium text-foreground">Community Display Name</p>
           </div>
