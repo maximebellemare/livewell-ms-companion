@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import StepIndicator from "@/components/StepIndicator";
 import ListenButton from "@/components/ListenButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check, History, Trash2, Volume2 } from "lucide-react";
