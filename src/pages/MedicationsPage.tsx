@@ -49,6 +49,8 @@ const MedicationsPage = () => {
       supply_unit: editing.supply_unit || "pills",
       refill_date: editing.refill_date || null,
       pills_per_dose: editing.pills_per_dose || 1,
+      start_date: editing.start_date || null,
+      end_date: editing.end_date || null,
     });
     setShowForm(false);
     setEditing(null);
