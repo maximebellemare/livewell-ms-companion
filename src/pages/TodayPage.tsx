@@ -437,12 +437,6 @@ const TodayPage = () => {
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
-                {!localStorage.getItem("lp_unpin_used") && (
-                  <p className="text-xs text-muted-foreground text-center mt-0.5 animate-fade-in">Hold pill to unpin</p>
-                )}
-                {pinnedMetrics.length >= 2 && !localStorage.getItem("hint_drag_reorder_used") && (
-                  <p className="text-xs text-muted-foreground text-center mt-0.5 animate-fade-in">Drag ⠿ to reorder pills</p>
-                )}
               </StaggerItem>
             </motion.div>
           )}
@@ -518,10 +512,6 @@ const TodayPage = () => {
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-1.5 mt-1.5">
-        <div className="flex items-center justify-center gap-2 rounded-lg bg-primary/8 border border-primary/15 px-3 py-2">
-          <span className="text-xs">👇</span>
-          <p className="text-[11px] font-medium text-foreground/70">Tap a card below to log · Hold to see insights</p>
-        </div>
         <RiskScoreSummaryCard />
 
         {/* 7-day sparklines */}
@@ -740,18 +730,6 @@ const TodayPage = () => {
                   </button>
                 ))}
               </div>
-              {/* Guide */}
-              <div className="mt-3 rounded-lg bg-muted/50 px-3 py-2 space-y-0.5">
-                <p className="text-[11px] font-medium text-foreground">What counts as 1 glass?</p>
-                <p className="text-[10px] text-muted-foreground">1 glass = ~250 ml (8 oz) of water, tea, or sugar-free drink.</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {goal <= 6
-                    ? "💡 Recommended: 6–8 glasses/day. Increase if active or in warm weather."
-                    : goal <= 10
-                    ? "💡 Great goal! Stay consistent and sip throughout the day."
-                    : "💡 High goal — perfect if you're very active or managing heat sensitivity."}
-                </p>
-              </div>
             </div>
           );
         })()}
@@ -816,32 +794,24 @@ const TodayPage = () => {
                 {saveEntry.isPending ? "Saving…" : "Save"}
               </button>
             </div>
-            {/* Guide */}
-            <div className="mt-2.5 rounded-lg bg-muted/50 px-3 py-2 space-y-0.5">
-              <p className="text-[11px] font-medium text-foreground">How much sleep do I need?</p>
-              <p className="text-[10px] text-muted-foreground">Most adults need 7–9 hours. People with MS often benefit from closer to 8–9 hours.</p>
-              <p className="text-[10px] text-muted-foreground">
-                {!sleepHours
-                  ? "💡 Log your sleep to track patterns over time."
-                  : Number(sleepHours) < 6
-                  ? "⚠️ Under 6 hours can worsen fatigue, brain fog, and mood."
-                  : Number(sleepHours) <= 9
-                  ? "💡 Great range! Consistency matters more than a single night."
-                  : "💡 Oversleeping can also affect energy — aim for 7–9 hours."}
-              </p>
-            </div>
           </div>
         )}
 
-        <p className="text-[10px] text-muted-foreground text-center -mt-1.5">
-          Tap to log · hold to see insights
-        </p>
-
-        {/* 7. Monday recap + contextual cards */}
-        <StaggerItem><MondayRecapCard /></StaggerItem>
-        <StaggerItem><DiagnosisAnniversaryCard /></StaggerItem>
-        <StaggerItem><HeatAlertCard /></StaggerItem>
-        <StaggerItem><WeeklySummaryBanner /></StaggerItem>
+        {/* 7. Contextual cards */}
+        <StaggerItem>
+          <Collapsible>
+            <CollapsibleTrigger className="flex w-full items-center justify-between text-left group">
+              <p className="section-label pt-1">📋 Updates & Reminders</p>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3 mt-2">
+              <MondayRecapCard />
+              <DiagnosisAnniversaryCard />
+              <HeatAlertCard />
+              <WeeklySummaryBanner />
+            </CollapsibleContent>
+          </Collapsible>
+        </StaggerItem>
 
         {/* Section: Full Check-In — merged symptoms + mood/sleep/notes */}
         <StaggerItem>
@@ -872,119 +842,9 @@ const TodayPage = () => {
 
               <div className="card-base space-y-2">
                 <label className="block text-sm font-medium text-foreground">💤 Hours of sleep</label>
-                {/* Sleep goal editor */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] text-muted-foreground font-medium">Nightly goal:</span>
-                  {[4.5, 5, 6, 7, 7.5, 8, 9, 10].map((g) => (
-                    <button
-                      key={g}
-                      onClick={() => updateProfile.mutate({ sleep_goal: g } as any)}
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors border ${
-                        (profile?.sleep_goal ?? 8) === g
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-transparent text-muted-foreground border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {g}h
-                    </button>
-                  ))}
-                </div>
                 <input type="number" min={0} max={24} step={0.5} placeholder="e.g. 7.5" value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
-                <div className="rounded-lg bg-muted/50 px-3 py-2 space-y-0.5">
-                  <p className="text-[11px] font-medium text-foreground">How much sleep do I need?</p>
-                  <p className="text-[10px] text-muted-foreground">Most adults need 7–9 hours. People with MS often benefit from closer to 8–9 hours.</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {!sleepHours
-                      ? "💡 Log your sleep to track patterns over time."
-                      : Number(sleepHours) < 6
-                      ? "⚠️ Under 6 hours can worsen fatigue, brain fog, and mood."
-                      : Number(sleepHours) <= 9
-                      ? "💡 Great range! Consistency matters more than a single night."
-                      : "💡 Oversleeping can also affect energy — aim for 7–9 hours."}
-                  </p>
-                </div>
               </div>
 
-              {/* Hydration in full check-in */}
-              {(() => {
-                const goal = profile?.hydration_goal ?? 8;
-                const currentGlasses = todayEntry?.water_glasses ?? 0;
-                return (
-                  <div className="card-base space-y-3">
-                    <label className="block text-sm font-medium text-foreground">💧 Glasses of water</label>
-
-                    {/* Goal editor */}
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[11px] text-muted-foreground font-medium">Daily goal:</span>
-                      {[4, 6, 8, 10, 12].map((g) => (
-                        <button
-                          key={g}
-                          onClick={() => updateProfile.mutate({ hydration_goal: g } as any)}
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors border ${
-                            goal === g
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-transparent text-muted-foreground border-border hover:border-primary/50"
-                          }`}
-                        >
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={async () => {
-                          if (currentGlasses <= 0) return;
-                          const next = currentGlasses - 1;
-                          try {
-                            await saveEntry.mutateAsync({ ...entryPayload, water_glasses: next } as any);
-                            toast.success(`Water: ${next} glasses 💧`);
-                          } catch (err: any) { toast.error("Failed: " + err.message); }
-                        }}
-                        disabled={currentGlasses <= 0 || saveEntry.isPending}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-secondary-foreground transition-all active:scale-95 disabled:opacity-40"
-                      >−</button>
-                      <div className="text-center flex-1">
-                        <span className={`text-xl font-bold tabular-nums ${currentGlasses >= goal ? "text-primary" : "text-foreground"}`}>
-                          {currentGlasses}
-                        </span>
-                        <span className="text-sm text-muted-foreground"> / {goal}</span>
-                        {currentGlasses >= goal && <span className="ml-1 text-xs">🎉</span>}
-                      </div>
-                      <button
-                        onClick={async () => {
-                          if (currentGlasses >= 20) return;
-                          const next = currentGlasses + 1;
-                          try {
-                            await saveEntry.mutateAsync({ ...entryPayload, water_glasses: next } as any);
-                            if (next >= goal && (next - 1) < goal) {
-                              confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ["#38bdf8", "#06b6d4", "#22d3ee"] });
-                              toast.success("Hydration goal reached! 💧🎉");
-                            } else {
-                              toast.success(`Water: ${next} glasses 💧`);
-                            }
-                          } catch (err: any) { toast.error("Failed: " + err.message); }
-                        }}
-                        disabled={currentGlasses >= 20 || saveEntry.isPending}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all active:scale-95 disabled:opacity-40"
-                      >+</button>
-                    </div>
-
-                    {/* Guide */}
-                    <div className="rounded-lg bg-muted/50 px-3 py-2 space-y-0.5">
-                      <p className="text-[11px] font-medium text-foreground">What counts as 1 glass?</p>
-                      <p className="text-[10px] text-muted-foreground">1 glass = ~250 ml (8 oz) of water, tea, or sugar-free drink.</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {goal <= 6
-                          ? "💡 Recommended: 6–8 glasses/day. Increase if active or in warm weather."
-                          : goal <= 10
-                          ? "💡 Great goal! Stay consistent and sip throughout the day."
-                          : "💡 High goal — perfect if you're very active or managing heat sensitivity."}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })()}
 
 
             </CollapsibleContent>

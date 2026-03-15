@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from "react";
 import SEOHead from "@/components/SEOHead";
 import { ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import SymptomHeatmap from "@/components/SymptomHeatmap";
 import HeatmapWithSummary from "@/components/HeatmapWithSummary";
@@ -764,9 +765,15 @@ const InsightsPage = () => {
             </div>
 
             {/* ── Per-symptom sparkline cards ── */}
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              By symptom
-            </p>
+            <StaggerItem>
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between text-left group py-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  By symptom
+                </p>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 mt-2">
             <div className="grid grid-cols-1 gap-3">
               {SYMPTOMS.map(({ key, label, emoji }) => {
                 const isSleep = key === "sleep_hours";
@@ -840,7 +847,6 @@ const InsightsPage = () => {
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
-                    {/* Mini stats */}
                     <div className="mt-2 flex gap-4 text-[10px] text-muted-foreground">
                       <span>Min: <strong className="text-foreground">{minVal !== null ? minVal.toFixed(1) : "—"}</strong></span>
                       <span>Max: <strong className="text-foreground">{maxVal !== null ? maxVal.toFixed(1) : "—"}</strong></span>
@@ -850,6 +856,9 @@ const InsightsPage = () => {
                 );
               })}
             </div>
+              </CollapsibleContent>
+            </Collapsible>
+            </StaggerItem>
 
             {/* ── Sleep vs Fatigue Correlation ── */}
             {sleepFatiguePairs.length >= 3 && (
@@ -961,23 +970,24 @@ const InsightsPage = () => {
             {/* ── Hydration Summary ── */}
             <HydrationSummaryCard entries={allEntries} range={range} />
 
-            {/* ── Symptom Correlation Matrix ── */}
+            {/* ── Medication & Relapse Deep Dive ── */}
+            <StaggerItem>
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between text-left group py-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Medication & Relapses
+                </p>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 mt-2">
             <SymptomCorrelationMatrix entries={allEntries} />
-
-            {/* ── Grounding Sessions ── */}
             <GroundingSessionsChart />
-
-            {/* ── Medication Adherence ── */}
             <MedicationAdherenceChart range={range} />
             <MedicationStreakCounter />
-
-            {/* ── Relapse Risk Indicator ── */}
             <div data-tour="insights-risk">
               <RelapseRiskIndicator />
             </div>
             <ContactNeurologistCard />
-
-            {/* ── Relapse Timeline ── */}
             <RelapseTimeline />
             <RelapseTrendCard />
             <RelapseFreeStreak />
@@ -990,6 +1000,9 @@ const InsightsPage = () => {
             <RelapseNotesTimeline />
             <RelapseYearComparison />
             <RelapseFrequencyTrend />
+              </CollapsibleContent>
+            </Collapsible>
+            </StaggerItem>
 
             {/* ── Mood Tags Breakdown ── */}
             {(() => {
