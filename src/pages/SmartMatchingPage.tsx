@@ -311,7 +311,7 @@ const SmartMatchingPage = () => {
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="Say hello! Introduce yourself…"
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="w-full rounded-lg border border-border bg-background text-foreground px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
             rows={3}
             maxLength={500}
             autoFocus
