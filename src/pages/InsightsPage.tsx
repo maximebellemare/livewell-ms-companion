@@ -45,7 +45,7 @@ import PullToRefresh from "@/components/PullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
 import { InsightsSkeleton } from "@/components/PageSkeleton";
 import { useNavigate, useLocation } from "react-router-dom";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, BarChart3, PenLine } from "lucide-react";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SPARKLINE_CONFIGS, makeSleepConfig, makeHydrationConfig } from "@/components/sparkline/configs";
 
