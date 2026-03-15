@@ -375,7 +375,7 @@ const TrackPage = () => {
             />
             <div data-tour="track-list-entries" className="space-y-3 animate-fade-in">
               {entries.map((entry, idx) => (
-                <div key={entry.id} className="rounded-xl bg-card p-4 shadow-soft" {...(idx === 0 ? { "data-tour": "track-list-badge" } : {})}>
+                <div key={entry.id} className="rounded-2xl border border-border/50 bg-card p-5 shadow-soft" {...(idx === 0 ? { "data-tour": "track-list-badge" } : {})}>
                   <div className="mb-2 flex items-center justify-between">
                     <p className="text-xs font-medium text-muted-foreground">
                       {format(parseISO(entry.date), "EEEE, MMM d")}

@@ -305,7 +305,7 @@ const RelapseCard = ({
     : differenceInDays(new Date(), parseISO(relapse.start_date));
 
   return (
-    <div className="rounded-xl bg-card p-4 shadow-soft space-y-3 animate-fade-in">
+    <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-soft space-y-3 animate-fade-in">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <Zap className={`h-4 w-4 ${severityInfo.color}`} />
