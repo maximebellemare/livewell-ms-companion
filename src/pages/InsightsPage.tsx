@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from "react";
 import SEOHead from "@/components/SEOHead";
 import { ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import SymptomHeatmap from "@/components/SymptomHeatmap";
 import HeatmapWithSummary from "@/components/HeatmapWithSummary";
