@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, ChevronRight, Check, Zap, ZapOff, Vibrate, Volume2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import ListenButton from "@/components/ListenButton";
 import { Switch } from "@/components/ui/switch";
 
 // Web Audio API tone generator for phase transition cues
