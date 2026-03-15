@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { ArrowLeft, Send } from "lucide-react";
+import VoiceMicButton from "@/components/journal/VoiceMicButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversationMessages, useSendMessage, Conversation } from "@/hooks/useMessages";
 
