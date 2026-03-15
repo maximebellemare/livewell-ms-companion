@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
+import ListenButton from "@/components/ListenButton";
 import { playCompletionChime } from "./useCompletionSound";
 
 type BreathingPattern = {
@@ -159,7 +160,13 @@ const BreathingExercise = () => {
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground leading-relaxed">{selectedPattern.description}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground leading-relaxed flex-1">{selectedPattern.description}</p>
+        <ListenButton
+          text={`${selectedPattern.name}. ${selectedPattern.description}. The phases are: ${selectedPattern.phases.map(p => `${p.label}: ${p.instruction}, for ${p.duration} seconds`).join(". ")}.`}
+          label="Listen"
+        />
+      </div>
 
       {/* Duration selector */}
       <div className="space-y-2">

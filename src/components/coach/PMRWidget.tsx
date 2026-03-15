@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, ChevronRight, Check, Zap, ZapOff, Vibrate, Volume2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import ListenButton from "@/components/ListenButton";
 import { Switch } from "@/components/ui/switch";
 
 // Web Audio API tone generator for phase transition cues
@@ -203,7 +204,13 @@ const PMRWidget = () => {
     return (
       <div className="flex flex-col items-center gap-3 py-4">
         <p className="text-sm font-semibold text-foreground">Choose Muscle Groups</p>
-        <p className="text-[11px] text-muted-foreground">Select the areas you'd like to focus on</p>
+        <div className="flex items-center gap-2">
+          <p className="text-[11px] text-muted-foreground">Select the areas you'd like to focus on</p>
+          <ListenButton
+            text={`Progressive Muscle Relaxation. Select the muscle groups you want to focus on: ${ALL_MUSCLE_GROUPS.map(g => `${g.name}: ${g.instruction}`).join(". ")}. For each group, you will tense the muscles, then release and relax.`}
+            label="Listen"
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-2 w-full max-w-[280px] mt-1">
           {ALL_MUSCLE_GROUPS.map((g, i) => (
