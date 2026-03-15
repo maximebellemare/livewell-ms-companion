@@ -404,7 +404,7 @@ const JournalPage = () => {
               ))}
             </div>
             {!localStorage.getItem("hint_journal_swipe_used") && (
-              <p className="text-[10px] text-muted-foreground/50 text-center mt-2 animate-fade-in">
+              <p className="text-xs text-muted-foreground text-center mt-2 animate-fade-in">
                 Swipe an entry to edit or delete it
               </p>
             )}

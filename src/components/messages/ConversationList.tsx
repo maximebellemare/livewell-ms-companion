@@ -12,9 +12,9 @@ const ConversationList = ({ conversations, selectedId, onSelect }: Props) => {
   if (conversations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-        <MessageSquare className="h-10 w-10 text-muted-foreground/40 mb-3" />
+        <MessageSquare className="h-10 w-10 text-muted-foreground mb-3" />
         <p className="text-sm font-medium text-muted-foreground">No messages yet</p>
-        <p className="text-xs text-muted-foreground/70 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Start a conversation from someone's profile in the Community.
         </p>
       </div>
@@ -48,7 +48,7 @@ const ConversationList = ({ conversations, selectedId, onSelect }: Props) => {
               <p className={`text-sm font-medium truncate ${c.unread_count ? "text-foreground" : "text-foreground/80"}`}>
                 {c.other_display_name}
               </p>
-              <span className="text-[10px] text-muted-foreground shrink-0">
+              <span className="text-xs text-muted-foreground shrink-0">
                 {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: false })}
               </span>
             </div>
@@ -57,7 +57,7 @@ const ConversationList = ({ conversations, selectedId, onSelect }: Props) => {
                 {c.last_message_body || "No messages yet"}
               </p>
               {!!c.unread_count && c.unread_count > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shrink-0">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shrink-0">
                   {c.unread_count > 9 ? "9+" : c.unread_count}
                 </span>
               )}

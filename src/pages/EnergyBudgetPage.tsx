@@ -416,7 +416,7 @@ const EnergyBudgetPage = () => {
               </span>
             ))}
           </div>
-          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Each spoon = a unit of energy. Activities cost spoons — when they're gone, it's time to rest.
           </p>
 
@@ -602,7 +602,7 @@ const EnergyBudgetPage = () => {
                 ))}
                 {activities.length > 0 && !swipeHintDismissed && (
                   <p
-                    className="mt-1 text-center text-[11px] text-muted-foreground/60 animate-fade-in cursor-pointer select-none"
+                    className="mt-1 text-center text-xs text-muted-foreground animate-fade-in cursor-pointer select-none"
                     onClick={() => {
                       localStorage.setItem("hint_energy_swipe_used", "1");
                       setSwipeHintDismissed(true);

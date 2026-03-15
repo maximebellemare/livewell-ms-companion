@@ -72,7 +72,7 @@ const MindfulnessTimer = () => {
         </p>
         <div className="rounded-xl bg-secondary/60 p-3 space-y-1.5">
           <p className="text-xs font-medium text-foreground">How to practice:</p>
-          <ol className="text-[11px] text-muted-foreground space-y-1 list-decimal list-inside leading-relaxed">
+          <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside leading-relaxed">
             <li>Find a comfortable position — sitting or lying down</li>
             <li>Close your eyes and take three slow, deep breaths</li>
             <li>Let your breathing return to its natural rhythm</li>
@@ -154,7 +154,7 @@ const MindfulnessTimer = () => {
                   <p className="text-4xl font-bold tabular-nums text-foreground tracking-tight">
                     {String(displayMin).padStart(2, "0")}:{String(displaySec).padStart(2, "0")}
                   </p>
-                  <p className="text-[11px] text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {running ? "Focus on your breath…" : "Press play to begin"}
                   </p>
                 </motion.div>

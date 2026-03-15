@@ -109,7 +109,7 @@ const BodyScanWidget = () => {
         </div>
         <div>
           <p className="text-sm font-medium text-foreground">Body Scan Meditation</p>
-          <p className="text-[11px] text-muted-foreground">{BODY_REGIONS.length} regions · ~{Math.round(totalDuration / 60)} min</p>
+          <p className="text-xs text-muted-foreground">{BODY_REGIONS.length} regions · ~{Math.round(totalDuration / 60)} min</p>
         </div>
       </div>
 
@@ -142,7 +142,7 @@ const BodyScanWidget = () => {
 
             {/* Region timer */}
             <Progress value={pct} className="h-2" />
-            <p className="text-[11px] text-muted-foreground text-center">{region.duration - elapsed}s remaining</p>
+            <p className="text-xs text-muted-foreground text-center">{region.duration - elapsed}s remaining</p>
 
             {/* Controls */}
             <div className="flex justify-center gap-3">
@@ -162,7 +162,7 @@ const BodyScanWidget = () => {
             </div>
 
             {/* Overall progress */}
-            <p className="text-[10px] text-muted-foreground/60 text-center">{Math.round(overallProgress)}% complete</p>
+            <p className="text-xs text-muted-foreground text-center">{Math.round(overallProgress)}% complete</p>
           </motion.div>
         )}
 

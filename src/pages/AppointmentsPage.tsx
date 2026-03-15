@@ -303,7 +303,7 @@ const AppointmentsPage = () => {
                 />
                 {idx === 0 && isMobile && !swipeHintDismissed && (
                   <p
-                    className="mt-1.5 text-center text-[11px] text-muted-foreground/60 animate-fade-in cursor-pointer select-none"
+                    className="mt-1.5 text-center text-xs text-muted-foreground animate-fade-in cursor-pointer select-none"
                     onClick={() => {
                       localStorage.setItem("hint_appt_swipe_used", "1");
                       setSwipeHintDismissed(true);
