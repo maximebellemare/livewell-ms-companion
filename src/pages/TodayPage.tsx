@@ -249,7 +249,7 @@ const TodayPage = () => {
 
   // Shared entry payload — always reflects the latest field values
   const entryPayload = useMemo(() => ({
-    date: new Date().toISOString().split("T")[0],
+    date: format(new Date(), "yyyy-MM-dd"),
     fatigue,
     pain,
     brain_fog: brainFog,
