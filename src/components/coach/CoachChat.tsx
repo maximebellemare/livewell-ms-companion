@@ -533,6 +533,7 @@ const CoachChat = ({ mode, resumeSessionId, initialMessage }: CoachChatProps) =>
       {/* Input */}
       <div className="border-t border-border bg-card px-4 py-3">
         <div className="flex items-end gap-2">
+          <VoiceMicButton onTranscript={(t) => setInput((prev) => (prev ? prev + " " : "") + t)} />
           <textarea
             ref={inputRef}
             value={input}

@@ -93,6 +93,7 @@ const MessageThread = ({ conversation, onBack }: Props) => {
       {/* Input */}
       <div className="border-t border-border px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
+          <VoiceMicButton onTranscript={(t) => setNewMessage((prev) => (prev ? prev + " " : "") + t)} />
           <input
             ref={inputRef}
             type="text"

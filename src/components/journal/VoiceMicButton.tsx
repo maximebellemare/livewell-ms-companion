@@ -62,17 +62,18 @@ const VoiceMicButton = ({ onTranscript }: Props) => {
   return (
     <button
       onClick={listening ? stop : start}
-      className={`inline-flex items-center justify-center rounded-lg p-1.5 transition-all active:scale-95 ${
+      className={`inline-flex items-center justify-center rounded-lg p-2 transition-all active:scale-95 ${
         listening
           ? "bg-destructive/15 text-destructive"
           : "bg-primary/10 text-primary hover:bg-primary/20"
       }`}
       title={listening ? "Stop recording" : "Voice input"}
+      aria-label={listening ? "Stop recording" : "Start voice input"}
     >
       {listening ? (
-        <Square className="h-3.5 w-3.5 animate-pulse" />
+        <Square className="h-4 w-4 animate-pulse" />
       ) : (
-        <Mic className="h-3.5 w-3.5" />
+        <Mic className="h-4 w-4" />
       )}
     </button>
   );

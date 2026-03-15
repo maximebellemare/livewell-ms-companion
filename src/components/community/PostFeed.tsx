@@ -176,14 +176,20 @@ export const PostFeed = ({
           ) : (
             <div className="rounded-xl bg-card p-4 shadow-soft mb-4 space-y-3">
               <div>
-                <Input placeholder="Post title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} />
-                <p className={`text-[10px] mt-1 text-right ${title.length > 180 ? "text-destructive" : "text-muted-foreground"}`}>{title.length}/200</p>
+                <div className="flex items-center gap-2">
+                  <Input placeholder="Post title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} className="flex-1" />
+                  <VoiceMicButton onTranscript={(t) => setTitle((prev) => (prev ? prev + " " : "") + t)} />
+                </div>
+                <p className={`text-xs mt-1 text-right ${title.length > 180 ? "text-destructive" : "text-muted-foreground"}`}>{title.length}/200</p>
               </div>
               <div>
-                <Textarea placeholder="What's on your mind?" value={body} onChange={(e) => setBody(e.target.value)} rows={4} maxLength={5000} />
-                <p className={`text-[10px] mt-1 text-right ${body.length > 4500 ? "text-destructive" : "text-muted-foreground"}`}>{body.length}/5000</p>
+                <div className="flex items-start gap-2">
+                  <Textarea placeholder="What's on your mind?" value={body} onChange={(e) => setBody(e.target.value)} rows={4} maxLength={5000} className="flex-1" />
+                  <VoiceMicButton onTranscript={(t) => setBody((prev) => (prev ? prev + " " : "") + t)} />
+                </div>
+                <p className={`text-xs mt-1 text-right ${body.length > 4500 ? "text-destructive" : "text-muted-foreground"}`}>{body.length}/5000</p>
               </div>
-              <p className="text-[10px] text-muted-foreground">Posting as: <strong>{displayName}</strong></p>
+              <p className="text-xs text-muted-foreground">Posting as: <strong>{displayName}</strong></p>
               <div className="flex gap-2">
                 <Button onClick={handleSubmit} disabled={createPost.isPending || !title.trim() || !body.trim()} size="sm">
                   {createPost.isPending ? "Posting…" : "Post"}
