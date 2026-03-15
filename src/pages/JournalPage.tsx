@@ -7,7 +7,7 @@ import confetti from "canvas-confetti";
 import PageHeader from "@/components/PageHeader";
 import { useEntries, useSaveEntry, DailyEntry } from "@/hooks/useEntries";
 import { JournalEditorSkeleton } from "@/components/PageSkeleton";
-import { PenLine, ChevronDown, ChevronUp, CheckCircle2, X, Trash2 } from "lucide-react";
+import { PenLine, ChevronDown, ChevronUp, CheckCircle2, X, Trash2, Clock, BookOpen } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
