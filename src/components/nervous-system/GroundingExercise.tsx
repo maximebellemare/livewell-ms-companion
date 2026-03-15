@@ -113,7 +113,7 @@ const GroundingExercise = () => {
     } else {
       vibrate([10, 40, 10, 40, 10]);
       setStep(senses.length);
-      playCompletionChime();
+      sound.onEnd();
       narration.speak("Well done. You're grounded.");
       confetti({
         particleCount: 80,
