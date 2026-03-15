@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import ListenButton from "@/components/ListenButton";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check, History, Trash2 } from "lucide-react";
+import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check, History, Trash2, Volume2 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { playCompletionChime } from "./useCompletionSound";
+import { useVoiceNarration } from "./useVoiceNarration";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroundingStreak } from "@/hooks/useGroundingStreak";
