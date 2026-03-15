@@ -289,10 +289,19 @@ const LearnPage = () => {
 
         {/* Empty state */}
         {!isLoading && filtered.length === 0 && (
-          <div className="py-12 text-center">
-            <Bookmark className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">
-              {showBookmarked ? "No saved articles yet" : showUnread ? "You've read all the articles!" : "No articles in this category"}
+          <div className="rounded-2xl bg-card border border-border shadow-soft px-6 py-10 text-center space-y-3 animate-fade-in">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/50">
+              <Bookmark className="h-7 w-7 text-primary" />
+            </div>
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {showBookmarked ? "No saved articles yet" : showUnread ? "All caught up!" : "Nothing here yet"}
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              {showBookmarked
+                ? "Tap the bookmark icon on any article to save it for later."
+                : showUnread
+                ? "You've read everything available — nicely done! Check back soon for new content."
+                : "New articles will appear here as they're published."}
             </p>
           </div>
         )}

@@ -278,8 +278,8 @@ const InsightsPage = () => {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/50">
               <BarChart3 className="h-8 w-8 text-primary" />
             </div>
-            <p className="font-display text-lg font-medium text-foreground">Not enough data yet</p>
-            <p className="text-sm text-muted-foreground">Log at least 2 days to see your trends.</p>
+            <h3 className="font-display text-base font-semibold text-foreground">Not enough data yet</h3>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">Log at least 2 days and your trends, patterns, and insights will start to appear here.</p>
             <button
               onClick={() => navigate("/today")}
               className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
