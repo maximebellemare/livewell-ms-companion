@@ -11,6 +11,7 @@
     --primary-foreground: 0 0% 100%;
 
     --background: 30 20% 98%;
+    --background-end: 0 0% 100%;
     --foreground: 0 0% 7%;
 
     --card: 0 0% 100%;
@@ -62,7 +63,8 @@
   }
 
   .dark {
-    --background: 0 0% 7%;
+    --background: 222 47% 7%;
+    --background-end: 221 39% 11%;
     --foreground: 30 10% 93%;
     --card: 0 0% 10%;
     --card-foreground: 30 10% 93%;
@@ -104,12 +106,18 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--background)) 0%,
+      hsl(var(--background-end)) 100%
+    );
+    background-attachment: fixed;
     font-family: 'DM Sans', sans-serif;
     font-size: 16px;
     line-height: 1.65;
     letter-spacing: -0.01em;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease;
   }
   h1, h2, h3 {
     font-family: 'Playfair Display', serif;
