@@ -50,6 +50,11 @@ const MindfulnessTimer = () => {
 
   const toggleRunning = () => {
     if (finished) { reset(); return; }
+    if (!running && secondsLeft === selectedMinutes * 60) {
+      // Fresh start
+      sound.onStart();
+      sound.startAmbientLoop();
+    }
     setRunning((r) => !r);
   };
 
