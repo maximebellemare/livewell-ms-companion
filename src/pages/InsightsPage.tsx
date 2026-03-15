@@ -274,14 +274,17 @@ const InsightsPage = () => {
         {isLoading ? (
           <InsightsSkeleton />
         ) : !hasData ? (
-          <div className="py-16 text-center animate-fade-in">
-            <span className="text-4xl">📈</span>
-            <p className="mt-3 font-display text-lg font-medium text-foreground">Not enough data yet</p>
-            <p className="mt-1 text-sm text-muted-foreground">Log at least 2 days to see your trends.</p>
+          <div className="py-16 text-center animate-fade-in space-y-3">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/50">
+              <BarChart3 className="h-8 w-8 text-primary" />
+            </div>
+            <p className="font-display text-lg font-medium text-foreground">Not enough data yet</p>
+            <p className="text-sm text-muted-foreground">Log at least 2 days to see your trends.</p>
             <button
               onClick={() => navigate("/today")}
-              className="mt-4 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
             >
+              <PenLine className="h-3.5 w-3.5" />
               Log today
             </button>
           </div>
