@@ -847,7 +847,7 @@ const TodayPage = () => {
             <CollapsibleTrigger className="flex w-full items-center justify-between card-base text-left group">
               <p className="section-label">✏️ Full Check-In</p>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] text-muted-foreground/50 bg-muted rounded-full px-2 py-0.5">
+                <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
                   Slide to rate
                 </span>
                 <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
