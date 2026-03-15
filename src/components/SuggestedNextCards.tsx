@@ -5,6 +5,17 @@ import { useTodayEntry } from "@/hooks/useEntries";
 import { useDbMedications, useDbMedicationLogs } from "@/hooks/useMedications";
 import { useTodayBudget } from "@/hooks/useEnergyBudget";
 import { format } from "date-fns";
+import { PenLine, Pill, Droplets, Battery, Tag, BookOpen, Puzzle, ChevronRight } from "lucide-react";
+
+const SUGGESTION_ICONS: Record<string, React.ElementType> = {
+  "log-symptoms": PenLine,
+  "take-meds": Pill,
+  "hydration": Droplets,
+  "energy-budget": Battery,
+  "mood-tags": Tag,
+  "journal": BookOpen,
+  "cognitive": Puzzle,
+};
 
 interface Suggestion {
   id: string;
