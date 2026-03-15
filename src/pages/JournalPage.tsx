@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useCallback } from "react";
+import VoiceMicButton from "@/components/journal/VoiceMicButton";
 import SEOHead from "@/components/SEOHead";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import { format, isToday, isYesterday, startOfWeek, addDays, isFuture } from "date-fns";
@@ -134,7 +135,10 @@ const EditorCard = ({ date, entry, recentEntries = [], onFirstReflection }: Edit
             className="w-full resize-none rounded-xl bg-secondary/60 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
           />
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-muted-foreground">{text.length}/2000</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{text.length}/2000</span>
+              <VoiceMicButton onTranscript={(t) => { setText((prev) => (prev ? prev + " " : "") + t); setSaved(false); }} />
+            </div>
             <button
               onClick={handleSave}
               disabled={!isDirty || saveEntry.isPending}

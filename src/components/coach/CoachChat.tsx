@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Send, BarChart3, Heart, Calendar, HelpCircle, ChevronDown, ThumbsUp, ThumbsDown } from "lucide-react";
+import VoiceMicButton from "@/components/journal/VoiceMicButton";
 import UpgradeNudge from "@/components/premium/UpgradeNudge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCoach, type CoachMode } from "@/hooks/useCoach";
@@ -532,6 +533,7 @@ const CoachChat = ({ mode, resumeSessionId, initialMessage }: CoachChatProps) =>
       {/* Input */}
       <div className="border-t border-border bg-card px-4 py-3">
         <div className="flex items-end gap-2">
+          <VoiceMicButton onTranscript={(t) => setInput((prev) => (prev ? prev + " " : "") + t)} />
           <textarea
             ref={inputRef}
             value={input}

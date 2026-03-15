@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { ArrowLeft, Send } from "lucide-react";
+import VoiceMicButton from "@/components/journal/VoiceMicButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useConversationMessages, useSendMessage, Conversation } from "@/hooks/useMessages";
 
@@ -92,6 +93,7 @@ const MessageThread = ({ conversation, onBack }: Props) => {
       {/* Input */}
       <div className="border-t border-border px-4 py-3 shrink-0">
         <div className="flex items-center gap-2">
+          <VoiceMicButton onTranscript={(t) => setNewMessage((prev) => (prev ? prev + " " : "") + t)} />
           <input
             ref={inputRef}
             type="text"
