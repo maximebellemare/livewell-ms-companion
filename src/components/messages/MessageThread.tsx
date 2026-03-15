@@ -78,7 +78,7 @@ const MessageThread = ({ conversation, onBack }: Props) => {
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.body}</p>
-                    <p className={`text-[9px] mt-1 ${isMine ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                    <p className={`text-xs mt-1 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                       {format(new Date(msg.created_at), "h:mm a")}
                     </p>
                   </div>

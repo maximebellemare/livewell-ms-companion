@@ -162,7 +162,7 @@ const BodyScanWidget = () => {
             </div>
 
             {/* Overall progress */}
-            <p className="text-[10px] text-muted-foreground/60 text-center">{Math.round(overallProgress)}% complete</p>
+            <p className="text-xs text-muted-foreground text-center">{Math.round(overallProgress)}% complete</p>
           </motion.div>
         )}
 

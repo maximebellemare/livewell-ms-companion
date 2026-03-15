@@ -343,7 +343,7 @@ const InsightsPage = () => {
             </div>
             </StaggerItem>
             {!localStorage.getItem("hint_insights_stat_tap_used") && (
-              <p className="text-[10px] text-muted-foreground/50 text-center -mt-1 animate-fade-in">
+              <p className="text-xs text-muted-foreground text-center -mt-1 animate-fade-in">
                 Tap a stat card to isolate that symptom on the chart
               </p>
             )}

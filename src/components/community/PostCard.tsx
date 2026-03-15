@@ -52,7 +52,7 @@ export const PostCard = ({
           {isPremiumUser && <PremiumBadge />}
           {userRoles && <RoleBadge roles={userRoles} />}
         </div>
-        <p className="text-[10px] text-muted-foreground">{timeAgo(post.created_at)}</p>
+        <p className="text-xs text-muted-foreground">{timeAgo(post.created_at)}</p>
       </div>
       <button onClick={onClick} className="text-left w-full mt-1.5">
         <p className="text-sm font-semibold text-foreground">{post.title}</p>

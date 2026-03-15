@@ -57,7 +57,7 @@ const ConversationList = ({ conversations, selectedId, onSelect }: Props) => {
                 {c.last_message_body || "No messages yet"}
               </p>
               {!!c.unread_count && c.unread_count > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shrink-0">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shrink-0">
                   {c.unread_count > 9 ? "9+" : c.unread_count}
                 </span>
               )}
