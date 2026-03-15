@@ -17,6 +17,8 @@ export interface DbMedication {
   supply_unit: string | null;
   refill_date: string | null;
   pills_per_dose: number | null;
+  start_date: string | null;
+  end_date: string | null;
   created_at: string;
   updated_at: string;
 }
