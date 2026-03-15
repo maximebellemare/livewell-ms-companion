@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useCallback } from "react";
+import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import VoiceMicButton from "@/components/journal/VoiceMicButton";
 import SEOHead from "@/components/SEOHead";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
