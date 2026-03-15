@@ -63,6 +63,7 @@ const PMRWidget = () => {
   const [running, setRunning] = useState(false);
   const [completed, setCompleted] = useState<boolean[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const narration = useVoiceNarration();
 
   const currentGroup = activeGroups[groupIdx];
   const totalCompleted = completed.filter(Boolean).length;
