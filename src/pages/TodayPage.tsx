@@ -293,7 +293,7 @@ const TodayPage = () => {
       }
       setLogged(true);
     } catch (err: any) {
-      toast.error("Failed to save entry: " + err.message);
+      toast.error("Something didn't work. Please try again in a moment.");
     }
   };
 
