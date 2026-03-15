@@ -13,6 +13,8 @@ import MedicationStats from "@/components/medications/MedicationStats";
 import SideEffectsTracker from "@/components/medications/SideEffectsTracker";
 import RefillAlert from "@/components/medications/RefillAlert";
 import DrugInteractionWarnings from "@/components/medications/DrugInteractionWarnings";
+import MedicationTimeline from "@/components/medications/MedicationTimeline";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
