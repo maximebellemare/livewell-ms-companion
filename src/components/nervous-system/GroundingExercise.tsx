@@ -258,8 +258,11 @@ const GroundingExercise = () => {
             </div>
           )}
           <div className="flex flex-col gap-2">
-            <button
-              onClick={() => setStarted(true)}
+           <button
+              onClick={() => {
+                setStarted(true);
+                narration.speak(`Name ${senses[0].count} ${senses[0].sense}`);
+              }}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98]"
             >
               Begin Exercise
