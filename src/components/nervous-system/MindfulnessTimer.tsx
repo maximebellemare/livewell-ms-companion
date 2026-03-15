@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Play, Pause, RotateCcw, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { playCompletionChime } from "./useCompletionSound";
+import { useSoundCues } from "./useSoundCues";
+import SoundCueControls from "./SoundCueControls";
 
 const DURATIONS = [3, 5, 10, 15, 20] as const;
 
