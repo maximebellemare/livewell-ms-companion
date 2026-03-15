@@ -5,6 +5,8 @@ import ListenButton from "@/components/ListenButton";
 import { Switch } from "@/components/ui/switch";
 import { playCompletionChime } from "./useCompletionSound";
 import { useVoiceNarration } from "./useVoiceNarration";
+import { useSoundCues } from "./useSoundCues";
+import SoundCueControls from "./SoundCueControls";
 
 type BreathingPattern = {
   id: string;
