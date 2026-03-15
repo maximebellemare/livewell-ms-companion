@@ -302,6 +302,7 @@ const PMRWidget = () => {
           </div>
         )}
 
+        <button
           onClick={confirmSelection}
           disabled={selectedCount === 0}
           className="mt-2 flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground disabled:opacity-40 active:scale-95 transition-all"
