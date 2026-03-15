@@ -33,8 +33,8 @@ const PageHeader = ({ title, subtitle, action, showBack = false }: PageHeaderPro
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <h1 className="font-display text-xl font-semibold tracking-tight text-foreground">{title}</h1>
-            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+            <h1 className="font-display text-[22px] font-semibold tracking-tight text-foreground">{title}</h1>
+            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
           </motion.div>
         </div>
         <div className="flex items-center gap-1">

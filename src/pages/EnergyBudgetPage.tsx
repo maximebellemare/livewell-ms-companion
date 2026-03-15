@@ -416,7 +416,7 @@ const EnergyBudgetPage = () => {
               </span>
             ))}
           </div>
-          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Each spoon = a unit of energy. Activities cost spoons — when they're gone, it's time to rest.
           </p>
 
