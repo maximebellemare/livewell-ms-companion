@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
+import ListenButton from "@/components/ListenButton";
 import { playCompletionChime } from "./useCompletionSound";
 
 type BreathingPattern = {
