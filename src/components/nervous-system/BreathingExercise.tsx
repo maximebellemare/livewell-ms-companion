@@ -240,7 +240,7 @@ const BreathingExercise = () => {
                 >
                   <p className="text-4xl font-bold text-foreground tabular-nums">{countdown}</p>
                   <p className="mt-1 text-sm font-semibold text-primary">{currentPhase.label}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">{currentPhase.instruction}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{currentPhase.instruction}</p>
                   <p className="mt-2 text-xs text-muted-foreground tabular-nums">
                     {String(displayMin).padStart(2, "0")}:{String(displaySec).padStart(2, "0")}
                   </p>
