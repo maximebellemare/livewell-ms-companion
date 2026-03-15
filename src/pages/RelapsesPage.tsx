@@ -186,7 +186,7 @@ const RelapseForm = ({
   };
 
   return (
-    <div className="rounded-xl bg-card p-4 shadow-soft space-y-4 animate-fade-in">
+    <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-soft space-y-4 animate-fade-in">
       <div className="grid grid-cols-2 gap-3">
         <DatePickerField label="Start Date *" date={startDate} onChange={setStartDate} />
         <DatePickerField
