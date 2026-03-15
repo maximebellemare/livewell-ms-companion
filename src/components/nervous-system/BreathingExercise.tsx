@@ -128,6 +128,20 @@ const BreathingExercise = () => {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [isRunning, selectedPattern.phases.length, totalSeconds]);
 
+  // Announce phase changes via voice narration
+  useEffect(() => {
+    if (isRunning && currentPhase) {
+      narration.speak(currentPhase.instruction);
+    }
+  }, [phaseIndex, isRunning, cycleCount]);
+
+  // Announce completion
+  useEffect(() => {
+    if (finished) {
+      narration.speak("Well done. Exercise complete.");
+    }
+  }, [finished]);
+
   // Set countdown when phase changes
   useEffect(() => {
     if (isRunning) {
