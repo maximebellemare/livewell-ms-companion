@@ -81,6 +81,7 @@ const EditorCard = ({ date, entry, recentEntries = [], onFirstReflection }: Edit
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    hapticLight();
     toast.success("Journal entry saved 🧡");
     if (isFirstNote) onFirstReflection?.();
   };
