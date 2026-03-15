@@ -140,26 +140,29 @@ const SuggestedNextCards = () => {
     <div className="space-y-1.5">
       <p className="section-label">💡 Suggested Next</p>
       <AnimatePresence mode="popLayout">
-        {suggestions.map((s, i) => (
-          <motion.button
-            key={s.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ delay: i * 0.05, duration: 0.2 }}
-            onClick={s.action}
-            className="flex w-full items-center gap-3 card-base text-left transition-colors hover:bg-secondary/50 active:scale-[0.98]"
-          >
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent text-lg">
-              {s.emoji}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground">{s.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{s.subtitle}</p>
-            </div>
-            <span className="text-xs text-primary font-medium">→</span>
-          </motion.button>
-        ))}
+        {suggestions.map((s, i) => {
+          const Icon = SUGGESTION_ICONS[s.id];
+          return (
+            <motion.button
+              key={s.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ delay: i * 0.05, duration: 0.2 }}
+              onClick={s.action}
+              className="flex w-full items-center gap-3 card-base text-left transition-colors hover:bg-secondary/50 active:scale-[0.98]"
+            >
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent">
+                {Icon ? <Icon className="h-4.5 w-4.5 text-primary" /> : <span className="text-lg">{s.emoji}</span>}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">{s.title}</p>
+                <p className="text-xs text-muted-foreground truncate">{s.subtitle}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            </motion.button>
+          );
+        })}
       </AnimatePresence>
     </div>
   );
