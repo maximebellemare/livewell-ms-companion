@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, SkipForward, RotateCcw, Eye, Volume2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import StepIndicator from "@/components/StepIndicator";
 import { Switch } from "@/components/ui/switch";
 import { useVoiceNarration } from "@/components/nervous-system/useVoiceNarration";
 
