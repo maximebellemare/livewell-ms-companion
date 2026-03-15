@@ -131,10 +131,11 @@
   .tap-highlight-none {
     -webkit-tap-highlight-color: transparent;
   }
-  /* Accessible helper text — never below 12px */
+  /* Accessible helper text — never below 13px */
   .text-helper {
-    @apply text-xs text-muted-foreground;
-    font-size: max(12px, 0.75rem);
+    @apply text-sm text-muted-foreground;
+    font-size: max(13px, 0.8125rem);
+    line-height: 1.5;
   }
 }
 
