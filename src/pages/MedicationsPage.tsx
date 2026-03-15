@@ -79,6 +79,8 @@ const MedicationsPage = () => {
       supply_unit: "pills",
       refill_date: null,
       pills_per_dose: 1,
+      start_date: format(new Date(), "yyyy-MM-dd"),
+      end_date: null,
     });
     setShowForm(true);
   };
