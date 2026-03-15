@@ -12,6 +12,7 @@ const MindfulnessTimer = () => {
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sound = useSoundCues();
 
   // Sync timer when duration pill changes (only when not running)
   const handleSelect = useCallback((min: number) => {
