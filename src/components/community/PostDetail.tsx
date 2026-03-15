@@ -93,7 +93,10 @@ export const PostDetail = ({
       {isLoading ? (
         <p className="text-xs text-muted-foreground">Loading…</p>
       ) : comments.length === 0 ? (
-        <p className="text-xs text-muted-foreground mb-4">No comments yet. Share your thoughts!</p>
+        <div className="rounded-xl bg-secondary/50 px-4 py-5 text-center mb-4 space-y-1">
+          <p className="text-sm font-medium text-foreground">No comments yet</p>
+          <p className="text-xs text-muted-foreground">Be the first to share your thoughts — your words can help someone feel less alone.</p>
+        </div>
       ) : (
         <div className="space-y-2 mb-4">
           {comments.map((c) => {

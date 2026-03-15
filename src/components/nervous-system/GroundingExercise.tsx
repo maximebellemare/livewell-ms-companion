@@ -173,7 +173,10 @@ const GroundingExercise = () => {
         </button>
         <h3 className="font-display text-lg font-bold text-foreground">Past Sessions</h3>
         {pastSessions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No past sessions yet. Complete an exercise to see your history.</p>
+          <div className="rounded-xl bg-secondary/50 px-4 py-6 text-center space-y-1.5">
+            <p className="text-sm font-medium text-foreground">No sessions yet</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">Complete a grounding exercise and your history will appear here.</p>
+          </div>
         ) : (
           pastSessions.map((session) => (
             <div key={session.id} className="rounded-xl bg-card p-4 shadow-soft space-y-3">

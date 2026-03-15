@@ -11,11 +11,13 @@ interface Props {
 const ConversationList = ({ conversations, selectedId, onSelect }: Props) => {
   if (conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-        <MessageSquare className="h-10 w-10 text-muted-foreground mb-3" />
-        <p className="text-sm font-medium text-muted-foreground">No messages yet</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Start a conversation from someone's profile in the Community.
+      <div className="flex flex-col items-center justify-center py-16 text-center px-6 animate-fade-in">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/50 mb-4">
+          <MessageSquare className="h-7 w-7 text-primary" />
+        </div>
+        <h3 className="font-display text-base font-semibold text-foreground">No messages yet</h3>
+        <p className="text-sm text-muted-foreground mt-1.5 max-w-xs leading-relaxed">
+          When you connect with someone in the Community, your conversations will show up here.
         </p>
       </div>
     );

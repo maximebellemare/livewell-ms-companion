@@ -194,7 +194,15 @@ function ExerciseTab() {
 
       {/* Recent Logs */}
       {logs.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-6">No exercises logged yet. Tap + to get started.</p>
+        <div className="rounded-2xl bg-card border border-border shadow-soft px-6 py-10 text-center space-y-3 animate-fade-in">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/50">
+            <span className="text-2xl">🏃</span>
+          </div>
+          <h3 className="font-display text-base font-semibold text-foreground">No exercises logged yet</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
+            Movement looks different for everyone. Log what works for you — even a short walk counts.
+          </p>
+        </div>
       ) : (
         <div className="space-y-2">
           {logs.slice(0, 20).map((log) => (

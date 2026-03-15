@@ -124,12 +124,14 @@ const CoachHistory = ({ onSelectSession }: CoachHistoryProps) => {
 
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-        <div className="h-12 w-12 rounded-2xl bg-secondary flex items-center justify-center mb-3">
-          <MessageSquare className="h-5 w-5 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-fade-in">
+        <div className="h-14 w-14 rounded-2xl bg-accent/50 flex items-center justify-center mb-3">
+          <MessageSquare className="h-6 w-6 text-primary" />
         </div>
-        <p className="text-sm text-muted-foreground">No conversations yet</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">Start a new chat above to see it here</p>
+        <h3 className="font-display text-base font-semibold text-foreground">No conversations yet</h3>
+        <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed max-w-xs">
+          Pick a topic above to start your first chat. Your conversation history will be saved here.
+        </p>
       </div>
     );
   }
