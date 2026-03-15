@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { useSaveLearnProgress } from "@/hooks/useLearnProgress";
+import ListenButton from "@/components/ListenButton";
 
 interface ArticleBodyProps {
   body: string;
