@@ -241,6 +241,15 @@ const GroundingExercise = () => {
             text="5-4-3-2-1 Grounding Exercise. Engage each of your senses to gently bring yourself back to the present moment. Name 5 things you can see. 4 things you can touch. 3 things you can hear. 2 things you can smell. And 1 thing you can taste. There's no rush, take your time."
             label="Listen to instructions"
           />
+          {narration.supported && (
+            <div className="flex items-center justify-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium text-foreground">Voice guide</span>
+              </div>
+              <Switch checked={narration.enabled} onCheckedChange={narration.setEnabled} />
+            </div>
+          )}
           {user && totalCount !== null && totalCount > 0 && (
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground">
