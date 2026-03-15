@@ -48,7 +48,7 @@ const ConversationList = ({ conversations, selectedId, onSelect }: Props) => {
               <p className={`text-sm font-medium truncate ${c.unread_count ? "text-foreground" : "text-foreground/80"}`}>
                 {c.other_display_name}
               </p>
-              <span className="text-[10px] text-muted-foreground shrink-0">
+              <span className="text-xs text-muted-foreground shrink-0">
                 {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: false })}
               </span>
             </div>
