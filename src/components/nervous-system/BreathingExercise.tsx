@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, Timer, Volume2 } from "lucide-react";
 import ListenButton from "@/components/ListenButton";
 import { Switch } from "@/components/ui/switch";
-import { playCompletionChime } from "./useCompletionSound";
+
 import { useVoiceNarration } from "./useVoiceNarration";
+import { useSoundCues } from "./useSoundCues";
+import SoundCueControls from "./SoundCueControls";
 
 type BreathingPattern = {
   id: string;
@@ -59,6 +61,7 @@ const BreathingExercise = () => {
   const [finished, setFinished] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const narration = useVoiceNarration();
+  const sound = useSoundCues();
   const totalSeconds = selectedMinutes * 60;
 
   const currentPhase = selectedPattern.phases[phaseIndex];
@@ -76,8 +79,9 @@ const BreathingExercise = () => {
     setTotalElapsed(0);
     setFinished(false);
     narration.stop();
+    sound.cleanup();
     if (intervalRef.current) clearInterval(intervalRef.current);
-  }, [narration]);
+  }, [narration, sound]);
 
   const toggle = useCallback(() => {
     if (finished) {
@@ -92,19 +96,23 @@ const BreathingExercise = () => {
       if (totalElapsed === 0) {
         setCountdown(selectedPattern.phases[0].duration);
         setPhaseIndex(0);
+        sound.onStart();
+        sound.startAmbientLoop();
       }
     }
-  }, [isRunning, selectedPattern, finished, stop, totalElapsed]);
+  }, [isRunning, selectedPattern, finished, stop, totalElapsed, sound]);
 
   useEffect(() => {
     if (!isRunning) return;
     intervalRef.current = setInterval(() => {
       setTotalElapsed((prev) => {
         const next = prev + 1;
+        const remaining = totalSeconds - next;
+        sound.onTick(remaining);
         if (next >= totalSeconds) {
           setIsRunning(false);
           setFinished(true);
-          playCompletionChime();
+          sound.onEnd();
           if (intervalRef.current) clearInterval(intervalRef.current);
           return totalSeconds;
         }
@@ -126,7 +134,7 @@ const BreathingExercise = () => {
       });
     }, 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [isRunning, selectedPattern.phases.length, totalSeconds]);
+  }, [isRunning, selectedPattern.phases.length, totalSeconds, sound]);
 
   // Announce phase changes via voice narration
   useEffect(() => {
@@ -220,6 +228,14 @@ const BreathingExercise = () => {
           <Switch checked={narration.enabled} onCheckedChange={narration.setEnabled} />
         </div>
       )}
+
+      {/* Sound cues */}
+      <SoundCueControls
+        enabled={sound.enabled}
+        onEnabledChange={sound.setEnabled}
+        ambientOn={sound.ambientOn}
+        onToggleAmbient={sound.toggleAmbient}
+      />
 
       {/* Breathing circle */}
       <div className="flex flex-col items-center py-6">

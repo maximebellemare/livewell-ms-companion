@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Play, Pause, RotateCcw, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { playCompletionChime } from "./useCompletionSound";
+import { useSoundCues } from "./useSoundCues";
+import SoundCueControls from "./SoundCueControls";
 
 const DURATIONS = [3, 5, 10, 15, 20] as const;
 
@@ -11,6 +12,7 @@ const MindfulnessTimer = () => {
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sound = useSoundCues();
 
   // Sync timer when duration pill changes (only when not running)
   const handleSelect = useCallback((min: number) => {
@@ -25,27 +27,34 @@ const MindfulnessTimer = () => {
     if (!running) return;
     intervalRef.current = setInterval(() => {
       setSecondsLeft((prev) => {
+        sound.onTick(prev - 1);
         if (prev <= 1) {
           clearInterval(intervalRef.current!);
           setRunning(false);
           setFinished(true);
-          playCompletionChime();
+          sound.onEnd();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [running]);
+  }, [running, sound]);
 
   const reset = () => {
     setRunning(false);
     setFinished(false);
     setSecondsLeft(selectedMinutes * 60);
+    sound.cleanup();
   };
 
   const toggleRunning = () => {
     if (finished) { reset(); return; }
+    if (!running && secondsLeft === selectedMinutes * 60) {
+      // Fresh start
+      sound.onStart();
+      sound.startAmbientLoop();
+    }
     setRunning((r) => !r);
   };
 
@@ -102,6 +111,14 @@ const MindfulnessTimer = () => {
           ))}
         </div>
       </div>
+
+      {/* Sound cues */}
+      <SoundCueControls
+        enabled={sound.enabled}
+        onEnabledChange={sound.setEnabled}
+        ambientOn={sound.ambientOn}
+        onToggleAmbient={sound.toggleAmbient}
+      />
 
       {/* Timer circle */}
       <div className="flex flex-col items-center gap-4">

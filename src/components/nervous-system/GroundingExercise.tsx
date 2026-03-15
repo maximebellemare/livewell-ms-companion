@@ -3,8 +3,9 @@ import ListenButton from "@/components/ListenButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Ear, Hand, Wind, Cookie, ChevronRight, RotateCcw, Check, History, Trash2, Volume2 } from "lucide-react";
 import confetti from "canvas-confetti";
-import { playCompletionChime } from "./useCompletionSound";
 import { useVoiceNarration } from "./useVoiceNarration";
+import { useSoundCues } from "./useSoundCues";
+import SoundCueControls from "./SoundCueControls";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +38,7 @@ const GroundingExercise = () => {
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [milestoneHit, setMilestoneHit] = useState<number | null>(null);
   const narration = useVoiceNarration();
+  const sound = useSoundCues();
   const finished = step >= senses.length;
 
   const loadHistory = useCallback(async () => {
@@ -111,7 +113,7 @@ const GroundingExercise = () => {
     } else {
       vibrate([10, 40, 10, 40, 10]);
       setStep(senses.length);
-      playCompletionChime();
+      sound.onEnd();
       narration.speak("Well done. You're grounded.");
       confetti({
         particleCount: 80,
@@ -250,6 +252,13 @@ const GroundingExercise = () => {
               <Switch checked={narration.enabled} onCheckedChange={narration.setEnabled} />
             </div>
           )}
+          <SoundCueControls
+            enabled={sound.enabled}
+            onEnabledChange={sound.setEnabled}
+            ambientOn={sound.ambientOn}
+            onToggleAmbient={sound.toggleAmbient}
+            showAmbient={false}
+          />
           {user && totalCount !== null && totalCount > 0 && (
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground">
@@ -270,6 +279,7 @@ const GroundingExercise = () => {
            <button
               onClick={() => {
                 setStarted(true);
+                sound.onStart();
                 narration.speak(`Name ${senses[0].count} ${senses[0].sense}`);
               }}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-soft transition-all hover:opacity-90 active:scale-[0.98]"
