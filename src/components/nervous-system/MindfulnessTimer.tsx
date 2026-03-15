@@ -72,7 +72,7 @@ const MindfulnessTimer = () => {
         </p>
         <div className="rounded-xl bg-secondary/60 p-3 space-y-1.5">
           <p className="text-xs font-medium text-foreground">How to practice:</p>
-          <ol className="text-[11px] text-muted-foreground space-y-1 list-decimal list-inside leading-relaxed">
+          <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside leading-relaxed">
             <li>Find a comfortable position — sitting or lying down</li>
             <li>Close your eyes and take three slow, deep breaths</li>
             <li>Let your breathing return to its natural rhythm</li>
