@@ -151,13 +151,15 @@
   /* Standard card — breathable, calm, borderless */
   .card-base {
     @apply rounded-2xl bg-card p-5 shadow-soft
-           transition-all duration-200 ease-out;
+           transition-all duration-200 ease-out
+           animate-fade-in;
   }
 
   /* Interactive card — subtle lift for clickable cards */
   .card-interactive {
     @apply rounded-2xl bg-card p-5 shadow-soft
            transition-all duration-200 ease-out
+           animate-fade-in
            hover:shadow-card hover:-translate-y-0.5
            active:scale-[0.98] active:shadow-soft;
   }
