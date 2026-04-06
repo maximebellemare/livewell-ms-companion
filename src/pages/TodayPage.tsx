@@ -478,7 +478,7 @@ const TodayPage = () => {
               <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">You’ve already logged symptoms today.</p>
-                <p className="text-xs text-muted-foreground">You can add another entry tomorrow.</p>
+                <p className="text-xs text-muted-foreground">Scroll down to update today's entry.</p>
               </div>
             </div>
           </StaggerItem>
@@ -845,6 +845,16 @@ const TodayPage = () => {
                 <input type="number" min={0} max={24} step={0.5} placeholder="e.g. 7.5" value={sleepHours} onChange={(e) => setSleepHours(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
 
+              <div className="card-base space-y-2">
+                <label className="block text-sm font-medium text-foreground">📝 Notes</label>
+                <textarea
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="How are you feeling today? Any patterns or observations..."
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                />
+              </div>
 
 
             </CollapsibleContent>
