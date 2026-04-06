@@ -124,10 +124,6 @@
     transition: background 0.3s ease, color 0.3s ease;
   }
 
-  /* Global minimum text size floor — prevent anything below 12px */
-  * {
-    min-font-size: 12px;
-  }
   h1, h2, h3 {
     font-family: 'Playfair Display', serif;
   }
