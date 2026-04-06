@@ -80,6 +80,7 @@ const CoachPage = () => {
   const handleBack = () => {
     setActiveMode(null);
     setResumeSessionId(null);
+    setInitialMessage(null);
   };
 
   return (
