@@ -150,16 +150,21 @@ const CoachChat = ({ mode, resumeSessionId, initialMessage }: CoachChatProps) =>
   // Auto-send initial message (e.g. from Today page quick-action)
   const initialMessageSent = useRef(false);
   useEffect(() => {
-    if (initialMessage && !initialMessageSent.current && !resumeSessionId) {
+    if (
+      initialMessage &&
+      !initialMessageSent.current &&
+      !resumeSessionId &&
+      entries !== undefined &&
+      profile !== undefined
+    ) {
       initialMessageSent.current = true;
-      // Small delay to let the chat initialize
       const timer = setTimeout(() => {
         const userData = buildUserData();
         sendMessage(initialMessage, userData);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [initialMessage, resumeSessionId]);
+  }, [initialMessage, resumeSessionId, entries, profile]);
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
