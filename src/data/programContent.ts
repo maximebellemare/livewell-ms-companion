@@ -61,11 +61,13 @@ const nervousSystemDays: ProgramDay[] = [
     title: "Slow exhale breathing",
     instructions: "Breathe in gently for 4 seconds. Breathe out slowly for 6 seconds. Repeat 5 times.",
     supportLine: "Just follow the breath. Nothing else matters right now.",
+    timer: { type: "breathing", phases: [{ label: "Inhale", duration: 4 }, { label: "Exhale", duration: 6 }], cycles: 5 },
   },
   {
     title: "Grounding through touch",
     instructions: "Place both hands on a surface near you. Notice the temperature, texture, and weight of your hands. Stay for 60 seconds.",
     supportLine: "You're safe right here.",
+    timer: { type: "countdown", seconds: 60, label: "Grounding" },
   },
   {
     title: "Humming reset",
@@ -92,6 +94,7 @@ const nervousSystemDays: ProgramDay[] = [
     title: "Extended exhale",
     instructions: "Breathe in for 3 seconds. Breathe out for 7 seconds. Repeat for 2 minutes.",
     supportLine: "Longer exhales signal safety to your nervous system.",
+    timer: { type: "breathing", phases: [{ label: "Inhale", duration: 3 }, { label: "Exhale", duration: 7 }], cycles: 12 },
   },
   {
     title: "Five senses grounding",
@@ -107,11 +110,13 @@ const nervousSystemDays: ProgramDay[] = [
     title: "Sighing breath",
     instructions: "Take a deep breath in through your nose. Then exhale with an audible sigh through your mouth. Repeat 5 times.",
     supportLine: "Physiological sighs are the fastest way to calm down.",
+    timer: { type: "breathing", phases: [{ label: "Inhale", duration: 4 }, { label: "Sigh out", duration: 6 }], cycles: 5 },
   },
   {
     title: "Feet on the floor",
     instructions: "Press both feet firmly into the floor. Notice the ground beneath you. Hold for 60 seconds, breathing naturally.",
     supportLine: "Grounding through your feet anchors your whole body.",
+    timer: { type: "countdown", seconds: 60, label: "Feel the ground" },
   },
   {
     title: "Jaw release",
@@ -128,6 +133,7 @@ const nervousSystemDays: ProgramDay[] = [
     instructions: "Breathe in for 4 seconds, hold for 4, out for 4, hold for 4. Repeat 4 rounds.",
     supportLine: "This pattern brings balance to your nervous system.",
     variation: "If holding feels uncomfortable, shorten to 3 seconds each.",
+    timer: { type: "breathing", phases: [{ label: "Inhale", duration: 4 }, { label: "Hold", duration: 4 }, { label: "Exhale", duration: 4 }, { label: "Hold", duration: 4 }], cycles: 4 },
   },
   {
     title: "Gentle shoulder rolls",
@@ -138,6 +144,7 @@ const nervousSystemDays: ProgramDay[] = [
     title: "Listening meditation",
     instructions: "Close your eyes. For 90 seconds, just listen. Don't label sounds — just hear them.",
     supportLine: "Listening without judging is a gentle way to be present.",
+    timer: { type: "countdown", seconds: 90, label: "Just listen" },
   },
   {
     title: "Vagal tone — gargling",
@@ -159,16 +166,19 @@ const nervousSystemDays: ProgramDay[] = [
     title: "Belly breathing",
     instructions: "Place one hand on your belly. Breathe in through your nose so your belly rises. Exhale slowly. Repeat for 2 minutes.",
     supportLine: "Belly breathing tells your body it's time to rest.",
+    timer: { type: "breathing", phases: [{ label: "Inhale", duration: 4 }, { label: "Exhale", duration: 6 }], cycles: 12 },
   },
   {
     title: "Self-hold",
     instructions: "Place one hand on your chest and one on your belly. Breathe gently for 90 seconds while feeling the warmth of your own hands.",
     supportLine: "Touch from yourself can be just as soothing as touch from others.",
+    timer: { type: "countdown", seconds: 90, label: "Breathe gently" },
   },
   {
     title: "Sound cue reset",
     instructions: "Find a calming sound — a clock ticking, rain, a fan. Focus on it for 60 seconds. Let other thoughts pass.",
     supportLine: "A single sound anchor can steady your whole system.",
+    timer: { type: "countdown", seconds: 60, label: "Focus on the sound" },
   },
   {
     title: "Tension and release",
@@ -209,6 +219,7 @@ const nervousSystemDays: ProgramDay[] = [
     title: "Stillness minute",
     instructions: "Sit still for 60 seconds. Don't try to relax. Don't try to do anything. Just be still.",
     supportLine: "Stillness is a practice, not a test. However it felt — that was enough.",
+    timer: { type: "countdown", seconds: 60, label: "Be still" },
   },
 ];
 
