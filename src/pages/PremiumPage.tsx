@@ -23,6 +23,7 @@ const features = [
 
 const PremiumPage = () => {
   const { isPremium, premiumUntil, hasRealSubscription, isBillingStatusLoading, checkSubscription } = usePremium();
+  const { isInTrial, trialExpired, daysRemaining } = useTrial();
   const [billing, setBilling] = useState<"monthly" | "annual">("annual");
   const [loading, setLoading] = useState(false);
   const [managingPortal, setManagingPortal] = useState(false);
