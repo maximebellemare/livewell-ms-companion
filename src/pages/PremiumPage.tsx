@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Crown, Sparkles, Brain, Stethoscope, Zap, BarChart3, BookOpen, Check, Star, CreditCard, Loader2 } from "lucide-react";
+import { Crown, Sparkles, Brain, Stethoscope, Zap, BarChart3, BookOpen, Check, Star, CreditCard, Loader2, Heart } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import PageHeader from "@/components/PageHeader";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
 import { StaggerContainer, StaggerItem } from "@/components/StaggeredReveal";
 import { usePremium, STRIPE_PRICES } from "@/hooks/usePremium";
+import { useTrial } from "@/hooks/useTrial";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
