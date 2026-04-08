@@ -3,6 +3,9 @@ import { MessageCircle, Send, Loader2, X, Dumbbell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useFitnessCoachLimit } from "@/hooks/useFitnessCoachLimit";
+import { AnimatePresence } from "framer-motion";
+import FitnessLimitOverlay from "./FitnessLimitOverlay";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -29,6 +32,8 @@ export default function FitnessCoachChat({ planContext, exerciseLogs, symptomEnt
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { limitReached, remaining, isPremium, recordMessage } = useFitnessCoachLimit();
+  const [showLimitOverlay, setShowLimitOverlay] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -38,6 +43,10 @@ export default function FitnessCoachChat({ planContext, exerciseLogs, symptomEnt
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return;
+    if (limitReached) {
+      setShowLimitOverlay(true);
+      return;
+    }
 
     const userMsg: ChatMessage = { role: "user", content: text.trim() };
     const newMessages = [...messages, userMsg];
@@ -63,6 +72,10 @@ export default function FitnessCoachChat({ planContext, exerciseLogs, symptomEnt
 
       const reply = typeof data === "string" ? data : data?.reply || data?.content || JSON.stringify(data);
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      const hitLimit = recordMessage();
+      if (hitLimit) {
+        setTimeout(() => setShowLimitOverlay(true), 800);
+      }
     } catch (e: any) {
       toast.error(e.message || "Failed to get a response");
     } finally {
@@ -82,12 +95,17 @@ export default function FitnessCoachChat({ planContext, exerciseLogs, symptomEnt
   }
 
   return (
-    <div className="rounded-xl bg-card border border-border shadow-soft overflow-hidden">
+    <div className="relative rounded-xl bg-card border border-border shadow-soft overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between bg-primary/5 px-3 py-2 border-b border-border/50">
         <div className="flex items-center gap-1.5">
           <Dumbbell className="h-3.5 w-3.5 text-primary" />
           <span className="text-xs font-semibold text-foreground">AI Fitness Coach</span>
+          {!isPremium && (
+            <span className="text-[10px] text-muted-foreground ml-1">
+              {limitReached ? "Limit reached" : `${remaining} left today`}
+            </span>
+          )}
         </div>
         <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground p-0.5">
           <X className="h-3.5 w-3.5" />
@@ -98,13 +116,18 @@ export default function FitnessCoachChat({ planContext, exerciseLogs, symptomEnt
       <div ref={scrollRef} className="max-h-64 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 && (
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground text-center">Ask me anything about your plan, exercises, or MS fitness! 💪</p>
+            <p className="text-xs text-muted-foreground text-center">
+              {isPremium
+                ? "Ask me anything about your plan, exercises, or MS fitness! 💪"
+                : "Ask a question about movement or energy — I'm here to help 🌿"}
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {SUGGESTED_QUESTIONS.map((q) => (
                 <button
                   key={q}
                   onClick={() => sendMessage(q)}
-                  className="text-[10px] rounded-full bg-secondary px-2.5 py-1 text-foreground hover:bg-muted transition-all text-left"
+                  disabled={limitReached}
+                  className="text-[10px] rounded-full bg-secondary px-2.5 py-1 text-foreground hover:bg-muted transition-all text-left disabled:opacity-40"
                 >
                   {q}
                 </button>
@@ -148,19 +171,26 @@ export default function FitnessCoachChat({ planContext, exerciseLogs, symptomEnt
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
-          placeholder="Ask about your plan…"
+          placeholder={limitReached ? "Daily limit reached" : "Ask about your plan…"}
           className="flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
           maxLength={500}
-          disabled={loading}
+          disabled={loading || limitReached}
         />
         <button
           onClick={() => sendMessage(input)}
-          disabled={loading || !input.trim()}
+          disabled={loading || !input.trim() || limitReached}
           className="rounded-lg bg-primary p-1.5 text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-all"
         >
           <Send className="h-3.5 w-3.5" />
         </button>
       </div>
+
+      {/* Limit overlay */}
+      <AnimatePresence>
+        {showLimitOverlay && (
+          <FitnessLimitOverlay onDismiss={() => setShowLimitOverlay(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
