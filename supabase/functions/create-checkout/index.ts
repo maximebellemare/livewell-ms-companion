@@ -60,7 +60,7 @@ serve(async (req) => {
       success_url: `${origin}/premium?checkout=success`,
       cancel_url: `${origin}/premium?checkout=cancel`,
       subscription_data: {
-        trial_period_days: 14,
+        trial_period_days: 3,
       },
     });
 
