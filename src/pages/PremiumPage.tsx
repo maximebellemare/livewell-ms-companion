@@ -21,7 +21,7 @@ const features = [
 ];
 
 const PremiumPage = () => {
-  const { isPremium, premiumUntil, hasRealSubscription, checkSubscription } = usePremium();
+  const { isPremium, premiumUntil, hasRealSubscription, isBillingStatusLoading, checkSubscription } = usePremium();
   const [billing, setBilling] = useState<"monthly" | "annual">("annual");
   const [loading, setLoading] = useState(false);
   const [managingPortal, setManagingPortal] = useState(false);
@@ -60,18 +60,24 @@ const PremiumPage = () => {
   };
 
   const handleManageSubscription = async () => {
-    if (!hasRealSubscription) return;
+    if (!hasRealSubscription) {
+      toast.info("No active subscription to manage yet.");
+      return;
+    }
+
     setManagingPortal(true);
     try {
       const { data, error } = await supabase.functions.invoke("customer-portal");
-      if (error) throw error;
+      if (error || !data?.url) {
+        toast.info("We could not open subscription management right now.");
+        return;
+      }
+
       if (data?.url) {
-        window.open(data.url, "_blank");
-      } else {
-        toast.info("No billing portal available for your account yet.");
+        window.open(data.url, "_blank", "noopener,noreferrer");
       }
     } catch {
-      toast.info("Unable to open billing management right now. Please try again later.");
+      toast.info("We could not open subscription management right now.");
     } finally {
       setManagingPortal(false);
     }
@@ -118,6 +124,10 @@ const PremiumPage = () => {
                     <CreditCard className="h-4 w-4" />
                     {managingPortal ? "Opening…" : "Manage Subscription"}
                   </button>
+                ) : isBillingStatusLoading ? (
+                  <p className="text-xs text-muted-foreground/70 italic">
+                    Checking subscription details…
+                  </p>
                 ) : (
                   <p className="text-xs text-muted-foreground/70 italic">
                     No active subscription to manage yet.
