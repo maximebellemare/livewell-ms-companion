@@ -13,12 +13,14 @@ type BillingState = {
   checked: boolean;
   hasStripeCustomer: boolean;
   hasActiveSubscription: boolean;
+  subscriptionEnd: string | null;
 };
 
 const INITIAL_BILLING_STATE: BillingState = {
   checked: false,
   hasStripeCustomer: false,
   hasActiveSubscription: false,
+  subscriptionEnd: null,
 };
 
 const hasValidFutureDate = (value: string | null | undefined) => {
@@ -34,7 +36,7 @@ export const usePremium = () => {
   const [billingState, setBillingState] = useState<BillingState>(INITIAL_BILLING_STATE);
 
   const isPremium = !!profile?.is_premium;
-  const premiumUntil = profile?.premium_until ?? null;
+  const premiumUntil = profile?.premium_until ?? billingState.subscriptionEnd ?? null;
   const hasFuturePremiumUntil = hasValidFutureDate(premiumUntil);
 
   // Check if premium has expired (local fallback)
@@ -61,6 +63,7 @@ export const usePremium = () => {
         checked: true,
         hasStripeCustomer: Boolean(data?.customer_exists),
         hasActiveSubscription: Boolean(data?.subscribed) && Boolean(data?.billing_portal_eligible),
+        subscriptionEnd: data?.subscription_end ?? null,
       });
 
       // Invalidate profile to pick up synced is_premium
@@ -73,6 +76,7 @@ export const usePremium = () => {
         checked: true,
         hasStripeCustomer: false,
         hasActiveSubscription: false,
+        subscriptionEnd: null,
       });
     }
   }, [user, queryClient]);
