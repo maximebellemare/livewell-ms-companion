@@ -59,15 +59,15 @@ export function useSaveSession() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cognitive-sessions"] });
-      // Post-session warm feedback
       const messages = [
         "Nice. Even a short reset helps. 🌿",
         "That was a good pause. ☀️",
         "A moment well spent. 💛",
         "Your brain thanks you. 🧠",
       ];
-      const { toast } = await import("sonner");
-      toast(messages[Math.floor(Math.random() * messages.length)]);
+      import("sonner").then(({ toast }) => {
+        toast(messages[Math.floor(Math.random() * messages.length)]);
+      });
     },
   });
 }
