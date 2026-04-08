@@ -96,11 +96,19 @@ const PremiumPage = () => {
           <StaggerItem>
             <div className="rounded-2xl bg-gradient-to-br from-primary/15 via-accent to-card p-6 text-center border border-primary/10">
               <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15">
-                <Crown className="h-8 w-8 text-primary" />
+                <Heart className="h-8 w-8 text-primary" />
               </div>
-              <h2 className="font-display text-xl font-bold text-foreground">LiveWithMS Premium</h2>
+              <h2 className="font-display text-xl font-bold text-foreground">
+                {trialExpired
+                  ? "Continue your progress"
+                  : isInTrial
+                  ? `${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} left in your experience`
+                  : "Your personal MS companion"}
+              </h2>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
-                Transform your tracking into actionable intelligence with AI-powered insights and clinical tools.
+                {trialExpired
+                  ? "Keep your insights, patterns, and daily support with Premium."
+                  : "Patterns, insights, and daily guidance that help you feel your best."}
               </p>
             </div>
           </StaggerItem>
