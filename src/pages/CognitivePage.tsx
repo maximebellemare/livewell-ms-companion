@@ -47,7 +47,7 @@ const GAME_TYPE_MAP: Record<string, { icon: React.ReactNode; label: string }> = 
   
 };
 
-const GameCard = ({ game }: { game: typeof GAMES[number] }) => {
+const GameCard = ({ game, onSessionComplete }: { game: typeof GAMES[number]; onSessionComplete?: () => void }) => {
   const [open, setOpen] = useState(false);
 
   return (
