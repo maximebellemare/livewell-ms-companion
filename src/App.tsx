@@ -69,6 +69,7 @@ const PremiumPage = lazy(() => import("./pages/PremiumPage"));
 const NervousSystemPage = lazy(() => import("./pages/NervousSystemPage"));
 const RiskHistoryPage = lazy(() => import("./pages/RiskHistoryPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,7 @@ const AnimatedRoutes = () => {
         <Route path="/premium" element={<ProtectedRoute><LazyPage><PremiumPage /></LazyPage></ProtectedRoute>} />
         <Route path="/nervous-system" element={<ProtectedRoute><LazyPage><NervousSystemPage /></LazyPage></ProtectedRoute>} />
         <Route path="/risk-history" element={<ProtectedRoute><LazyPage><RiskHistoryPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/unsubscribe" element={<LazyPage><UnsubscribePage /></LazyPage>} />
         <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
       </Routes>
     </AnimatePresence>

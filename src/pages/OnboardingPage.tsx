@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import AppPreview from "@/components/onboarding/AppPreview";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft, Shield, CheckCircle2, Globe, Calendar, User, Sparkles, TrendingUp, Heart, Brain, Target, MapPin, Crown } from "lucide-react";
@@ -146,6 +147,20 @@ const OnboardingPage = () => {
         age_range: ageRange || null,
         onboarding_completed: true,
       });
+
+      // Send welcome email (fire-and-forget)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "welcome-email",
+            recipientEmail: user.email,
+            idempotencyKey: `welcome-${user.id}`,
+            templateData: { name: displayName.trim() || undefined },
+          },
+        }).catch(() => {});
+      }
+
       navigate("/today");
     } catch (err: any) {
       toast.error(friendlyError(err.message));
