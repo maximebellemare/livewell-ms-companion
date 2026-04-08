@@ -3,6 +3,9 @@ import { MessageCircle, Send, Loader2, X, Dumbbell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useFitnessCoachLimit } from "@/hooks/useFitnessCoachLimit";
+import { AnimatePresence } from "framer-motion";
+import FitnessLimitOverlay from "./FitnessLimitOverlay";
 
 interface ChatMessage {
   role: "user" | "assistant";
