@@ -6,7 +6,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PROGRAMS, getCompletionMessage } from "@/data/programContent";
+import type { ProgramTimer as ProgramTimerType, CountdownTimer } from "@/data/programContent";
 import { motion, AnimatePresence } from "framer-motion";
+import ProgramTimer from "./ProgramTimer";
+import ProgramCountdownTimer from "./ProgramCountdownTimer";
+import ListenButton from "@/components/ListenButton";
 
 const ProgramsSection = () => {
   const { user } = useAuth();
@@ -197,6 +201,27 @@ const ProgramsSection = () => {
                                         <p className="text-xs text-foreground leading-relaxed">
                                           {day.instructions}
                                         </p>
+
+                                        {/* Listen button for audio guidance */}
+                                        <ListenButton
+                                          text={`${day.title}. ${day.instructions}${day.supportLine ? ` ${day.supportLine}` : ""}`}
+                                          label="Listen"
+                                          className="!-ml-1"
+                                        />
+
+                                        {/* Interactive timer */}
+                                        {day.timer?.type === "breathing" && (
+                                          <ProgramTimer
+                                            phases={(day.timer as ProgramTimerType).phases}
+                                            cycles={(day.timer as ProgramTimerType).cycles}
+                                          />
+                                        )}
+                                        {day.timer?.type === "countdown" && (
+                                          <ProgramCountdownTimer
+                                            seconds={(day.timer as CountdownTimer).seconds}
+                                            label={(day.timer as CountdownTimer).label}
+                                          />
+                                        )}
 
                                         {/* Support line */}
                                         {day.supportLine && (
