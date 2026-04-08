@@ -32,6 +32,8 @@ export default function FitnessCoachChat({ planContext, exerciseLogs, symptomEnt
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { limitReached, remaining, isPremium, recordMessage } = useFitnessCoachLimit();
+  const [showLimitOverlay, setShowLimitOverlay] = useState(false);
 
   useEffect(() => {
     if (scrollRef.current) {
