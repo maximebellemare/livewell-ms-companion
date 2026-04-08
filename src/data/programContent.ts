@@ -387,6 +387,7 @@ const anxietyDays: ProgramDay[] = [
     title: "4-7-8 breathing",
     instructions: "Breathe in for 4 seconds. Hold for 7 seconds. Exhale slowly for 8 seconds. Repeat 3 times.",
     supportLine: "This pattern activates your calming response. Go at your own pace.",
+    timer: { type: "breathing", phases: [{ label: "Inhale", duration: 4 }, { label: "Hold", duration: 7 }, { label: "Exhale", duration: 8 }], cycles: 3 },
   },
   {
     title: "Name it to tame it",
@@ -397,12 +398,14 @@ const anxietyDays: ProgramDay[] = [
     title: "Grounding with objects",
     instructions: "Hold an object in your hand — a mug, a pen, anything nearby. Focus on its weight, texture, and temperature for 60 seconds.",
     supportLine: "This pulls your attention away from anxious thoughts.",
+    timer: { type: "countdown", seconds: 60, label: "Focus on the object" },
   },
   {
     title: "Worry download",
     instructions: "Set a timer for 2 minutes. Write down everything worrying you. Don't filter. When the timer stops, close the page.",
     supportLine: "Getting worries out of your head makes them less powerful.",
     variation: "If writing feels hard, just say them out loud.",
+    timer: { type: "countdown", seconds: 120, label: "Write it all out" },
   },
   {
     title: "Physiological sigh",
@@ -413,11 +416,13 @@ const anxietyDays: ProgramDay[] = [
     title: "Safe place visualization",
     instructions: "Close your eyes. Picture a place where you feel completely safe. Notice the details — colors, sounds, temperature. Stay for 90 seconds.",
     supportLine: "Your brain responds to imagined safety almost like real safety.",
+    timer: { type: "countdown", seconds: 90, label: "Stay in your safe place" },
   },
   {
     title: "Bilateral tapping",
     instructions: "Tap your knees alternately — left, right, left, right — at a steady, slow pace. Continue for 1 minute.",
     supportLine: "Bilateral movement helps process anxiety and calm the mind.",
+    timer: { type: "countdown", seconds: 60, label: "Left, right, left, right" },
   },
   {
     title: "The 'good enough' list",
@@ -428,6 +433,7 @@ const anxietyDays: ProgramDay[] = [
     title: "Peripheral vision exercise",
     instructions: "Stare at a point in front of you. Without moving your eyes, widen your awareness to see everything in your peripheral vision. Hold for 60 seconds.",
     supportLine: "Peripheral vision activates your parasympathetic (calming) nervous system.",
+    timer: { type: "countdown", seconds: 60, label: "Widen your gaze" },
   },
   {
     title: "Hands under warm water",
@@ -443,6 +449,7 @@ const anxietyDays: ProgramDay[] = [
     title: "Exhale-only focus",
     instructions: "Breathe in naturally. On each exhale, make it slightly longer and slower than the last. Do 8 breaths.",
     supportLine: "You don't need to control the inhale. The exhale does the work.",
+    timer: { type: "breathing", phases: [{ label: "Inhale", duration: 3 }, { label: "Exhale", duration: 6 }], cycles: 8 },
   },
   {
     title: "Self-compassion moment",
