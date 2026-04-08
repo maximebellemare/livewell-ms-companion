@@ -484,6 +484,13 @@ const TodayPage = () => {
           </StaggerItem>
         )}
 
+        {/* 0c. Daily plan — premium feature */}
+        {checkIn && (
+          <StaggerItem>
+            <DailyPlanCard mood={checkIn.mood} />
+          </StaggerItem>
+        )}
+
         {/* 1. Risk/Alert Banner — urgent items first */}
         <StaggerItem><RiskAlertBanner /></StaggerItem>
 
