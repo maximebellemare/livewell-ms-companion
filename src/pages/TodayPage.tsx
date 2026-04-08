@@ -50,6 +50,10 @@ import DailyCheckInModal from "@/components/DailyCheckInModal";
 import DailyCheckInCard from "@/components/DailyCheckInCard";
 import { useDailyCheckIn } from "@/hooks/useDailyCheckIn";
 import PatternInsightCard from "@/components/PatternInsightCard";
+import DailyPlanCard from "@/components/DailyPlanCard";
+import TrialBanner from "@/components/TrialBanner";
+import TrialExpiryScreen from "@/components/TrialExpiryScreen";
+import { useTrial } from "@/hooks/useTrial";
 
 import { useSaveEntry, useEntriesInRange, useTodayEntry } from "@/hooks/useEntries";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
