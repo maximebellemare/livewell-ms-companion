@@ -360,8 +360,12 @@ const TodayPage = () => {
 
   return (
     <>
+      {trialExpired && !trialDismissed && (
+        <TrialExpiryScreen onDismiss={() => setTrialDismissed(true)} />
+      )}
       <DailyCheckInModal open={showModal} onComplete={submitCheckIn} onDismiss={dismissModal} />
       <SEOHead title="Today" description="Your daily MS symptom check-in and wellness overview." />
+      <TrialBanner />
       <PageHeader
         title="Today"
         subtitle={greetings(profile?.display_name) + " 🧡"}
