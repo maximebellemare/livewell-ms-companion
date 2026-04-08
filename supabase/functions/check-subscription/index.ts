@@ -45,7 +45,12 @@ serve(async (req) => {
 
     if (customers.data.length === 0) {
       logStep("No Stripe customer found – skipping profile update");
-      return new Response(JSON.stringify({ subscribed: false }), {
+      return new Response(JSON.stringify({
+        subscribed: false,
+        customer_exists: false,
+        billing_portal_eligible: false,
+        subscription_end: null,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -60,6 +65,7 @@ serve(async (req) => {
       limit: 1,
     });
     const hasActiveSub = subscriptions.data.length > 0;
+    const billingPortalEligible = hasActiveSub;
     let subscriptionEnd = null;
 
     if (hasActiveSub) {
@@ -83,6 +89,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         subscribed: hasActiveSub,
+          customer_exists: true,
+          billing_portal_eligible: billingPortalEligible,
         subscription_end: subscriptionEnd,
       }),
       {
