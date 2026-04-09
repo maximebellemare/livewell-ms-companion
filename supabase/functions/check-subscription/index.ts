@@ -65,14 +65,14 @@ serve(async (req) => {
       limit: 10,
     });
     const activeSubs = subscriptions.data.filter(s => ["active", "trialing"].includes(s.status));
-    const hasActiveSub = subscriptions.data.length > 0;
-    const billingPortalEligible = hasActiveSub;
+    const hasActiveSub = activeSubs.length > 0;
+    const billingPortalEligible = subscriptions.data.length > 0;
     let subscriptionEnd = null;
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
+      const subscription = activeSubs[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      logStep("Active/trialing subscription found", { subscriptionId: subscription.id, status: subscription.status, endDate: subscriptionEnd });
 
       // Sync premium status to profiles
       await supabaseClient.from("profiles").update({
