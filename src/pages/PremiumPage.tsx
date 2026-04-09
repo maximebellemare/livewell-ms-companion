@@ -30,7 +30,11 @@ const PremiumPage = () => {
   const [managingPortal, setManagingPortal] = useState(false);
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const handleRefresh = useCallback(async () => { await queryClient.invalidateQueries({ queryKey: ["premium"] }); checkSubscription(); }, [queryClient, checkSubscription]);
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = useCallback(async () => { await checkSubscription(); queryClient.invalidateQueries({ queryKey: ["profile"] }); }, [queryClient, checkSubscription]);
+
+  // Re-check subscription on page mount
+  useEffect(() => { checkSubscription(); }, [checkSubscription]);
 
   // Handle checkout cancel
   useEffect(() => {
