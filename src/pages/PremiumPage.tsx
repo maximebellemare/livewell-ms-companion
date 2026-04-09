@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Crown, Sparkles, Brain, Stethoscope, Zap, BarChart3, BookOpen, Check, Star, CreditCard, Loader2, Heart } from "lucide-react";
+import { Crown, Sparkles, Brain, Stethoscope, Zap, BarChart3, BookOpen, Check, Star, CreditCard, Loader2, Heart, RefreshCw } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { friendlyError } from "@/lib/errorMessages";
 import PageHeader from "@/components/PageHeader";
@@ -30,7 +30,11 @@ const PremiumPage = () => {
   const [managingPortal, setManagingPortal] = useState(false);
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const handleRefresh = useCallback(async () => { await queryClient.invalidateQueries({ queryKey: ["premium"] }); checkSubscription(); }, [queryClient, checkSubscription]);
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = useCallback(async () => { await checkSubscription(); queryClient.invalidateQueries({ queryKey: ["profile"] }); }, [queryClient, checkSubscription]);
+
+  // Re-check subscription on page mount
+  useEffect(() => { checkSubscription(); }, [checkSubscription]);
 
   // Handle checkout cancel
   useEffect(() => {
@@ -109,6 +113,25 @@ const PremiumPage = () => {
               </p>
             </div>
           </StaggerItem>
+
+          {/* Manual refresh button */}
+          {!isPremium && !isBillingStatusLoading && (
+            <StaggerItem>
+              <button
+                onClick={async () => {
+                  setRefreshing(true);
+                  await checkSubscription();
+                  queryClient.invalidateQueries({ queryKey: ["profile"] });
+                  setRefreshing(false);
+                }}
+                disabled={refreshing}
+                className="flex items-center justify-center gap-2 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+                {refreshing ? "Checking…" : "Already subscribed? Refresh status"}
+              </button>
+            </StaggerItem>
+          )}
 
           {isPremium ? (
             <StaggerItem>

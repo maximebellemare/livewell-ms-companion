@@ -31,11 +31,33 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logStep("No auth header – returning unauthenticated response");
+      return new Response(JSON.stringify({
+        subscribed: false,
+        customer_exists: false,
+        billing_portal_eligible: false,
+        subscription_end: null,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError) {
+      logStep("Auth failed, returning unauthenticated", { error: userError.message });
+      return new Response(JSON.stringify({
+        subscribed: false,
+        customer_exists: false,
+        billing_portal_eligible: false,
+        subscription_end: null,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
@@ -59,19 +81,21 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Check for active OR trialing subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      limit: 10,
     });
-    const hasActiveSub = subscriptions.data.length > 0;
-    const billingPortalEligible = hasActiveSub;
+    const activeSubs = subscriptions.data.filter(s => ["active", "trialing"].includes(s.status));
+    const hasActiveSub = activeSubs.length > 0;
+    const billingPortalEligible = subscriptions.data.length > 0;
     let subscriptionEnd = null;
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      const subscription = activeSubs[0];
+      const endTs = subscription.current_period_end ?? subscription.trial_end;
+      subscriptionEnd = endTs ? new Date(endTs * 1000).toISOString() : null;
+      logStep("Active/trialing subscription found", { subscriptionId: subscription.id, status: subscription.status, endDate: subscriptionEnd });
 
       // Sync premium status to profiles
       await supabaseClient.from("profiles").update({
