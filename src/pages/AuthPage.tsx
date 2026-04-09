@@ -47,8 +47,7 @@ const AuthPage = () => {
       if (error) {
         toast.error(friendlyError(error.message));
       } else {
-        toast.success("Check your email to confirm your account!");
-        setMode("signin");
+        toast.success("Account created! You're all set.");
       }
     } else {
       const { error } = await signIn(email, password);
