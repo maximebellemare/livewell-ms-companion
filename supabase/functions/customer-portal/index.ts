@@ -54,11 +54,11 @@ serve(async (req) => {
 
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      limit: 10,
     });
+    const activeSubs = subscriptions.data.filter(s => ["active", "trialing"].includes(s.status));
 
-    if (subscriptions.data.length === 0) {
+    if (activeSubs.length === 0) {
       logStep("No active subscription found for customer", { customerId });
       return new Response(JSON.stringify({ url: null, can_manage: false, fallback: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
