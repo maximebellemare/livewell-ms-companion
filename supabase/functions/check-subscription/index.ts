@@ -82,7 +82,8 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = activeSubs[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      const endTs = subscription.current_period_end ?? subscription.trial_end;
+      subscriptionEnd = endTs ? new Date(endTs * 1000).toISOString() : null;
       logStep("Active/trialing subscription found", { subscriptionId: subscription.id, status: subscription.status, endDate: subscriptionEnd });
 
       // Sync premium status to profiles
