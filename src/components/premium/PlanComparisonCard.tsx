@@ -3,17 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const features = [
-  { label: "Daily symptom tracking", free: true, premium: true },
-  { label: "Community forum", free: true, premium: true },
-  { label: "Nervous system tools", free: true, premium: true },
-  { label: "Basic insights & charts", free: true, premium: true },
-  { label: "AI Coach (5 messages/day)", free: true, premium: false },
-  { label: "AI Coach (unlimited)", free: false, premium: true },
-  { label: "Advanced correlations", free: false, premium: true },
-  { label: "Monthly health review", free: false, premium: true },
-  { label: "Doctor Mode reports", free: false, premium: true },
-  { label: "Fatigue deep dive", free: false, premium: true },
-  { label: "Guided programs", free: false, premium: true },
+  { label: "Daily symptom tracking", free: "✓", premium: "✓" },
+  { label: "Community access", free: "✓", premium: "✓" },
+  { label: "Nervous system tools", free: "✓", premium: "✓" },
+  { label: "AI Coach", free: "5/day", premium: "Unlimited" },
+  { label: "Cognitive games", free: "3/day", premium: "Unlimited" },
+  { label: "Insights", free: "Basic", premium: "Pattern trends" },
+  { label: "Personalized daily guidance", free: "—", premium: "✓" },
+  { label: "Understand symptom triggers", free: "—", premium: "✓" },
+  { label: "Monthly health summary", free: "—", premium: "✓" },
+  { label: "Doctor-ready reports (PDF)", free: "—", premium: "✓" },
+  { label: "Fatigue trigger analysis", free: "—", premium: "✓" },
+  { label: "Guided programs", free: "—", premium: "✓" },
 ];
 
 /** Free vs Premium comparison card for onboarding and premium page */
