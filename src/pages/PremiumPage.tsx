@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Crown, Sparkles, Brain, Stethoscope, Zap, BarChart3, BookOpen, Check, Star, CreditCard, Loader2, Heart } from "lucide-react";
+import { Crown, Sparkles, Brain, Stethoscope, Zap, BarChart3, BookOpen, Check, Star, CreditCard, Loader2, Heart, RefreshCw } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { friendlyError } from "@/lib/errorMessages";
 import PageHeader from "@/components/PageHeader";
