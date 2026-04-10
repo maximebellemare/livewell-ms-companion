@@ -11,51 +11,46 @@ const OfflineBanner = () => {
   useEffect(() => {
     let offlineTimer: ReturnType<typeof setTimeout> | null = null;
 
+    const confirmOffline = async () => {
+      const ok = navigator.onLine !== false ? await checkRealConnectivity() : false;
+
+      if (!ok) {
+        failCountRef.current += 1;
+        setIsOffline(true);
+        return;
+      }
+
+      failCountRef.current = 0;
+      setIsOffline(false);
+    };
+
     const goOffline = () => {
-      // Longer debounce in WebView to ignore transient hiccups
-      const delay = isReactNativeWebView ? 5000 : 3000;
+      const delay = isReactNativeWebView ? 7000 : 3000;
+      if (offlineTimer) clearTimeout(offlineTimer);
       offlineTimer = setTimeout(() => {
-        checkRealConnectivity().then((ok) => {
-          if (!ok) {
-            failCountRef.current++;
-            setIsOffline(true);
-          }
-        });
+        void confirmOffline();
       }, delay);
     };
+
     const goOnline = () => {
       if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = null; }
       failCountRef.current = 0;
       setIsOffline(false);
     };
 
-    // Initial check — extra long delay for WebView cold start
-    const initDelay = isReactNativeWebView ? 8000 : 5000;
-    const initTimer = setTimeout(() => {
-      checkRealConnectivity().then((ok) => {
-        if (!ok) setIsOffline(true);
-      });
-    }, initDelay);
-
     window.addEventListener("offline", goOffline);
     window.addEventListener("online", goOnline);
 
-    // Re-check on visibility change (WebView resume from background)
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        // Small delay to let the network stack wake up
+      if (document.visibilityState === "visible" && (isOffline || navigator.onLine === false)) {
         setTimeout(() => {
-          checkRealConnectivity().then((ok) => {
-            setIsOffline(!ok);
-            if (ok) failCountRef.current = 0;
-          });
-        }, isReactNativeWebView ? 2000 : 500);
+          void confirmOffline();
+        }, isReactNativeWebView ? 2500 : 750);
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      clearTimeout(initTimer);
       if (offlineTimer) clearTimeout(offlineTimer);
       window.removeEventListener("offline", goOffline);
       window.removeEventListener("online", goOnline);
@@ -91,7 +86,7 @@ const OfflineBanner = () => {
         >
           <div className="flex items-center justify-center gap-2 bg-destructive/90 px-4 py-2 text-xs font-medium text-destructive-foreground flex-wrap">
             <WifiOff className="h-3.5 w-3.5" />
-            <span>Connection interrupted — tap to retry</span>
+            <span>No internet connection detected — reconnect, then retry</span>
             <button
               onClick={handleRetry}
               disabled={retrying}
