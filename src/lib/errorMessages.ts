@@ -14,6 +14,9 @@ const ERROR_MAP: Record<string, string> = {
   "Signup requires a valid password": "Please enter a valid password.",
   "edge function returned a non-2xx status code": "Something went wrong. Please try again in a moment.",
   "Failed to fetch": "Connection issue. Please check your internet and try again.",
+  "load fail": "Connection issue. Please check your internet and try again.",
+  "network request failed": "Connection issue. Please check your internet and try again.",
+  "TypeError: Network request failed": "Connection issue. Please check your internet and try again.",
   "FunctionsHttpError": "Something went wrong. Please try again in a moment.",
   "FunctionsRelayError": "Connection issue. Please try again in a moment.",
 };

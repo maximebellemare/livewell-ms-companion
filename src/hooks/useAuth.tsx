@@ -21,15 +21,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // IMPORTANT: Set up the listener BEFORE restoring the session
+    // to avoid race conditions — especially in WebView environments.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
+    // Restore persisted session; the listener above will also fire,
+    // but we set state here to cover the case where no change event is emitted.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch(() => {
+      // If session restore fails (e.g. network issue in WebView), stop loading
       setLoading(false);
     });
 
@@ -37,21 +44,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: window.location.origin },
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      return { error };
+    } catch (e: any) {
+      return { error: { message: e?.message || "Signup failed. Please try again." } };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error };
+    } catch (e: any) {
+      return { error: { message: e?.message || "Login failed. Please try again." } };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Best-effort sign out; clear local state regardless
+      setSession(null);
+      setUser(null);
+    }
   };
 
   const sendPasswordReset = async (email: string) => {
