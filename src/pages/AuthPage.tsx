@@ -19,14 +19,19 @@ const AuthPage = () => {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (error) {
-      toast.error(friendlyError((error as any).message));
+    try {
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (error) {
+        toast.error(friendlyError((error as any).message));
+        setGoogleLoading(false);
+      }
+      // On success the page redirects — no need to reset loading
+    } catch (e: any) {
+      toast.error(friendlyError(e?.message));
       setGoogleLoading(false);
     }
-    // On success the page redirects — no need to reset loading
   };
 
 
