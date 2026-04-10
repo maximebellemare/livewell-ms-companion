@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { RefreshCw, AlertTriangle } from "lucide-react";
-import { checkRealConnectivity } from "@/lib/webview";
+import { checkRealConnectivity, forceFullReload } from "@/lib/webview";
 
 interface Props {
   children: ReactNode;
@@ -10,19 +10,32 @@ interface State {
   hasError: boolean;
   error: Error | null;
   isOffline: boolean;
+  autoRetryCount: number;
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null, isOffline: false };
+  state: State = { hasError: false, error: null, isOffline: false, autoRetryCount: 0 };
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, isOffline: false };
+  static getDerivedStateFromError(error: Error): Partial<State> {
+    return { hasError: true, error };
   }
 
   componentDidCatch() {
-    // Check if the crash was caused by a connectivity issue
     checkRealConnectivity().then((ok) => {
-      if (!ok) this.setState({ isOffline: true });
+      if (!ok) {
+        this.setState({ isOffline: true });
+      }
+      // Auto-retry up to 2 times for transient errors
+      if (this.state.autoRetryCount < 2) {
+        setTimeout(() => {
+          this.setState((prev) => ({
+            hasError: false,
+            error: null,
+            isOffline: false,
+            autoRetryCount: prev.autoRetryCount + 1,
+          }));
+        }, 1500 * (this.state.autoRetryCount + 1));
+      }
     });
   }
 
@@ -30,12 +43,15 @@ class ErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: false, error: null, isOffline: false });
   };
 
-  handleReload = () => {
-    window.location.reload();
+  handleFullReload = () => {
+    forceFullReload();
   };
 
   render() {
     if (!this.state.hasError) return this.props.children;
+
+    // Still auto-retrying — show nothing (or a subtle spinner)
+    if (this.state.autoRetryCount < 2) return null;
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
@@ -77,7 +93,7 @@ class ErrorBoundary extends Component<Props, State> {
               Try again
             </button>
             <button
-              onClick={this.handleReload}
+              onClick={this.handleFullReload}
               className="rounded-full px-6 py-3 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
             >
               Reload app
