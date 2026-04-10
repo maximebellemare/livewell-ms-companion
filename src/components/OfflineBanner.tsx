@@ -3,14 +3,33 @@ import { WifiOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const OfflineBanner = () => {
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
-    const goOffline = () => setIsOffline(true);
-    const goOnline = () => setIsOffline(false);
+    // Debounce offline detection to avoid false positives in WebView
+    let offlineTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const goOffline = () => {
+      // Wait 2s and re-check — WebView can fire spurious offline events
+      offlineTimer = setTimeout(() => {
+        if (!navigator.onLine) setIsOffline(true);
+      }, 2000);
+    };
+    const goOnline = () => {
+      if (offlineTimer) { clearTimeout(offlineTimer); offlineTimer = null; }
+      setIsOffline(false);
+    };
+
+    // Initial check after a short delay (avoids false positive during WebView boot)
+    const initTimer = setTimeout(() => {
+      if (!navigator.onLine) setIsOffline(true);
+    }, 3000);
+
     window.addEventListener("offline", goOffline);
     window.addEventListener("online", goOnline);
     return () => {
+      clearTimeout(initTimer);
+      if (offlineTimer) clearTimeout(offlineTimer);
       window.removeEventListener("offline", goOffline);
       window.removeEventListener("online", goOnline);
     };

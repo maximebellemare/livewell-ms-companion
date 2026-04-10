@@ -31,14 +31,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Restore persisted session; the listener above will also fire,
     // but we set state here to cover the case where no change event is emitted.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    }).catch(() => {
-      // If session restore fails (e.g. network issue in WebView), stop loading
-      setLoading(false);
-    });
+    // Restore persisted session with WebView-safe retry
+    const restoreSession = async (attempt = 0) => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } catch {
+        // In WebView, first load can fail transiently — retry once after 1.5s
+        if (attempt < 1) {
+          setTimeout(() => restoreSession(attempt + 1), 1500);
+        } else {
+          setLoading(false);
+        }
+      }
+    };
+    restoreSession();
 
     return () => subscription.unsubscribe();
   }, []);
