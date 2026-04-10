@@ -13,12 +13,13 @@ const ERROR_MAP: Record<string, string> = {
   "Unable to validate email address": "Please enter a valid email address.",
   "Signup requires a valid password": "Please enter a valid password.",
   "edge function returned a non-2xx status code": "Something went wrong. Please try again in a moment.",
-  "Failed to fetch": "Couldn't reach the server. Please try again.",
-  "load fail": "Couldn't reach the server. Please try again.",
-  "network request failed": "Couldn't reach the server. Please try again.",
-  "TypeError: Network request failed": "Couldn't reach the server. Please try again.",
+  "Failed to fetch": "The app hit a temporary loading issue. Try again or tap Reload App.",
+  "load fail": "The app hit a temporary loading issue. Try again or tap Reload App.",
+  "network request failed": "The app hit a temporary loading issue. Try again or tap Reload App.",
+  "TypeError: Network request failed": "The app hit a temporary loading issue. Try again or tap Reload App.",
+  "Couldn't reach the server": "The app hit a temporary loading issue. Try again or tap Reload App.",
   "FunctionsHttpError": "Something went wrong. Please try again in a moment.",
-  "FunctionsRelayError": "Connection issue. Please try again in a moment.",
+  "FunctionsRelayError": "The app hit a temporary connection issue. Try again or tap Reload App.",
 };
 
 export function friendlyError(raw: string | undefined | null): string {
@@ -36,7 +37,7 @@ export function friendlyError(raw: string | undefined | null): string {
     /function|invoke|fetch|network|cors|http/i.test(raw) ||
     raw.length > 120
   ) {
-    return "Something went wrong. Please try again in a moment.";
+    return "The app hit a temporary loading issue. Try again or tap Reload App.";
   }
   
   return raw;
