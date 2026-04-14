@@ -4,9 +4,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const REVENUECAT_WEBHOOK_SECRET = Deno.env.get("REVENUECAT_WEBHOOK_SECRET") ?? "";
 
 serve(async (req) => {
-  // Verify authorization
+  // Verify authorization (fail-closed: reject if secret is missing or mismatched)
   const authHeader = req.headers.get("Authorization");
-  if (REVENUECAT_WEBHOOK_SECRET && authHeader !== REVENUECAT_WEBHOOK_SECRET) {
+  if (!REVENUECAT_WEBHOOK_SECRET || authHeader !== REVENUECAT_WEBHOOK_SECRET) {
     return new Response("Unauthorized", { status: 401 });
   }
 

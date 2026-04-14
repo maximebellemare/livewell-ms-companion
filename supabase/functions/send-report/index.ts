@@ -108,12 +108,16 @@ serve(async (req) => {
       throw new Error(`Storage upload failed: ${uploadError.message}`);
     }
 
-    // Get public URL for the uploaded PDF
-    const { data: urlData } = serviceClient.storage
+    // Get signed URL for the uploaded PDF (valid for 1 hour)
+    const { data: urlData, error: signError } = await serviceClient.storage
       .from("reports")
-      .getPublicUrl(storagePath);
+      .createSignedUrl(storagePath, 3600);
 
-    const pdfUrl = urlData.publicUrl;
+    if (signError || !urlData?.signedUrl) {
+      throw new Error(`Failed to create signed URL: ${signError?.message ?? "unknown"}`);
+    }
+
+    const pdfUrl = urlData.signedUrl;
 
     // ── Upsert Klaviyo profile ───────────────────────────────
     await klaviyoPost("/profiles/", {
