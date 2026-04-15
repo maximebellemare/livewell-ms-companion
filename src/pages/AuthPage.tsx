@@ -7,33 +7,50 @@ import { friendlyError } from "@/lib/errorMessages";
 
 type Mode = "signin" | "signup" | "forgot";
 
-
 const AuthPage = () => {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  
-  const { signIn, signUp, sendPasswordReset } = useAuth();
+  const [appleLoading, setAppleLoading] = useState(false);
+
+  const { signIn, signUp, sendPasswordReset, signInWithApple } = useAuth();
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
+      const isCapacitor = !!(window as any).Capacitor;
+      const redirectUri = isCapacitor
+        ? "com.livewithms.app://auth/callback"
+        : window.location.origin;
+
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: redirectUri,
       });
       if (error) {
         toast.error(friendlyError((error as any).message));
         setGoogleLoading(false);
       }
-      // On success the page redirects — no need to reset loading
     } catch (e: any) {
       toast.error(friendlyError(e?.message));
       setGoogleLoading(false);
     }
   };
 
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    try {
+      const { error } = await signInWithApple();
+      if (error) {
+        toast.error(friendlyError(error.message));
+      }
+    } catch (e: any) {
+      toast.error(friendlyError(e?.message));
+    } finally {
+      setAppleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +145,6 @@ const AuthPage = () => {
           </button>
         </form>
 
-        {/* Google Sign-In — shown on sign-in and sign-up screens */}
         {mode !== "forgot" && (
           <>
             <div className="relative flex items-center gap-3 py-1">
@@ -137,21 +153,38 @@ const AuthPage = () => {
               <div className="flex-1 border-t border-border" />
             </div>
 
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={googleLoading}
-              className="flex w-full items-center justify-center gap-3 rounded-full border border-border bg-card py-3.5 text-sm font-semibold text-foreground shadow-soft transition-all hover:bg-secondary active:scale-[0.98] disabled:opacity-60"
-            >
-              {/* Google "G" SVG */}
-              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-                <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
-                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
-              </svg>
-              {googleLoading ? "Signing in…" : "Continue with Google"}
-            </button>
+            {/* Google Sign-In — hidden inside Capacitor, shown on web */}
+            {!(window as any).Capacitor && (
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading}
+                className="flex w-full items-center justify-center gap-3 rounded-full border border-border bg-card py-3.5 text-sm font-semibold text-foreground shadow-soft transition-all hover:bg-secondary active:scale-[0.98] disabled:opacity-60 mb-3"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                  <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.548 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+                </svg>
+                {googleLoading ? "Signing in…" : "Continue with Google"}
+              </button>
+            )}
+
+            {/* Apple Sign-In — only shown inside the iOS app */}
+            {(window as any).Capacitor && (
+              <button
+                type="button"
+                onClick={handleAppleSignIn}
+                disabled={appleLoading}
+                className="flex w-full items-center justify-center gap-3 rounded-full border border-border bg-black py-3.5 text-sm font-semibold text-white shadow-soft transition-all hover:bg-gray-900 active:scale-[0.98] disabled:opacity-60"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" fill="white">
+                  <path d="M12.628 1.382c.766-.978 1.28-2.31 1.14-3.655-1.103.047-2.44.735-3.23 1.713-.71.86-1.334 2.236-1.166 3.55 1.232.094 2.49-.626 3.256-1.608zM13.75 3.46c-1.8-.107-3.33.02-4.43 1.98-1.91-.107-3.77.9-4.72 2.28-1.95 2.79-.5 6.91.68 9.18.6 1.13 1.32 2.4 2.27 2.36.91-.04 1.26-.59 2.36-.59 1.1 0 1.41.59 2.37.57.98-.02 1.6-1.13 2.2-2.26.69-1.3 1.03-2.56 1.06-2.63-.02-.01-2.04-.78-2.06-3.1-.02-1.94 1.58-2.87 1.65-2.92-.9-1.33-2.3-1.48-2.79-1.51l-.58-.04z"/>
+                </svg>
+                {appleLoading ? "Signing in…" : "Continue with Apple"}
+              </button>
+            )}
           </>
         )}
 
@@ -173,7 +206,6 @@ const AuthPage = () => {
             </button>
           </p>
         )}
-
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           <MedicalDisclaimerDialog triggerClassName="hover:text-primary/70 transition-colors cursor-pointer" /> · <a href="/terms" className="hover:text-primary/70 transition-colors">Terms</a> · <a href="mailto:support@livewithms.com" className="hover:text-primary/70 transition-colors">Contact support</a> · Your data is encrypted and private

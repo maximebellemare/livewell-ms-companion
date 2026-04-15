@@ -22,7 +22,7 @@ import AppLoadingSkeleton, {
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
@@ -74,20 +74,17 @@ const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 const SuccessPage = lazy(() => import("./pages/SuccessPage"));
 
 const queryClient = new QueryClient();
-// Configure QueryClient with WebView-safe defaults
 queryClient.setDefaultOptions({
   queries: {
     retry: (failureCount, error) => {
-      // Don't retry auth errors
       if (error && typeof error === "object" && "status" in error) {
         const status = (error as any).status;
         if (status === 401 || status === 403) return false;
       }
-      // Retry up to 2 times for network errors (common in WebView)
       return failureCount < 2;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 8000),
-    staleTime: 30_000, // 30s — reduces refetches on WebView resume
+    staleTime: 30_000,
   },
 });
 
@@ -147,7 +144,6 @@ const AnimatedRoutes = () => {
         <Route path="/my-ms-history" element={<ProtectedRoute><LazyPage><MyMSHistoryPage /></LazyPage></ProtectedRoute>} />
         <Route path="/relapses" element={<ProtectedRoute><LazyPage fallback={<RelapsesSkeleton />}><RelapsesPage /></LazyPage></ProtectedRoute>} />
         <Route path="/community/guidelines" element={<ProtectedRoute><LazyPage><CommunityGuidelinesPage /></LazyPage></ProtectedRoute>} />
-        
         <Route path="/coming-soon/:feature" element={<ProtectedRoute><LazyPage><ComingSoonPage /></LazyPage></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><LazyPage><AdminPage /></LazyPage></ProtectedRoute>} />
         <Route path="/terms" element={<ProtectedRoute><LazyPage><TermsPage /></LazyPage></ProtectedRoute>} />
@@ -198,11 +194,19 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
-              <AuthProvider>
-                <AppRoutes />
-              </AuthProvider>
-            </BrowserRouter>
+            {(window as any).Capacitor ? (
+              <MemoryRouter initialEntries={["/"]}>
+                <AuthProvider>
+                  <AppRoutes />
+                </AuthProvider>
+              </MemoryRouter>
+            ) : (
+              <BrowserRouter>
+                <AuthProvider>
+                  <AppRoutes />
+                </AuthProvider>
+              </BrowserRouter>
+            )}
           </TooltipProvider>
         </QueryClientProvider>
       </ThemeWrapper>

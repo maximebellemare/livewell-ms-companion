@@ -10,7 +10,6 @@ import { usePremium, STRIPE_PRICES } from "@/hooks/usePremium";
 import { useTrial } from "@/hooks/useTrial";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import confetti from "canvas-confetti";
 import { useSearchParams } from "react-router-dom";
 
 const features = [
@@ -31,7 +30,12 @@ const PremiumPage = () => {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
-  const handleRefresh = useCallback(async () => { await checkSubscription(); queryClient.invalidateQueries({ queryKey: ["profile"] }); }, [queryClient, checkSubscription]);
+  const isCapacitor = !!(window as any).Capacitor;
+
+  const handleRefresh = useCallback(async () => {
+    await checkSubscription();
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+  }, [queryClient, checkSubscription]);
 
   useEffect(() => { checkSubscription(); }, [checkSubscription]);
 
@@ -43,10 +47,7 @@ const PremiumPage = () => {
   }, [searchParams]);
 
   const resolvedPremiumMessage = useMemo(() => {
-    if (!hasRealSubscription || !premiumUntil) {
-      return null;
-    }
-
+    if (!hasRealSubscription || !premiumUntil) return null;
     if (cancelAtPeriodEnd) {
       return {
         heading: `Your Premium will end on ${new Date(premiumUntil).toLocaleDateString()}`,
@@ -54,7 +55,6 @@ const PremiumPage = () => {
         status: "cancelled" as const,
       };
     }
-
     return {
       heading: `Renews on ${new Date(premiumUntil).toLocaleDateString()}`,
       body: null,
@@ -62,25 +62,57 @@ const PremiumPage = () => {
     };
   }, [cancelAtPeriodEnd, hasRealSubscription, premiumUntil]);
 
-  useEffect(() => {
-    if (!isPremium) return;
-    console.info("[PremiumPage] billing state", {
-      isPremium,
-      premiumUntil,
-      hasRealSubscription,
-      cancelAtPeriodEnd,
-      isBillingStatusLoading,
-      uiBranch: isBillingStatusLoading
-        ? "loading"
-        : resolvedPremiumMessage?.status === "cancelled"
-          ? "cancelled"
-          : resolvedPremiumMessage?.status === "active"
-            ? "renews"
-            : "fallback",
-    });
-  }, [isPremium, premiumUntil, hasRealSubscription, cancelAtPeriodEnd, isBillingStatusLoading, resolvedPremiumMessage]);
+  const handleAppleIAP = async () => {
+    setLoading(true);
+    try {
+      const { Purchases } = await import("@revenuecat/purchases-capacitor");
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await Purchases.logIn({ appUserID: user.id });
+      }
+
+      const { current } = await Purchases.getOfferings();
+      if (!current) {
+        toast.error("Products not available. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const pkg = billing === "monthly" ? current.monthly : current.annual;
+
+      if (!pkg) {
+        toast.error("Product not found. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
+
+      if (customerInfo.entitlements.active["premium"]) {
+        toast.success("Welcome to Premium! 🎉");
+        await checkSubscription();
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+      } else {
+        toast.error("Purchase completed but could not verify. Contact support.");
+      }
+    } catch (e: any) {
+      if (e?.code === "1" || e?.message?.includes("cancelled") || e?.message?.includes("canceled")) {
+        // User cancelled — not an error
+      } else {
+        toast.error(friendlyError(e?.message));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCheckout = async () => {
+    if (isCapacitor) {
+      await handleAppleIAP();
+      return;
+    }
+
     setLoading(true);
     try {
       const priceId = billing === "monthly" ? STRIPE_PRICES.monthly : STRIPE_PRICES.annual;
@@ -88,9 +120,7 @@ const PremiumPage = () => {
         body: { priceId },
       });
       if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      if (data?.url) window.location.href = data.url;
     } catch (e: any) {
       toast.error(friendlyError(e.message));
     } finally {
@@ -103,7 +133,6 @@ const PremiumPage = () => {
       toast.info("No active subscription to manage yet.");
       return;
     }
-
     setManagingPortal(true);
     try {
       const { data, error } = await supabase.functions.invoke("customer-portal");
@@ -111,10 +140,7 @@ const PremiumPage = () => {
         toast.info("We could not open subscription management right now.");
         return;
       }
-
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      if (data?.url) window.location.href = data.url;
     } catch {
       toast.info("We could not open subscription management right now.");
     } finally {
@@ -178,18 +204,14 @@ const PremiumPage = () => {
                 </div>
 
                 {isBillingStatusLoading ? (
-                  <p className="text-xs text-muted-foreground/70 italic">
-                    Checking subscription details…
-                  </p>
+                  <p className="text-xs text-muted-foreground/70 italic">Checking subscription details…</p>
                 ) : resolvedPremiumMessage ? (
                   <div className="space-y-1">
                     <p className={`text-sm ${resolvedPremiumMessage.status === "cancelled" ? "font-medium text-foreground" : "text-muted-foreground"}`}>
                       {resolvedPremiumMessage.heading}
                     </p>
                     {resolvedPremiumMessage.body && (
-                      <p className="text-xs text-muted-foreground">
-                        {resolvedPremiumMessage.body}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{resolvedPremiumMessage.body}</p>
                     )}
                   </div>
                 ) : null}
@@ -204,9 +226,7 @@ const PremiumPage = () => {
                     {managingPortal ? "Opening…" : cancelAtPeriodEnd ? "Resubscribe" : "Manage Subscription"}
                   </button>
                 ) : !isBillingStatusLoading ? (
-                  <p className="text-xs text-muted-foreground/70 italic">
-                    No active subscription to manage yet.
-                  </p>
+                  <p className="text-xs text-muted-foreground/70 italic">No active subscription to manage yet.</p>
                 ) : null}
               </div>
             </StaggerItem>
@@ -225,21 +245,26 @@ const PremiumPage = () => {
                     className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${billing === "annual" ? "bg-primary text-primary-foreground shadow-soft" : "bg-secondary text-muted-foreground"}`}
                   >
                     Annual
-                    <span className="ml-1.5 text-[10px] opacity-80">Save 33%</span>
+                    <span className="ml-1.5 text-[10px] opacity-80">Save 36%</span>
                   </button>
                 </div>
               </StaggerItem>
 
               <StaggerItem>
                 <div className="text-center">
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="font-display text-4xl font-bold text-foreground">
-                      ${billing === "monthly" ? "19" : "12.67"}
-                    </span>
-                    <span className="text-sm text-muted-foreground">/month</span>
-                  </div>
-                  {billing === "annual" && (
-                    <p className="mt-1 text-xs text-muted-foreground">Billed annually at $152/year</p>
+                  {billing === "annual" ? (
+                    <>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="font-display text-4xl font-bold text-foreground">$151.99</span>
+                        <span className="text-sm text-muted-foreground">/year</span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">$12.67/month — billed annually</p>
+                    </>
+                  ) : (
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="font-display text-4xl font-bold text-foreground">$19.99</span>
+                      <span className="text-sm text-muted-foreground">/month</span>
+                    </div>
                   )}
                 </div>
               </StaggerItem>
@@ -317,10 +342,20 @@ const PremiumPage = () => {
                   ) : (
                     <Crown className="h-5 w-5" />
                   )}
-                  {loading ? "Redirecting to secure checkout…" : trialExpired ? "Continue with Premium" : "Try your personal MS companion"}
+                  {loading ? "Processing…" : trialExpired ? "Continue with Premium" : "Try your personal MS companion"}
                 </button>
+                {isCapacitor && (
+                  <p className="text-center text-[11px] text-muted-foreground">
+                    Payment processed securely by Apple
+                  </p>
+                )}
                 <p className="text-center text-[11px] text-muted-foreground">
                   Cancel anytime • No commitment
+                </p>
+                <p className="text-center text-[11px] text-muted-foreground">
+                  <a href="https://livewithms.com/policies/privacy-policy" className="underline">Privacy Policy</a>
+                  {" · "}
+                  <a href="https://livewithms.com/policies/terms-of-service" className="underline">Terms of Use</a>
                 </p>
               </div>
             </StaggerItem>
@@ -332,4 +367,3 @@ const PremiumPage = () => {
 };
 
 export default PremiumPage;
-

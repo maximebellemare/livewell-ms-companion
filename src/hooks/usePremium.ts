@@ -15,6 +15,7 @@ type BillingState = {
   hasActiveSubscription: boolean;
   subscriptionEnd: string | null;
   cancelAtPeriodEnd: boolean;
+  hasAppleSubscription: boolean;
 };
 
 const INITIAL_BILLING_STATE: BillingState = {
@@ -23,12 +24,33 @@ const INITIAL_BILLING_STATE: BillingState = {
   hasActiveSubscription: false,
   subscriptionEnd: null,
   cancelAtPeriodEnd: false,
+  hasAppleSubscription: false,
 };
 
 const hasValidFutureDate = (value: string | null | undefined) => {
   if (!value) return false;
   const date = new Date(value);
   return !Number.isNaN(date.getTime()) && date > new Date();
+};
+
+const checkRevenueCat = async (userId: string): Promise<{ active: boolean; expiresAt: string | null }> => {
+  if (!(window as any).Capacitor) return { active: false, expiresAt: null };
+  try {
+    const { Purchases } = await import("@revenuecat/purchases-capacitor");
+    await Purchases.logIn({ appUserID: userId });
+    const { customerInfo } = await Purchases.getCustomerInfo();
+    const entitlement = customerInfo.entitlements.active["premium"];
+    if (entitlement) {
+      return {
+        active: true,
+        expiresAt: entitlement.expirationDate ?? null,
+      };
+    }
+    return { active: false, expiresAt: null };
+  } catch (e) {
+    console.warn("[usePremium] RevenueCat check failed", e);
+    return { active: false, expiresAt: null };
+  }
 };
 
 export const usePremium = () => {
@@ -41,15 +63,14 @@ export const usePremium = () => {
   const premiumUntil = profile?.premium_until ?? billingState.subscriptionEnd ?? null;
   const hasFuturePremiumUntil = hasValidFutureDate(premiumUntil);
 
-  // Check if premium has expired (local fallback)
   const isActive = isPremium && (!premiumUntil || hasFuturePremiumUntil);
 
-  // Whether the user has a real Stripe-backed subscription (not just a manual DB flag)
   const hasRealSubscription =
     billingState.checked &&
-    billingState.hasStripeCustomer &&
-    billingState.hasActiveSubscription &&
-    hasFuturePremiumUntil;
+    (billingState.hasAppleSubscription ||
+      (billingState.hasStripeCustomer &&
+        billingState.hasActiveSubscription &&
+        hasFuturePremiumUntil));
 
   const checkSubscription = useCallback(async () => {
     if (!user) {
@@ -58,30 +79,33 @@ export const usePremium = () => {
     }
 
     try {
+      // Check Stripe
       const { data, error } = await supabase.functions.invoke("check-subscription");
+
+      // Check RevenueCat (Apple IAP) in parallel
+      const appleResult = await checkRevenueCat(user.id);
+
       if (error) {
         console.warn("[usePremium] check-subscription returned error", error);
-        setBillingState((prev) => ({ ...prev, checked: true }));
+        setBillingState((prev) => ({
+          ...prev,
+          checked: true,
+          hasAppleSubscription: appleResult.active,
+          subscriptionEnd: appleResult.expiresAt ?? prev.subscriptionEnd,
+        }));
         return;
       }
-
-      console.info("[usePremium] subscription response", {
-        subscribed: data?.subscribed,
-        customer_exists: data?.customer_exists,
-        billing_portal_eligible: data?.billing_portal_eligible,
-        subscription_end: data?.subscription_end,
-        cancel_at_period_end: data?.cancel_at_period_end,
-      });
 
       setBillingState({
         checked: true,
         hasStripeCustomer: Boolean(data?.customer_exists),
         hasActiveSubscription: Boolean(data?.subscribed) && Boolean(data?.billing_portal_eligible),
-        subscriptionEnd: data?.subscription_end ?? null,
+        subscriptionEnd: appleResult.expiresAt ?? data?.subscription_end ?? null,
         cancelAtPeriodEnd: Boolean(data?.cancel_at_period_end),
+        hasAppleSubscription: appleResult.active,
       });
 
-      if (data) {
+      if (data || appleResult.active) {
         queryClient.invalidateQueries({ queryKey: ["profile"] });
       }
     } catch (e) {
@@ -92,6 +116,7 @@ export const usePremium = () => {
         hasActiveSubscription: false,
         subscriptionEnd: null,
         cancelAtPeriodEnd: false,
+        hasAppleSubscription: false,
       });
     }
   }, [user, queryClient]);
@@ -100,7 +125,6 @@ export const usePremium = () => {
     setBillingState(INITIAL_BILLING_STATE);
   }, [user?.id]);
 
-  // Check on mount and periodically
   useEffect(() => {
     if (!user) return;
     checkSubscription();
@@ -110,16 +134,13 @@ export const usePremium = () => {
 
   useEffect(() => {
     if (!user) return;
-
     const refreshSubscription = () => {
       if (document.visibilityState === "visible") {
         void checkSubscription();
       }
     };
-
     window.addEventListener("focus", refreshSubscription);
     document.addEventListener("visibilitychange", refreshSubscription);
-
     return () => {
       window.removeEventListener("focus", refreshSubscription);
       document.removeEventListener("visibilitychange", refreshSubscription);
@@ -127,7 +148,7 @@ export const usePremium = () => {
   }, [user, checkSubscription]);
 
   return {
-    isPremium: isActive,
+    isPremium: isActive || billingState.hasAppleSubscription,
     isLoading,
     premiumUntil,
     hasRealSubscription,

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { isReactNativeWebView, postToNativeWebView } from "@/lib/webview";
+import { SignInWithApple } from "@capacitor-community/apple-sign-in";
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +14,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
+  signInWithApple: () => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,20 +26,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // IMPORTANT: Set up the listener BEFORE restoring the session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
 
       if (event === "SIGNED_OUT") {
-        // Nuke all cached queries so the next user starts clean
         queryClient.clear();
         postToNativeWebView({ type: "AUTH_SIGNED_OUT" });
       }
     });
 
-    // Restore persisted session with WebView-safe retry (up to 2 attempts)
     const restoreSession = async (attempt = 0) => {
       try {
         const { data: { session: s } } = await supabase.auth.getSession();
@@ -57,17 +56,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
-  // --- WebView resume: refresh session when app returns from background ---
   useEffect(() => {
     if (!isReactNativeWebView) return;
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible" && session) {
-        // Silently refresh the token — if it expired while backgrounded
-        // the listener will fire and update state automatically
-        supabase.auth.getSession().catch(() => {
-          // Ignore — the retry in restoreSession already handles this
-        });
+        supabase.auth.getSession().catch(() => {});
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
@@ -98,16 +92,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = useCallback(async () => {
     try {
-      // Clear all cached data BEFORE signing out to prevent stale state
       queryClient.clear();
       await supabase.auth.signOut();
     } catch {
-      // Best-effort sign out; clear local state regardless
       setSession(null);
       setUser(null);
       queryClient.clear();
     }
-    // Signal native wrapper to remount WebView
     postToNativeWebView({ type: "AUTH_SIGNED_OUT" });
   }, [queryClient]);
 
@@ -123,8 +114,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
+  const signInWithApple = async () => {
+    try {
+      const result = await SignInWithApple.authorize({
+        clientId: "com.livewithms.app",
+        redirectURI: "https://app.livewithms.com",
+        scopes: "email name",
+        state: Math.random().toString(36).substring(2),
+        nonce: Math.random().toString(36).substring(2),
+      });
+
+      const { identityToken } = result.response;
+
+      if (!identityToken) {
+        return { error: { message: "Apple Sign In failed — no identity token returned." } };
+      }
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: identityToken,
+      });
+
+      return { error };
+    } catch (e: any) {
+      if (e?.message?.includes("cancelled") || e?.message?.includes("canceled")) {
+        return { error: null }; // User cancelled — not an error
+      }
+      return { error: { message: e?.message || "Apple Sign In failed. Please try again." } };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, sendPasswordReset, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, sendPasswordReset, updatePassword, signInWithApple }}>
       {children}
     </AuthContext.Provider>
   );

@@ -22,15 +22,28 @@ const savedFontSize = localStorage.getItem("ms-font-size");
 if (savedFontSize === "large") document.documentElement.classList.add("font-large");
 else if (savedFontSize === "xl") document.documentElement.classList.add("font-xl");
 
+// Initialize RevenueCat inside Capacitor only
+const initRevenueCat = async () => {
+  if (!(window as any).Capacitor) return;
+  try {
+    const { Purchases, LOG_LEVEL } = await import("@revenuecat/purchases-capacitor");
+    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+    await Purchases.configure({
+      apiKey: "appl_bAeBbFsqCmBixUsbQDaQKfIiIMS",
+    });
+  } catch (e) {
+    console.warn("RevenueCat init failed:", e);
+  }
+};
+
 // Hydrate native session (from Expo wrapper) before rendering
-// This ensures the auth state is set before React mounts
 const boot = async () => {
   if (isReactNativeWebView) {
     await hydrateSessionFromURL();
     listenForNativeSession();
   }
+  await initRevenueCat();
   createRoot(document.getElementById("root")!).render(<App />);
 };
 
 boot();
-
