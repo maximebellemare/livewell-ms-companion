@@ -65,19 +65,16 @@ const PrivacyPage = () => {
     if (deleteInput !== "DELETE" || !user) return;
     setDeleting(true);
     try {
-      // Delete all user data from all tables
-      await Promise.all([
-        supabase.from("daily_entries").delete().eq("user_id", user.id),
-        supabase.from("medication_logs").delete().eq("user_id", user.id),
-        supabase.from("medications").delete().eq("user_id", user.id),
-        supabase.from("appointments").delete().eq("user_id", user.id),
-        supabase.from("push_subscriptions").delete().eq("user_id", user.id),
-        supabase.from("report_history").delete().eq("user_id", user.id),
-        supabase.from("profiles").delete().eq("user_id", user.id),
-      ]);
+      const { data, error } = await supabase.functions.invoke("account-management", {
+        body: { action: "delete" },
+      });
+
+      if (error || !data?.success) {
+        throw new Error(error?.message || "Delete failed");
+      }
 
       await signOut();
-      toast.success("Your data has been deleted. Account signed out.");
+      toast.success("Your account and data have been permanently deleted.");
       navigate("/");
     } catch (err: any) {
       toast.error("Failed to delete data: " + err.message);

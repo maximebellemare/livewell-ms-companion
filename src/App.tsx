@@ -64,7 +64,6 @@ const EnergyBudgetPage = lazy(() => import("./pages/EnergyBudgetPage"));
 const LifestylePage = lazy(() => import("./pages/LifestylePage"));
 const SmartMatchingPage = lazy(() => import("./pages/SmartMatchingPage"));
 const CognitivePage = lazy(() => import("./pages/CognitivePage"));
-const WearablesPage = lazy(() => import("./pages/WearablesPage"));
 const CoachPage = lazy(() => import("./pages/CoachPage"));
 const PremiumPage = lazy(() => import("./pages/PremiumPage"));
 const NervousSystemPage = lazy(() => import("./pages/NervousSystemPage"));
@@ -153,7 +152,7 @@ const AnimatedRoutes = () => {
         <Route path="/lifestyle" element={<ProtectedRoute><LazyPage fallback={<LifestyleSkeleton />}><LifestylePage /></LazyPage></ProtectedRoute>} />
         <Route path="/matching" element={<ProtectedRoute><LazyPage><SmartMatchingPage /></LazyPage></ProtectedRoute>} />
         <Route path="/cognitive" element={<ProtectedRoute><LazyPage fallback={<CognitiveSkeleton />}><CognitivePage /></LazyPage></ProtectedRoute>} />
-        <Route path="/wearables" element={<ProtectedRoute><LazyPage><WearablesPage /></LazyPage></ProtectedRoute>} />
+        <Route path="/wearables" element={<Navigate to="/coming-soon/wearables" replace />} />
         <Route path="/coach" element={<ProtectedRoute><LazyPage fallback={<CoachSkeleton />}><CoachPage /></LazyPage></ProtectedRoute>} />
         <Route path="/premium" element={<ProtectedRoute><LazyPage><PremiumPage /></LazyPage></ProtectedRoute>} />
         <Route path="/nervous-system" element={<ProtectedRoute><LazyPage><NervousSystemPage /></LazyPage></ProtectedRoute>} />

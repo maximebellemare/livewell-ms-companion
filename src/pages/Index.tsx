@@ -23,7 +23,9 @@ const Index = () => {
           Free · Private · Not medical advice
         </p>
         <div className="mt-6 flex items-center justify-center gap-3 text-[11px] text-muted-foreground">
-          <a href="/terms" className="hover:text-primary transition-colors">Terms</a>
+          <a href="https://livewithms.com/policies/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Privacy Policy</a>
+          <span>·</span>
+          <a href="https://livewithms.com/policies/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Terms</a>
           <span>·</span>
           <a href="mailto:support@livewithms.com" className="hover:text-primary transition-colors">Contact support</a>
         </div>

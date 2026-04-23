@@ -21,6 +21,35 @@ const features = [
   { icon: Brain, label: "Unlimited AI Coach", desc: "Unlimited daily messages with your personal AI support coach." },
 ];
 
+const pickPackage = (offering: any, billing: "monthly" | "annual", packageType: Record<string, string>) => {
+  const packages = offering?.availablePackages ?? [];
+  const isMonthly = billing === "monthly";
+
+  const preferred = isMonthly ? offering?.monthly : offering?.annual;
+  if (preferred) return preferred;
+
+  const typeMatch = packages.find((pkg: any) =>
+    pkg?.packageType === (isMonthly ? packageType.MONTHLY : packageType.ANNUAL)
+  );
+  if (typeMatch) return typeMatch;
+
+  const periodMatch = packages.find((pkg: any) => {
+    const period = String(pkg?.product?.subscriptionPeriod ?? "").toUpperCase();
+    return isMonthly ? period === "P1M" : period === "P1Y";
+  });
+  if (periodMatch) return periodMatch;
+
+  const identifierMatch = packages.find((pkg: any) => {
+    const haystack = `${pkg?.identifier ?? ""} ${pkg?.product?.identifier ?? ""}`.toLowerCase();
+    return isMonthly
+      ? haystack.includes("month")
+      : haystack.includes("annual") || haystack.includes("year");
+  });
+  if (identifierMatch) return identifierMatch;
+
+  return packages[0] ?? null;
+};
+
 const PremiumPage = () => {
   const { isPremium, premiumUntil, hasRealSubscription, cancelAtPeriodEnd, isBillingStatusLoading, checkSubscription } = usePremium();
   const { isInTrial, trialExpired, daysRemaining } = useTrial();
@@ -65,21 +94,25 @@ const PremiumPage = () => {
   const handleAppleIAP = async () => {
     setLoading(true);
     try {
-      const { Purchases } = await import("@revenuecat/purchases-capacitor");
+      const { Purchases, PACKAGE_TYPE } = await import("@revenuecat/purchases-capacitor");
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await Purchases.logIn({ appUserID: user.id });
       }
 
-      const { current } = await Purchases.getOfferings();
-      if (!current) {
+      const { current, all } = await Purchases.getOfferings();
+      const offering =
+        current ??
+        Object.values(all ?? {}).find((candidate: any) => (candidate?.availablePackages?.length ?? 0) > 0);
+
+      if (!offering) {
         toast.error("Products not available. Please try again.");
         setLoading(false);
         return;
       }
 
-      const pkg = billing === "monthly" ? current.monthly : current.annual;
+      const pkg = pickPackage(offering, billing, PACKAGE_TYPE);
 
       if (!pkg) {
         toast.error("Product not found. Please try again.");

@@ -208,7 +208,7 @@ const AuthPage = () => {
         )}
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          <MedicalDisclaimerDialog triggerClassName="hover:text-primary/70 transition-colors cursor-pointer" /> · <a href="/terms" className="hover:text-primary/70 transition-colors">Terms</a> · <a href="mailto:support@livewithms.com" className="hover:text-primary/70 transition-colors">Contact support</a> · Your data is encrypted and private
+          <MedicalDisclaimerDialog triggerClassName="hover:text-primary/70 transition-colors cursor-pointer" /> · <a href="https://livewithms.com/policies/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-primary/70 transition-colors">Privacy Policy</a> · <a href="https://livewithms.com/policies/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-primary/70 transition-colors">Terms</a> · <a href="mailto:support@livewithms.com" className="hover:text-primary/70 transition-colors">Contact support</a> · Your data is encrypted and private
         </p>
       </div>
     </div>
