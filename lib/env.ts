@@ -4,6 +4,7 @@ const supabaseAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   "";
+const appScheme = "livewithms" as const;
 
 const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
@@ -21,6 +22,8 @@ const env = {
   supabaseUrl,
   supabaseAnonKey,
   isSupabaseConfigured,
+  appScheme,
+  resetPasswordRedirectUrl: `${appScheme}://reset-password`,
 };
 
 export default env;

@@ -16,7 +16,7 @@ type RouteGateProps = PropsWithChildren<{
 
 function getAllowedPath(mode: RouteGateMode, onboardingCompleted: boolean | null) {
   if (mode === "public") {
-    return null;
+    return onboardingCompleted === false ? "/welcome" : "/today";
   }
 
   if (mode === "auth") {

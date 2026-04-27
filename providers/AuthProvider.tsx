@@ -1,7 +1,7 @@
 import { PropsWithChildren, createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { authApi } from "../features/auth/api";
-import type { AuthContextValue } from "../features/auth/types";
+import type { AuthContextValue, AuthResult, SignUpResult } from "../features/auth/types";
 import type { DevMockAuthState } from "../features/auth/types";
 import {
   getDevMockAuthState,
@@ -25,6 +25,78 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const setDevMockState = useCallback((state: DevMockAuthState) => {
     setGlobalDevMockAuthState(state);
   }, []);
+
+  const signIn = useCallback(
+    async (email: string, password: string): Promise<AuthResult> => {
+      if (!env.isSupabaseConfigured) {
+        return { error: new Error("Supabase is not configured. Dev-only mock mode is active.") };
+      }
+
+      const result = await authApi.signIn(email, password);
+      if (result.error) {
+        logger.warn("Sign in failed", { error: result.error.message });
+      }
+      return result;
+    },
+    [],
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string): Promise<SignUpResult> => {
+      if (!env.isSupabaseConfigured) {
+        return {
+          error: new Error("Supabase is not configured. Dev-only mock mode is active."),
+          session: null,
+        };
+      }
+
+      const result = await authApi.signUp(email, password);
+      if (result.error) {
+        logger.warn("Sign up failed", { error: result.error.message });
+      }
+      return result;
+    },
+    [],
+  );
+
+  const sendPasswordReset = useCallback(
+    async (email: string): Promise<AuthResult> => {
+      if (!env.isSupabaseConfigured) {
+        return { error: new Error("Supabase is not configured. Dev-only mock mode is active.") };
+      }
+
+      const result = await authApi.sendPasswordReset(email);
+      if (result.error) {
+        logger.warn("Password reset email failed", { error: result.error.message });
+      }
+      return result;
+    },
+    [],
+  );
+
+  const updatePassword = useCallback(
+    async (password: string): Promise<AuthResult> => {
+      if (!env.isSupabaseConfigured) {
+        return { error: new Error("Supabase is not configured. Dev-only mock mode is active.") };
+      }
+
+      const result = await authApi.updatePassword(password);
+      if (result.error) {
+        logger.warn("Password update failed", { error: result.error.message });
+      }
+      return result;
+    },
+    [],
+  );
+
+  const signOut = useCallback(async (): Promise<void> => {
+    if (!env.isSupabaseConfigured) {
+      setDevMockState("signed-out");
+      return;
+    }
+
+    await authApi.signOut();
+  }, [setDevMockState]);
 
   useEffect(() => {
     if (initializedRef.current) {
@@ -91,16 +163,13 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       isMockMode: !env.isSupabaseConfigured,
       devMockState,
       setDevMockState,
-      signOut: async () => {
-        if (!env.isSupabaseConfigured) {
-          setDevMockState("signed-out");
-          return;
-        }
-
-        await authApi.signOut();
-      },
+      signIn,
+      signUp,
+      sendPasswordReset,
+      updatePassword,
+      signOut,
     }),
-    [devMockState, isReady, session, setDevMockState, user],
+    [devMockState, isReady, sendPasswordReset, session, setDevMockState, signIn, signOut, signUp, updatePassword, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
