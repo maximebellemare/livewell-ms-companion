@@ -1,12 +1,17 @@
 import { PropsWithChildren } from "react";
-import { StyleProp, StyleSheet, Text, TextStyle } from "react-native";
+import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from "react-native";
 
 type AppTextProps = PropsWithChildren<{
   style?: StyleProp<TextStyle>;
-}>;
+}> &
+  Pick<TextProps, "numberOfLines">;
 
-export default function AppText({ children, style }: AppTextProps) {
-  return <Text style={[styles.text, style]}>{children}</Text>;
+export default function AppText({ children, style, numberOfLines }: AppTextProps) {
+  return (
+    <Text numberOfLines={numberOfLines} style={[styles.text, style]}>
+      {children}
+    </Text>
+  );
 }
 
 const styles = StyleSheet.create({

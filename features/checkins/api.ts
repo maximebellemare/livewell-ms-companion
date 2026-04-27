@@ -6,7 +6,7 @@ const SELECT_FIELDS =
   "id, user_id, checkin_date, mood, energy, pain, fatigue, mobility, notes, created_at, updated_at";
 
 export const checkinsApi = {
-  async getTodaysCheckIn(userId: string, date: string) {
+  async getDailyCheckInByDate(userId: string, date: string) {
     if (!userId) {
       throw new Error("Missing user id for today's check-in query");
     }
@@ -31,6 +31,31 @@ export const checkinsApi = {
     }
 
     return (data ?? null) as DailyCheckIn | null;
+  },
+  async getTodaysCheckIn(userId: string, date: string) {
+    return checkinsApi.getDailyCheckInByDate(userId, date);
+  },
+  async listDailyCheckIns(userId: string, limit = 30) {
+    if (!userId) {
+      throw new Error("Missing user id for check-in history query");
+    }
+
+    if (!env.isSupabaseConfigured) {
+      return [] as DailyCheckIn[];
+    }
+
+    const { data, error } = await supabase
+      .from("daily_checkins")
+      .select(SELECT_FIELDS)
+      .eq("user_id", userId)
+      .order("checkin_date", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []) as DailyCheckIn[];
   },
   async upsertDailyCheckIn(userId: string, date: string, input: DailyCheckInInput) {
     if (!userId) {
