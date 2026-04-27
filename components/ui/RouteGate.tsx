@@ -3,7 +3,7 @@ import { usePathname, useRouter, useSegments } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../features/auth/hooks";
 import { useMyProfile } from "../../features/profile/hooks";
-import { getErrorMessage } from "../../lib/errors";
+import { getErrorMessage, normalizeError } from "../../lib/errors";
 import { logger } from "../../lib/logger";
 import ErrorState from "./ErrorState";
 import LoadingState from "./LoadingState";
@@ -36,7 +36,8 @@ export default function RouteGate({ children, mode }: RouteGateProps) {
   const segments = useSegments();
   const queryClient = useQueryClient();
   const { isReady, isAuthenticated, user } = useAuth();
-  const profileQuery = useMyProfile(user?.id);
+  const shouldLoadProfile = isReady && isAuthenticated && !!user?.id;
+  const profileQuery = useMyProfile(user?.id, shouldLoadProfile);
 
   const activeGroup = segments[0] ?? null;
   const expectedGroup =
@@ -66,10 +67,15 @@ export default function RouteGate({ children, mode }: RouteGateProps) {
     }
 
     if (profileQuery.isError) {
+      const normalizedError = normalizeError(profileQuery.error);
       logger.error("Profile query failed during route gate", {
         mode,
         pathname,
-        error: getErrorMessage(profileQuery.error),
+        userId: user?.id ?? null,
+        message: normalizedError.message,
+        code: normalizedError.code,
+        details: normalizedError.details,
+        hint: normalizedError.hint,
       });
       return;
     }
@@ -108,9 +114,10 @@ export default function RouteGate({ children, mode }: RouteGateProps) {
   }
 
   if (profileQuery.isError) {
+    const normalizedError = normalizeError(profileQuery.error);
     return (
       <ErrorState
-        message={getErrorMessage(profileQuery.error)}
+        message={normalizedError.message}
         onRetry={() => void queryClient.invalidateQueries({ queryKey: ["profile", user?.id] })}
       />
     );

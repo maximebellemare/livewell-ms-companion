@@ -60,5 +60,12 @@ export function getMockProfile(): Profile {
   return {
     user_id: "dev-mock-user",
     onboarding_completed: currentState === "signed-in-onboarded",
+    display_name: null,
+    ms_type: null,
+    year_diagnosed: null,
+    symptoms: [],
+    goals: [],
+    country: null,
+    age_range: null,
   };
 }
